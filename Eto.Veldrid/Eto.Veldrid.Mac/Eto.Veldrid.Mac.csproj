@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net461</TargetFramework>
+  </PropertyGroup>
+	
+  <ItemGroup>
+    <ProjectReference Include="..\Eto.Veldrid\Eto.Veldrid.csproj" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <PackageReference Include="Eto.Platform.Mac64" Version="2.4.1" />
+  </ItemGroup>
+	
+</Project>
