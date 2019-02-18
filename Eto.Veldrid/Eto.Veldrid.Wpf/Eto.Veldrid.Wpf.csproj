@@ -55,13 +55,16 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Eto.Platform.Wpf">
-      <Version>2.4.1</Version>
+      <Version>2.5.0-ci-10124</Version>
+    </PackageReference>
+    <PackageReference Include="Veldrid.SDL2">
+      <Version>4.5.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Eto.Veldrid\Eto.Veldrid.csproj">
-      <Project>{7EC2C375-4D14-40EC-AFA3-1BDDAEDA60A0}</Project>
-      <Name>Eto.Veldrid</Name>
+    <ProjectReference Include="..\Eto.Veldrid\Eto.VeldridSurface.csproj">
+      <Project>{72B9021E-5D60-4494-8C19-96EA28F1154E}</Project>
+      <Name>Eto.VeldridSurface</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

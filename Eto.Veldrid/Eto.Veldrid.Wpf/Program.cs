@@ -1,7 +1,8 @@
 ﻿using System;
 using Eto.Forms;
+using Eto.VeldridSurface;
 
-namespace Eto.Veldrid.Wpf
+namespace PlaceholderName
 {
 	class MainClass
 	{

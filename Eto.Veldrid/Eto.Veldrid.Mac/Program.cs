@@ -1,5 +1,6 @@
 ﻿using System;
 using Eto.Forms;
+using Eto.VeldridSurface;
 
 namespace Eto.Veldrid.Mac
 {

@@ -6,11 +6,11 @@
   </PropertyGroup>
 	
   <ItemGroup>
-    <ProjectReference Include="..\Eto.Veldrid\Eto.Veldrid.csproj" />
+    <PackageReference Include="Eto.Platform.Mac64" Version="2.5.0-ci-10124" />
   </ItemGroup>
 	
   <ItemGroup>
-    <PackageReference Include="Eto.Platform.Mac64" Version="2.4.1" />
+    <ProjectReference Include="..\Eto.Veldrid\Eto.VeldridSurface.csproj" />
   </ItemGroup>
 	
 </Project>
