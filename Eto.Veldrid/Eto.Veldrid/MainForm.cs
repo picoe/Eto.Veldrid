@@ -18,9 +18,9 @@ namespace Eto.VeldridSurface
 
         public GLSurface Surface;
 
-        public MainForm(GLSurface surface, Action<GLSurface> stripHandlers, Action<GLSurface, VeldridDriver> prepVeldrid)
+        public MainForm(GLSurface s, Action<GLSurface> stripHandlers, Action<GLSurface, VeldridDriver> prepVeldrid)
         {
-            Surface = surface;
+            Surface = s;
 
             PrepVeldrid = prepVeldrid;
 
@@ -35,22 +35,52 @@ namespace Eto.VeldridSurface
             //Veldrid.Sdl2.Sdl2Native.SDL_Init(Veldrid.Sdl2.SDLInitFlags.Video);
             //Shown += MainForm_Shown;
 
-            stripHandlers.Invoke(Surface);
 
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            // Apparently each one of these handler additions is adding more
+            // updateViewHandler instances to the surface's SizeChanged and
+            // Paint events; they stack up, so they need to be removed each
+            // time. Not sure what that's about.
             Surface.GLInitalized += (sender, e) =>
             {
                 PrepVeldrid.Invoke(Surface, VeldridDriver);
                 MakeUncurrent.Invoke(Surface);
                 VeldridDriver.SetUpVeldrid();
-                VeldridDriver.Clock.Start();
+                //VeldridDriver.Clock.Start();
             };
-            //surface.SizeChanged += (sender, e) =>
+
+            stripHandlers.Invoke(Surface);
+
+            //Surface.SizeChanged += (sender, e) =>
             //{
             //    MakeUncurrent.Invoke(Surface);
             //    VeldridDriver.Draw();
             //};
 
-            Content = Surface;
+            stripHandlers.Invoke(Surface);
+
+
+
+
+            var panel = new Panel { Content = Surface };
+
+            panel.SizeChanged += (sender, e) =>
+            {
+                VeldridDriver.Resize(panel.Width, panel.Height);
+                VeldridDriver.Draw();
+            };
+
+            Content = panel;
+
 
         }
 

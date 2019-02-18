@@ -37,6 +37,20 @@ namespace Eto.VeldridSurface
             Draw();
         }
 
+        public void Resize(int width, int height)
+        {
+            if (width < 0 || height < 0)
+            {
+                return;
+            }
+
+            Resize((uint)width, (uint)height);
+        }
+        public void Resize(uint width, uint height)
+        {
+            GraphicsDevice.MainSwapchain.Resize(width, height);
+        }
+
         public void Draw()
         {
             if (!Ready)
