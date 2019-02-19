@@ -60,7 +60,7 @@ namespace Eto.VeldridSurface
         }
         public void Resize(uint width, uint height)
         {
-            GraphicsDevice.MainSwapchain.Resize(width, height);
+            Swapchain.Resize(width, height);
         }
 
         public void Draw()
@@ -71,7 +71,7 @@ namespace Eto.VeldridSurface
             }
 
             CommandList.Begin();
-            CommandList.SetFramebuffer(GraphicsDevice.SwapchainFramebuffer);
+            CommandList.SetFramebuffer(Swapchain.Framebuffer);
             CommandList.ClearColorTarget(0, RgbaFloat.Pink);
             CommandList.SetVertexBuffer(0, VertexBuffer);
             CommandList.SetIndexBuffer(IndexBuffer, IndexFormat.UInt16);
@@ -84,7 +84,7 @@ namespace Eto.VeldridSurface
                 instanceStart: 0);
             CommandList.End();
             GraphicsDevice.SubmitCommands(CommandList);
-            GraphicsDevice.SwapBuffers();
+            GraphicsDevice.SwapBuffers(Swapchain);
         }
 
         public void SetUpVeldrid()
@@ -139,7 +139,7 @@ namespace Eto.VeldridSurface
                 ShaderSet = new ShaderSetDescription(
                     vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
                     shaders: new Shader[] { VertexShader, FragmentShader }),
-                Outputs = GraphicsDevice.SwapchainFramebuffer.OutputDescription
+                Outputs = Swapchain.Framebuffer.OutputDescription
             });
 
             CommandList = factory.CreateCommandList();

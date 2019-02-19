@@ -1,4 +1,5 @@
-﻿using Eto.Gl;
+﻿using Eto.Forms;
+using Eto.Gl;
 using Eto.Gl.Windows;
 using Eto.VeldridSurface;
 using OpenTK;
@@ -6,6 +7,7 @@ using OpenTK.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Veldrid;
 
 namespace PlaceholderName
@@ -134,6 +136,8 @@ namespace PlaceholderName
                 platformInfo,
                 640,
                 480);
+
+            driver.Swapchain = driver.GraphicsDevice.MainSwapchain;
         }
     }
 
@@ -142,17 +146,59 @@ namespace PlaceholderName
         [STAThread]
 		public static void Main(string[] args)
         {
-            Toolkit.Init(new ToolkitOptions { Backend = PlatformBackend.PreferNative });
+            GraphicsBackend backend = Veldrid.StartupUtilities.VeldridStartup.GetPlatformDefaultBackend();
+            //backend = GraphicsBackend.OpenGL;
+
+            if (backend == GraphicsBackend.OpenGL)
+            {
+                Toolkit.Init(new ToolkitOptions { Backend = PlatformBackend.PreferNative });
+            }
 
             var platform = new Eto.WinForms.Platform();
-            platform.Add<GLSurface.IHandler>(() => new WinGLSurfaceHandler());
 
-            var app = new Eto.Forms.Application(platform);
+            if (backend == GraphicsBackend.OpenGL)
+            {
+                platform.Add<GLSurface.IHandler>(() => new WinGLSurfaceHandler());
+            }
 
+            var app = new Application(platform);
+
+            Form form;
+            if (backend == GraphicsBackend.Direct3D11)
+            {
+                form = MakeDirect3DForm();
+            }
+            else
+            {
+                form = MakeOpenGLForm();
+            }
+
+            app.Run(form);
+        }
+
+        private static VeldridForm MakeDirect3DForm()
+        {
+            var form = new Direct3DForm();
+
+            var gd = GraphicsDevice.CreateD3D11(new GraphicsDeviceOptions());
+            var source = SwapchainSource.CreateWin32(
+                form.Panel.NativeHandle, Marshal.GetHINSTANCE(typeof(VeldridForm).Module));
+            var sc = gd.ResourceFactory.CreateSwapchain(
+                new SwapchainDescription(source, 640, 480, null, false));
+
+            form.VeldridDriver.GraphicsDevice = gd;
+            form.VeldridDriver.SwapchainSource = source;
+            form.VeldridDriver.Swapchain = sc;
+
+            return form;
+        }
+
+        private static OpenGLForm MakeOpenGLForm()
+        {
             var prep = new VeldridPrep();
 
-            var form = new MainForm(
-                new GLSurface(), 
+            var form = new OpenGLForm(
+                new GLSurface(),
                 (s) =>
                 {
                     if (s.Handler is WinGLSurfaceHandler h)
@@ -162,7 +208,7 @@ namespace PlaceholderName
                         h.Control.SizeChanged -= h.updateViewHandler;
                         h.Control.Paint -= h.updateViewHandler;
                     }
-                },                
+                },
                 (s, d) => prep.PrepVeldrid(s, d))
             {
                 MakeUncurrent = (s) =>
@@ -175,7 +221,7 @@ namespace PlaceholderName
                 }
             };
 
-            app.Run(form);
+            return form;
         }
-	}
+    }
 }
