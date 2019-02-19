@@ -47,21 +47,33 @@ namespace PlaceholderName
                 .GetField("available_contexts", BindingFlags.NonPublic | BindingFlags.Static)
                 .GetValue(null);
 
+            bool found = false;
             foreach (var pair in available)
             {
                 foreach (GLSurface s in Surfaces)
                 {
                     var co = s.ControlObject as WinGLUserControl;
 
-                    if (co.Context == pair.Value)
+                    if (pair.Key.Handle == context)
                     {
                         if (!Contexts.ContainsKey(pair.Key.Handle))
                         {
                             Contexts.Add(pair.Key.Handle, s);
                         }
                         Contexts[pair.Key.Handle].MakeCurrent();
+
+                        found = true;
+                    }
+
+                    if (found)
+                    {
                         break;
                     }
+                }
+
+                if (found)
+                {
+                    break;
                 }
             }
         }
