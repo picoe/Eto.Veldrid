@@ -148,16 +148,6 @@ namespace PlaceholderName
         [STAThread]
         public static void Main(string[] args)
         {
-            // Assemblies are resolved at the start of the method in which they
-            // get used, which means this event handler needs to be attached
-            // in its own dummy Main method, separated from everything else.
-            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
-
-            RealMain(args);
-        }
-
-        private static void RealMain(string[] args)
-        {
             GraphicsBackend backend = Veldrid.StartupUtilities.VeldridStartup.GetPlatformDefaultBackend();
             //backend = GraphicsBackend.OpenGL;
 
@@ -186,23 +176,6 @@ namespace PlaceholderName
             }
 
             app.Run(form);
-        }
-
-        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            List<AssemblyName> names = typeof(Program).Assembly.GetReferencedAssemblies().ToList();
-
-            Assembly assembly = null;
-            if (names.Select(a => a.FullName).Contains(args.Name))
-            {
-                var libDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "lib");
-
-                var fileName = $"{args.Name.Split(',')[0]}.dll";
-
-                assembly = Assembly.LoadFrom(Path.Combine(libDir, fileName));
-            }
-
-            return assembly;
         }
 
         private static VeldridForm MakeDirect3DForm()
