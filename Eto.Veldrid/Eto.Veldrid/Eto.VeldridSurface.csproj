@@ -78,6 +78,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+	
+  <ItemGroup>
+    <None Include="..\Directory.Build.targets" Link="Directory.Build.targets" />
+  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="Eto.Forms" Version="2.5.0-ci-10124" />
