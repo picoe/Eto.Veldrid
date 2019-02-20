@@ -6,8 +6,6 @@ using OpenTK;
 using OpenTK.Graphics;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Veldrid;
@@ -148,8 +146,7 @@ namespace PlaceholderName
         [STAThread]
         public static void Main(string[] args)
         {
-            GraphicsBackend backend = Veldrid.StartupUtilities.VeldridStartup.GetPlatformDefaultBackend();
-            //backend = GraphicsBackend.OpenGL;
+            GraphicsBackend backend = VeldridDriver.PreferredBackend;
 
             if (backend == GraphicsBackend.OpenGL)
             {
@@ -166,7 +163,11 @@ namespace PlaceholderName
             var app = new Application(platform);
 
             Form form;
-            if (backend == GraphicsBackend.Direct3D11)
+            if (backend == GraphicsBackend.Vulkan)
+            {
+                form = MakeVulkanForm();
+            }
+            else if (backend == GraphicsBackend.Direct3D11)
             {
                 form = MakeDirect3DForm();
             }
@@ -222,6 +223,23 @@ namespace PlaceholderName
                     co.Context.MakeCurrent(null);
                 }
             };
+
+            return form;
+        }
+
+        private static VeldridForm MakeVulkanForm()
+        {
+            var form = new Direct3DForm();
+
+            var gd = GraphicsDevice.CreateVulkan(new GraphicsDeviceOptions());
+            var source = SwapchainSource.CreateWin32(
+                form.Panel.NativeHandle, Marshal.GetHINSTANCE(typeof(VeldridForm).Module));
+            var sc = gd.ResourceFactory.CreateSwapchain(
+                new SwapchainDescription(source, 640, 480, null, false));
+
+            form.VeldridDriver.GraphicsDevice = gd;
+            form.VeldridDriver.SwapchainSource = source;
+            form.VeldridDriver.Swapchain = sc;
 
             return form;
         }

@@ -23,6 +23,32 @@ namespace Eto.VeldridSurface
 
     public class VeldridDriver
     {
+        public static GraphicsBackend PreferredBackend
+        {
+            get
+            {
+                GraphicsBackend backend;
+                if (GraphicsDevice.IsBackendSupported(GraphicsBackend.Metal))
+                {
+                    backend = GraphicsBackend.Metal;
+                }
+                else if (GraphicsDevice.IsBackendSupported(GraphicsBackend.Vulkan))
+                {
+                    backend = GraphicsBackend.Vulkan;
+                }
+                else if (GraphicsDevice.IsBackendSupported(GraphicsBackend.Direct3D11))
+                {
+                    backend = GraphicsBackend.Direct3D11;
+                }
+                else
+                {
+                    backend = GraphicsBackend.OpenGL;
+                }
+
+                return backend;
+            }
+        }
+
         public UITimer Clock = new UITimer();
 
         public SwapchainSource SwapchainSource { get; set; }

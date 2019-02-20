@@ -11,6 +11,7 @@ namespace Eto.VeldridSurface
 
         private void Direct3DForm_Shown(object sender, EventArgs e)
         {
+            VeldridDriver.Resize(Panel.Width, Panel.Height);
             VeldridDriver.SetUpVeldrid();
             VeldridDriver.Clock.Start();
         }
