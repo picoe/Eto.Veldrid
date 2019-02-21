@@ -86,7 +86,7 @@ namespace Eto.VeldridSurface
         }
         public void Resize(uint width, uint height)
         {
-            Swapchain.Resize(width, height);
+            Swapchain?.Resize(width, height);
         }
 
         public void Draw()

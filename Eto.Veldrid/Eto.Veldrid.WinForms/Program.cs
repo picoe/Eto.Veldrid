@@ -141,6 +141,31 @@ namespace PlaceholderName
         }
     }
 
+    public class PuppetWinGLSurfaceHandler : WinGLSurfaceHandler
+    {
+        public override void AttachEvent(string id)
+        {
+            switch (id)
+            {
+                // Prevent the base surface handler class from attaching its own
+                // internal event handler to these events; said handler calls
+                // MakeCurrent, uses GL.Viewport, and swaps buffers. That's
+                // undesirable here, so just attach the appropriate callback.
+                case GLSurface.ShownEvent:
+                    break;
+                case GLSurface.GLDrawEvent:
+                    Control.Paint += (sender, e) => Callback.OnDraw(Widget, EventArgs.Empty);
+                    break;
+                case GLSurface.SizeChangedEvent:
+                    Control.SizeChanged += (sender, e) => Callback.OnSizeChanged(Widget, EventArgs.Empty);
+                    break;
+                default:
+                    base.AttachEvent(id);
+                    break;
+            }
+        }
+    }
+
     public static class Program
     {
         [STAThread]
@@ -157,7 +182,7 @@ namespace PlaceholderName
 
             if (backend == GraphicsBackend.OpenGL)
             {
-                platform.Add<GLSurface.IHandler>(() => new WinGLSurfaceHandler());
+                platform.Add<GLSurface.IHandler>(() => new PuppetWinGLSurfaceHandler());
             }
 
             var app = new Application(platform);
@@ -202,16 +227,6 @@ namespace PlaceholderName
 
             var form = new OpenGLForm(
                 new GLSurface(),
-                (s) =>
-                {
-                    if (s.Handler is WinGLSurfaceHandler h)
-                    {
-                        // Prevent GLSurface from automatically refreshing, to avoid
-                        // calls to MakeCurrent on the wrong thread.
-                        h.Control.SizeChanged -= h.updateViewHandler;
-                        h.Control.Paint -= h.updateViewHandler;
-                    }
-                },
                 (s, d) => prep.PrepVeldrid(s, d))
             {
                 MakeUncurrent = (s) =>
