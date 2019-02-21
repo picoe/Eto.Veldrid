@@ -18,68 +18,11 @@
   </PropertyGroup>
 	
   <ItemGroup>
-    <None Remove="Shaders\Fragment.450.glsl" />
-    <None Remove="Shaders\Fragment.glsl" />
-    <None Remove="Shaders\Fragment.hlsl" />
-    <None Remove="Shaders\Fragment.hlsl.bytes" />
-    <None Remove="Shaders\Fragment.metal" />
-    <None Remove="Shaders\Fragment.metallib" />
-    <None Remove="Shaders\Fragment.spv" />
-    <None Remove="Shaders\Vertex.450.glsl" />
-    <None Remove="Shaders\Vertex.glsl" />
-    <None Remove="Shaders\Vertex.hlsl" />
-    <None Remove="Shaders\Vertex.hlsl.bytes" />
-    <None Remove="Shaders\Vertex.metal" />
-    <None Remove="Shaders\Vertex.metallib" />
-    <None Remove="Shaders\Vertex.spv" />
+    <None Include=".\Shaders\**\*" Link="Shaders\%(Filename)%(Extension)" />
   </ItemGroup>
 	
   <ItemGroup>
-    <Content Include="Shaders\Fragment.450.glsl">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\Fragment.glsl">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\Fragment.hlsl">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\Fragment.hlsl.bytes">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\Fragment.metal">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\Fragment.metallib">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\Fragment.spv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\Vertex.450.glsl">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\Vertex.glsl">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\Vertex.hlsl">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\Vertex.hlsl.bytes">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\Vertex.metal">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\Vertex.metallib">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\Vertex.spv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-	
-  <ItemGroup>
+    <None Include="..\Directory.Build.props" Link="Directory.Build.props" />
     <None Include="..\Directory.Build.targets" Link="Directory.Build.targets" />
   </ItemGroup>
   

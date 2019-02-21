@@ -1,4 +1,4 @@
-#version 330 core
+#version 150
 
 in vec4 fsin_Color;
 out vec4 fsout_Color;

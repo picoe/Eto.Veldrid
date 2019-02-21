@@ -12,28 +12,40 @@ namespace Eto.VeldridSurface
 
         public GLSurface Surface;
 
-        public OpenGLForm(GLSurface s, Action<GLSurface> stripHandlers, Action<GLSurface, VeldridDriver> prepVeldrid)
+        public OpenGLForm(GLSurface s, Action<GLSurface, VeldridDriver> prepVeldrid)
         {
             Surface = s;
 
-            PrepVeldrid = prepVeldrid;
-
-            // Apparently each one of these handler additions is adding more
-            // updateViewHandler instances to the surface's SizeChanged and
-            // Paint events; they stack up, so they need to be removed each
-            // time. Not sure what that's about.
+			PrepVeldrid = prepVeldrid;
+            
             Surface.GLInitalized += (sender, e) =>
             {
                 PrepVeldrid.Invoke(Surface, VeldridDriver);
                 MakeUncurrent.Invoke(Surface);
                 VeldridDriver.SetUpVeldrid();
-                VeldridDriver.Resize(Panel.Width, Panel.Height);
-                VeldridDriver.Clock.Start();
             };
 
-            stripHandlers.Invoke(Surface);
+			Surface.Draw += Surface_Draw;
+			Surface.LoadComplete += Surface_LoadComplete;
+			Surface.SizeChanged += Surface_SizeChanged;
 
-            Panel.Content = Surface;
-        }
-    }
+			Panel.Content = Surface;
+		}
+
+		void Surface_Draw(object sender, EventArgs e)
+		{
+			VeldridDriver.Draw();
+		}
+
+		void Surface_LoadComplete(object sender, EventArgs e)
+		{
+			VeldridDriver.Resize(Panel.Width, Panel.Height);
+			VeldridDriver.Draw();
+		}
+
+		void Surface_SizeChanged(object sender, EventArgs e)
+		{
+			VeldridDriver.Resize(Surface.Width, Surface.Height);
+		}
+	}
 }

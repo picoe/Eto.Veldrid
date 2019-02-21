@@ -1,5 +1,4 @@
-﻿using Eto.Drawing;
-using Eto.Forms;
+﻿using Eto.Forms;
 
 namespace Eto.VeldridSurface
 {
@@ -12,12 +11,6 @@ namespace Eto.VeldridSurface
         public VeldridForm()
         {
             InitializeComponent();
-
-            Panel.SizeChanged += (sender, e) =>
-            {
-                VeldridDriver.Resize(Panel.Width, Panel.Height);
-                VeldridDriver.Draw();
-            };
 
             Content = Panel;
         }

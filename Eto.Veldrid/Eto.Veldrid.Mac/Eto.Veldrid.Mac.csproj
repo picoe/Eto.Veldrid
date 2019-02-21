@@ -13,4 +13,12 @@
     <ProjectReference Include="..\Eto.Veldrid\Eto.VeldridSurface.csproj" />
   </ItemGroup>
 	
+  <ItemGroup>
+    <Reference Include="Eto.Gl">
+      <HintPath>..\..\lib\thirdparty\Eto.Gl\Eto.Gl\Debug\Eto.Gl.dll</HintPath>
+    </Reference>
+    <Reference Include="Eto.Gl.Mac">
+      <HintPath>..\..\lib\thirdparty\Eto.Gl\Eto.Gl.Mac\Debug\Eto.Gl.Mac.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>

@@ -19,5 +19,13 @@
     </ItemGroup>
     <Move SourceFiles="@(Uglies)" DestinationFolder="$(OutputPath)lib" />
   </Target>
+    
+  <Target Name="CopyShaders" AfterTargets="NeatenizeLibraries">
+    <ItemGroup>
+      <Shaders Include="$(TopLevelDirectory)Eto.Veldrid\Shaders\**\*" />
+    </ItemGroup>
+    <Copy Condition="$(OutputAppPath) != ''" SourceFiles="@(Shaders)" DestinationFolder="$(OutputAppPath)\Contents\MonoBundle\Shaders\%(Shaders.RecursiveDir)" />
+    <Copy Condition="$(OutputAppPath) == ''" SourceFiles="@(Shaders)" DestinationFolder="$(OutputPath)\Shaders\%(Shaders.RecursiveDir)" />
+  </Target>
 
 </Project>
