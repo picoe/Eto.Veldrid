@@ -25,16 +25,8 @@ namespace PlaceholderName
 
         internal IntPtr GetProcAddress(string name)
         {
-            var current = (GraphicsContext)GraphicsContext.CurrentContext;
-
             var instance = new OpenTK.Graphics.OpenGL.GL();
             var type = instance.GetType();
-
-            // This is a bit low level, but if push comes to shove it should be
-            // possible to parse the string myself, I imagine. There's a
-            // matching field of some sort that contains the IntPtr addresses,
-            // and I think one could relatively easily connect the two.
-            //var names = (byte[])type.GetField("EntryPointNames", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).GetValue(null);
 
             var getAddress = type.GetMethod("GetAddress", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -54,15 +46,13 @@ namespace PlaceholderName
             {
                 foreach (GLSurface s in Surfaces)
                 {
-                    var co = s.ControlObject as WinGLUserControl;
-
                     if (pair.Key.Handle == context)
                     {
-                        if (!Contexts.ContainsKey(pair.Key.Handle))
+                        if (!Contexts.ContainsKey(context))
                         {
-                            Contexts.Add(pair.Key.Handle, s);
+                            Contexts.Add(context, s);
                         }
-                        Contexts[pair.Key.Handle].MakeCurrent();
+                        Contexts[context].MakeCurrent();
 
                         found = true;
                     }
@@ -92,7 +82,6 @@ namespace PlaceholderName
 
         internal void DeleteContext(IntPtr context)
         {
-
         }
 
         internal void SwapBuffers()
@@ -102,17 +91,15 @@ namespace PlaceholderName
 
         internal void SetVSync(bool on)
         {
-
+            GraphicsContext.CurrentContext.SwapInterval = on ? 1 : 0;
         }
 
         internal void SetSwapchainFramebuffer()
         {
-
         }
 
         internal void ResizeSwapchain(uint width, uint height)
         {
-
         }
 
         public void PrepVeldrid(GLSurface surface, VeldridDriver driver)
