@@ -25,12 +25,12 @@ namespace PlaceholderName
 
         internal IntPtr GetProcAddress(string name)
         {
-            var instance = new OpenTK.Graphics.OpenGL.GL();
-            var type = instance.GetType();
+            var type = typeof(OpenTK.Platform.Utilities);
 
-            var getAddress = type.GetMethod("GetAddress", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            MethodInfo createGetAddress = type.GetMethod("CreateGetAddress", BindingFlags.NonPublic | BindingFlags.Static);
+            var getAddress = (GraphicsContext.GetAddressDelegate)createGetAddress.Invoke(null, Array.Empty<string>());
 
-            return (IntPtr)getAddress.Invoke(instance, new string[] { name });
+            return getAddress.Invoke(name);
         }
 
         internal void MakeCurrent(IntPtr context)
@@ -82,6 +82,9 @@ namespace PlaceholderName
 
         internal void DeleteContext(IntPtr context)
         {
+            // Do nothing! With this Eto.Gl-based approach, Veldrid should never
+            // need to destroy an OpenGL context on its own; let the GLSurface
+            // handle context deletion when it gets disposed of.
         }
 
         internal void SwapBuffers()
@@ -93,6 +96,11 @@ namespace PlaceholderName
         {
             GraphicsContext.CurrentContext.SwapInterval = on ? 1 : 0;
         }
+
+        // It's perfectly acceptable to create an instance of OpenGLPlatformInfo
+        // without providing these last two methods, if indeed you don't need
+        // them. They're stubbed out here only to serve as a reminder that they
+        // can be customized should the occasion call for it.
 
         internal void SetSwapchainFramebuffer()
         {
