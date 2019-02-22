@@ -8,8 +8,6 @@ namespace Eto.VeldridSurface
     {
         public Action<GLSurface, VeldridDriver> PrepVeldrid;
 
-        public Action<GLSurface> MakeUncurrent;
-
         public GLSurface Surface;
 
         public OpenGLForm(GLSurface s, Action<GLSurface, VeldridDriver> prepVeldrid)
@@ -21,7 +19,6 @@ namespace Eto.VeldridSurface
             Surface.GLInitalized += (sender, e) =>
             {
                 PrepVeldrid.Invoke(Surface, VeldridDriver);
-                MakeUncurrent.Invoke(Surface);
                 VeldridDriver.SetUpVeldrid();
             };
 

@@ -87,7 +87,7 @@ namespace PlaceholderName
 
         internal void ClearCurrentContext()
         {
-
+            GraphicsContext.CurrentContext.MakeCurrent(null);
         }
 
         internal void DeleteContext(IntPtr context)
@@ -227,17 +227,7 @@ namespace PlaceholderName
 
             var form = new OpenGLForm(
                 new GLSurface(),
-                (s, d) => prep.PrepVeldrid(s, d))
-            {
-                MakeUncurrent = (s) =>
-                {
-                    var co = s.ControlObject as WinGLUserControl;
-
-                    // Make this surface's context inactive on the main UI
-                    // thread, allowing Veldrid to handle all of that.
-                    co.Context.MakeCurrent(null);
-                }
-            };
+                (s, d) => prep.PrepVeldrid(s, d));
 
             return form;
         }

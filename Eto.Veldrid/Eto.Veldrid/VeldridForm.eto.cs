@@ -10,7 +10,6 @@ namespace Eto.VeldridSurface
 		{
 			Title = "Veldrid in Eto";
 			ClientSize = new Size(400, 350);
-			Padding = 10;
 
 			var quitCommand = new Command { MenuText = "Quit", Shortcut = Application.Instance.CommonModifier | Keys.Q };
 			quitCommand.Executed += (sender, e) => Application.Instance.Quit();
