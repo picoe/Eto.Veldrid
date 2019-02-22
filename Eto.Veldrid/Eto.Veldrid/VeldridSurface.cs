@@ -1,27 +1,121 @@
 ﻿using Eto.Forms;
+using Eto.Gl;
+using OpenTK;
+using OpenTK.Graphics;
 using System;
-using System.IO;
-using System.Numerics;
-using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using System.Reflection;
 using Veldrid;
 
 namespace Eto.VeldridSurface
 {
-    public struct VertexPositionColor
+    public static class VeldridGL
     {
-        public static uint SizeInBytes = (uint)Marshal.SizeOf(typeof(VertexPositionColor));
+        public static Dictionary<IntPtr, GLSurface> Contexts = new Dictionary<IntPtr, GLSurface>();
 
-        public Vector2 Position;
-        public RgbaFloat Color;
+        public static List<GLSurface> Surfaces = new List<GLSurface>();
 
-        public VertexPositionColor(Vector2 position, RgbaFloat color)
+        public static IntPtr GetGLContextHandle()
         {
-            Position = position;
-            Color = color;
+            return GetCurrentContext();
+        }
+
+        public static IntPtr GetProcAddress(string name)
+        {
+            var type = typeof(OpenTK.Platform.Utilities);
+
+            MethodInfo createGetAddress = type.GetMethod("CreateGetAddress", BindingFlags.NonPublic | BindingFlags.Static);
+            var getAddress = (GraphicsContext.GetAddressDelegate)createGetAddress.Invoke(null, Array.Empty<string>());
+
+            return getAddress.Invoke(name);
+        }
+
+        public static void MakeCurrent(IntPtr context)
+        {
+            var type = typeof(GraphicsContext);
+
+            var available = (Dictionary<ContextHandle, IGraphicsContext>)type
+                .GetField("available_contexts", BindingFlags.NonPublic | BindingFlags.Static)
+                .GetValue(null);
+
+            bool found = false;
+            foreach (var pair in available)
+            {
+                foreach (GLSurface s in Surfaces)
+                {
+                    if (pair.Key.Handle == context)
+                    {
+                        if (!Contexts.ContainsKey(context))
+                        {
+                            Contexts.Add(context, s);
+                        }
+                        Contexts[context].MakeCurrent();
+
+                        found = true;
+                    }
+
+                    if (found)
+                    {
+                        break;
+                    }
+                }
+
+                if (found)
+                {
+                    break;
+                }
+            }
+        }
+
+        public static IntPtr GetCurrentContext()
+        {
+            return GraphicsContext.CurrentContextHandle.Handle;
+        }
+
+        public static void ClearCurrentContext()
+        {
+            GraphicsContext.CurrentContext.MakeCurrent(null);
+        }
+
+        public static void DeleteContext(IntPtr context)
+        {
+            // Do nothing! With this Eto.Gl-based approach, Veldrid should never
+            // need to destroy an OpenGL context on its own; let the GLSurface
+            // take care of context deletion upon its own disposal.
+        }
+
+        public static void SwapBuffers()
+        {
+            GraphicsContext.CurrentContext.SwapBuffers();
+        }
+
+        public static void SetVSync(bool on)
+        {
+            GraphicsContext.CurrentContext.SwapInterval = on ? 1 : 0;
+        }
+
+        // It's perfectly acceptable to create an instance of OpenGLPlatformInfo
+        // without providing these last two methods, if indeed you don't need
+        // them. They're stubbed out here only to serve as a reminder that they
+        // can be customized should the occasion call for it.
+
+        public static void SetSwapchainFramebuffer()
+        {
+        }
+
+        public static void ResizeSwapchain(uint width, uint height)
+        {
         }
     }
 
-    public class VeldridDriver
+    /// <summary>
+    /// A simple control that allows drawing with Veldrid.
+    /// </summary>
+    /// <remarks>This is a minimal control, only enough to offer the beginnings
+    /// of a Veldrid rendering pipeline. Use of the API's features is left up to
+    /// users, including things as basic as resizing and refreshing the view, in
+    /// order to allow the most control over the process.</remarks>
+    public class VeldridSurface : Panel
     {
         public static GraphicsBackend PreferredBackend
         {
@@ -49,155 +143,57 @@ namespace Eto.VeldridSurface
             }
         }
 
-        public UITimer Clock = new UITimer();
-
-        public SwapchainSource SwapchainSource { get; set; }
+        public GraphicsDevice GraphicsDevice { get; set; }
         public Swapchain Swapchain { get; set; }
 
-        public GraphicsDevice GraphicsDevice;
-        public CommandList CommandList;
-        public DeviceBuffer VertexBuffer;
-        public DeviceBuffer IndexBuffer;
-        public Shader VertexShader;
-        public Shader FragmentShader;
-        public Pipeline Pipeline;
-
-        private bool Ready = false;
-
-        public VeldridDriver()
+        private new Control Content
         {
-            Clock.Interval = 1.0f / 60.0f;
-            Clock.Elapsed += Clock_Elapsed;
+            get { return base.Content; }
+            set { base.Content = value; }
         }
 
-        private void Clock_Elapsed(object sender, EventArgs e)
+        public VeldridSurface(Action<VeldridSurface, GraphicsBackend> initOther) :
+            this(initOther, PreferredBackend)
         {
-            Draw();
         }
-
-        public void Resize(int width, int height)
+        public VeldridSurface(Action<VeldridSurface, GraphicsBackend> initOther, GraphicsBackend backend)
         {
-            if (width < 0 || height < 0)
+            if (backend == GraphicsBackend.OpenGL)
             {
-                return;
+                var surface = new GLSurface();
+                surface.GLInitalized += (sender, e) => InitGL();
+
+                Content = surface;
             }
-
-            Resize((uint)width, (uint)height);
-        }
-        public void Resize(uint width, uint height)
-        {
-            Swapchain?.Resize(width, height);
-        }
-
-        public void Draw()
-        {
-            if (!Ready)
+            else
             {
-                return;
+                LoadComplete += (sender, e) => initOther.Invoke(this, backend);
             }
-
-            CommandList.Begin();
-            CommandList.SetFramebuffer(Swapchain.Framebuffer);
-            CommandList.ClearColorTarget(0, RgbaFloat.Pink);
-            CommandList.SetVertexBuffer(0, VertexBuffer);
-            CommandList.SetIndexBuffer(IndexBuffer, IndexFormat.UInt16);
-            CommandList.SetPipeline(Pipeline);
-            CommandList.DrawIndexed(
-                indexCount: 4,
-                instanceCount: 1,
-                indexStart: 0,
-                vertexOffset: 0,
-                instanceStart: 0);
-            CommandList.End();
-            GraphicsDevice.SubmitCommands(CommandList);
-            GraphicsDevice.SwapBuffers(Swapchain);
         }
 
-        public void SetUpVeldrid()
+        private void InitGL()
         {
-            CreateResources();
+            VeldridGL.Surfaces.Add(Content as GLSurface);
 
-            Ready = true;
-        }
+            var platformInfo = new Veldrid.OpenGL.OpenGLPlatformInfo(
+                VeldridGL.GetGLContextHandle(),
+                VeldridGL.GetProcAddress,
+                VeldridGL.MakeCurrent,
+                VeldridGL.GetCurrentContext,
+                VeldridGL.ClearCurrentContext,
+                VeldridGL.DeleteContext,
+                VeldridGL.SwapBuffers,
+                VeldridGL.SetVSync,
+                VeldridGL.SetSwapchainFramebuffer,
+                VeldridGL.ResizeSwapchain);
 
-        private void CreateResources()
-        {
-            ResourceFactory factory = GraphicsDevice.ResourceFactory;
+            GraphicsDevice = GraphicsDevice.CreateOpenGL(
+                new GraphicsDeviceOptions(),
+                platformInfo,
+                640,
+                480);
 
-            VertexPositionColor[] quadVertices =
-            {
-                new VertexPositionColor(new Vector2(-.75f, .75f), RgbaFloat.Red),
-                new VertexPositionColor(new Vector2(.75f, .75f), RgbaFloat.Green),
-                new VertexPositionColor(new Vector2(-.75f, -.75f), RgbaFloat.Blue),
-                new VertexPositionColor(new Vector2(.75f, -.75f), RgbaFloat.Yellow)
-            };
-
-            ushort[] quadIndices = { 0, 1, 2, 3 };
-
-            VertexBuffer = factory.CreateBuffer(new BufferDescription(4 * VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer));
-            IndexBuffer = factory.CreateBuffer(new BufferDescription(4 * sizeof(ushort), BufferUsage.IndexBuffer));
-
-            GraphicsDevice.UpdateBuffer(VertexBuffer, 0, quadVertices);
-            GraphicsDevice.UpdateBuffer(IndexBuffer, 0, quadIndices);
-
-            var vertexLayout = new VertexLayoutDescription(
-                new VertexElementDescription("Position", VertexElementSemantic.Position, VertexElementFormat.Float2),
-                new VertexElementDescription("Color", VertexElementSemantic.Color, VertexElementFormat.Float4));
-
-            VertexShader = LoadShader(ShaderStages.Vertex);
-            FragmentShader = LoadShader(ShaderStages.Fragment);
-
-            Pipeline = factory.CreateGraphicsPipeline(new GraphicsPipelineDescription
-            {
-                BlendState = BlendStateDescription.SingleOverrideBlend,
-                DepthStencilState = new DepthStencilStateDescription(
-                    depthTestEnabled: true,
-                    depthWriteEnabled: true,
-                    comparisonKind: ComparisonKind.LessEqual),
-                RasterizerState = new RasterizerStateDescription(
-                    cullMode: FaceCullMode.Back,
-                    fillMode: PolygonFillMode.Solid,
-                    frontFace: FrontFace.Clockwise,
-                    depthClipEnabled: true,
-                    scissorTestEnabled: false),
-                PrimitiveTopology = PrimitiveTopology.TriangleStrip,
-                ResourceLayouts = Array.Empty<ResourceLayout>(),
-                ShaderSet = new ShaderSetDescription(
-                    vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
-                    shaders: new Shader[] { VertexShader, FragmentShader }),
-                Outputs = Swapchain.Framebuffer.OutputDescription
-            });
-
-            CommandList = factory.CreateCommandList();
-        }
-
-        private Shader LoadShader(ShaderStages stage)
-        {
-            string extension = null;
-
-            switch (GraphicsDevice.BackendType)
-            {
-                case GraphicsBackend.Direct3D11:
-                    extension = "hlsl.bytes";
-                    break;
-                case GraphicsBackend.Vulkan:
-                    extension = "spv";
-                    break;
-                case GraphicsBackend.OpenGL:
-                    extension = "glsl";
-                    break;
-                case GraphicsBackend.Metal:
-                    extension = "metallib";
-                    break;
-                default:
-                    throw new System.InvalidOperationException();
-            }
-
-            string entryPoint = stage == ShaderStages.Vertex ? "VS" : "FS";
-            string path = Path.Combine(System.AppContext.BaseDirectory, "Shaders", $"{stage.ToString()}.{extension}");
-            byte[] shaderBytes = File.ReadAllBytes(path);
-
-            return GraphicsDevice.ResourceFactory.CreateShader(new ShaderDescription(stage, shaderBytes, entryPoint));
+            Swapchain = GraphicsDevice.MainSwapchain;
         }
     }
 }

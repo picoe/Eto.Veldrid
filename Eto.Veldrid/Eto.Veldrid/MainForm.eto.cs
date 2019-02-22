@@ -4,7 +4,7 @@ using Eto.Drawing;
 
 namespace Eto.VeldridSurface
 {
-	public partial class VeldridForm : Form
+	public partial class MainForm : Form
 	{
 		void InitializeComponent()
 		{
@@ -20,8 +20,7 @@ namespace Eto.VeldridSurface
 			var drawCommand = new Command { MenuText = "Draw" };
 			drawCommand.Executed += (sender, e) =>
 			{
-                VeldridDriver.SetUpVeldrid();
-                VeldridDriver.Draw();
+                Driver.Draw();
 			};
 
 			Menu = new MenuBar

@@ -38,4 +38,10 @@
     </Reference>
   </ItemGroup>
   
+  <ItemGroup>
+    <Compile Update="MainForm.eto.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  
 </Project>
