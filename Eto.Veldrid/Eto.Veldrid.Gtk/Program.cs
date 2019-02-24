@@ -1,10 +1,9 @@
-﻿using System;
-using Eto.Forms;
-using Eto.VeldridSurface;
+﻿using Eto.Forms;
+using System;
 
 namespace Eto.Veldrid.Gtk
 {
-	class MainClass
+	public static class MainClass
 	{
 		[STAThread]
 		public static void Main(string[] args)

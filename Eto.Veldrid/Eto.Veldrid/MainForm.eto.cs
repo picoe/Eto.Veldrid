@@ -1,12 +1,11 @@
-using System;
-using Eto.Forms;
 using Eto.Drawing;
+using Eto.Forms;
 
 namespace Eto.VeldridSurface
 {
 	public partial class MainForm : Form
 	{
-		void InitializeComponent()
+		private void InitializeComponent()
 		{
 			Title = "Veldrid in Eto";
 			ClientSize = new Size(400, 350);
@@ -20,7 +19,7 @@ namespace Eto.VeldridSurface
 			var drawCommand = new Command { MenuText = "Draw" };
 			drawCommand.Executed += (sender, e) =>
 			{
-                Driver.Draw();
+				Driver.Draw();
 			};
 
 			Menu = new MenuBar

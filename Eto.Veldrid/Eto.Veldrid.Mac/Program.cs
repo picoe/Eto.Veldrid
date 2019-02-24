@@ -8,7 +8,7 @@ using Veldrid;
 
 namespace PlaceholderName
 {
-	class MainClass
+	public static class MainClass
 	{
 		[STAThread]
 		public static void Main(string[] args)
