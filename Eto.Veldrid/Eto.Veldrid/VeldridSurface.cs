@@ -160,7 +160,12 @@ namespace Eto.VeldridSurface
         {
             if (backend == GraphicsBackend.OpenGL)
             {
-                var surface = new GLSurface();
+                var mode = new GraphicsMode();
+                var major = 3;
+                var minor = EtoEnvironment.Platform.IsMac ? 2 : 0;
+                var flags = GraphicsContextFlags.ForwardCompatible;
+
+                var surface = new GLSurface(mode, major, minor, flags);
                 surface.GLInitalized += (sender, e) => InitGL();
 
                 Content = surface;

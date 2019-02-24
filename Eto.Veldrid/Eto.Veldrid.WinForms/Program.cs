@@ -62,27 +62,16 @@ namespace PlaceholderName
 
         public static void WindowsInit(VeldridSurface surface, GraphicsBackend backend)
         {
+            // OpenGL initialization is technically platform-dependent, but it
+            // happens by way of GLSurface, which for users of the class is
+            // cross platform. See VeldridSurface for initialization details.
             if (backend == GraphicsBackend.Vulkan)
             {
-                var gd = GraphicsDevice.CreateVulkan(new GraphicsDeviceOptions());
-                var source = SwapchainSource.CreateWin32(
-                    surface.NativeHandle, Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
-                var sc = gd.ResourceFactory.CreateSwapchain(
-                    new SwapchainDescription(source, 640, 480, null, false));
-
-                surface.GraphicsDevice = gd;
-                surface.Swapchain = sc;
+                surface.GraphicsDevice = GraphicsDevice.CreateVulkan(new GraphicsDeviceOptions());
             }
             else if (backend == GraphicsBackend.Direct3D11)
             {
-                var gd = GraphicsDevice.CreateD3D11(new GraphicsDeviceOptions());
-                var source = SwapchainSource.CreateWin32(
-                    surface.NativeHandle, Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
-                var sc = gd.ResourceFactory.CreateSwapchain(
-                    new SwapchainDescription(source, 640, 480, null, false));
-
-                surface.GraphicsDevice = gd;
-                surface.Swapchain = sc;
+                surface.GraphicsDevice = GraphicsDevice.CreateD3D11(new GraphicsDeviceOptions());
             }
             else
             {
@@ -98,6 +87,11 @@ namespace PlaceholderName
 
                 throw new ArgumentException(message);
             }
+
+            var source = SwapchainSource.CreateWin32(
+                surface.NativeHandle, Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
+            surface.Swapchain = surface.GraphicsDevice.ResourceFactory.CreateSwapchain(
+                new SwapchainDescription(source, 640, 480, null, false));
         }
     }
 }

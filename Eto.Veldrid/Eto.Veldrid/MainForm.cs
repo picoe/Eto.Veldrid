@@ -1,4 +1,5 @@
 ﻿using Eto.Forms;
+using Eto.Gl;
 using System;
 using Veldrid;
 
@@ -13,11 +14,26 @@ namespace Eto.VeldridSurface
             InitializeComponent();
 
             Shown += MainForm_Shown;
-            SizeChanged += MainForm_SizeChanged;
 
-            Content = new VeldridSurface(initOther, backend);
+            var surface = new VeldridSurface(initOther, backend);
 
-            Driver.Surface = Content as VeldridSurface;
+            if (surface.Content is GLSurface g)
+            {
+                g.Draw += (sender, e) => Driver.Draw();
+                g.SizeChanged += (sender, e) => 
+                {
+                    var s = Driver.Surface;
+                    s?.Swapchain?.Resize((uint)s.Width, (uint)s.Height);
+                };
+            }
+            else
+            {
+                surface.SizeChanged += Surface_SizeChanged;
+            }
+
+            Content = surface;
+
+            Driver.Surface = surface;
         }
 
         private void MainForm_Shown(object sender, EventArgs e)
@@ -30,10 +46,10 @@ namespace Eto.VeldridSurface
             Driver.Draw();
         }
 
-        private void MainForm_SizeChanged(object sender, EventArgs e)
+        private void Surface_SizeChanged(object sender, EventArgs e)
         {
             var s = Driver.Surface;
-            s.Swapchain?.Resize((uint)s.Width, (uint)s.Height);
+            s?.Swapchain?.Resize((uint)s.Width, (uint)s.Height);
 
             Driver.Draw();
         }
