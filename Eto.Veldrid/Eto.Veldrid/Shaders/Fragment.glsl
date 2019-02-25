@@ -1,4 +1,4 @@
-#version 150
+#version 130
 
 in vec4 fsin_Color;
 out vec4 fsout_Color;

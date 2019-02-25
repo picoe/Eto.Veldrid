@@ -146,6 +146,14 @@ namespace Eto.VeldridSurface
 		public GraphicsDevice GraphicsDevice { get; set; }
 		public Swapchain Swapchain { get; set; }
 
+		public static string VeldridSurfaceInitializedEvent = "VeldridSurface.Initialized";
+
+		public event EventHandler<EventArgs> VeldridSurfaceInitialized
+		{
+			add { Properties.AddHandlerEvent(VeldridSurfaceInitializedEvent, value); }
+			remove { Properties.RemoveEvent(VeldridSurfaceInitializedEvent, value); }
+		}
+
 		private new Control Content
 		{
 			get { return base.Content; }
@@ -166,13 +174,21 @@ namespace Eto.VeldridSurface
 				GraphicsContextFlags flags = GraphicsContextFlags.ForwardCompatible;
 
 				var surface = new GLSurface(mode, major, minor, flags);
-				surface.GLInitalized += (sender, e) => InitGL();
+				surface.GLInitalized += (sender, e) =>
+				{
+					InitGL();
+					OnVeldridInitialized(EventArgs.Empty);
+				};
 
 				Content = surface;
 			}
 			else
 			{
-				LoadComplete += (sender, e) => initOther.Invoke(this, backend);
+				LoadComplete += (sender, e) =>
+				{
+					initOther.Invoke(this, backend);
+					OnVeldridInitialized(EventArgs.Empty);
+				};
 			}
 		}
 
@@ -199,6 +215,11 @@ namespace Eto.VeldridSurface
 				480);
 
 			Swapchain = GraphicsDevice.MainSwapchain;
+		}
+
+		protected virtual void OnVeldridInitialized(EventArgs e)
+		{
+			Properties.TriggerEvent(VeldridSurfaceInitializedEvent, this, e);
 		}
 	}
 }

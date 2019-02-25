@@ -13,8 +13,6 @@ namespace Eto.VeldridSurface
 		{
 			InitializeComponent();
 
-			Shown += MainForm_Shown;
-
 			var surface = new VeldridSurface(initOther, backend);
 
 			if (surface.Content is GLSurface g)
@@ -34,20 +32,22 @@ namespace Eto.VeldridSurface
 			Content = surface;
 
 			Driver.Surface = surface;
-		}
 
-		private void MainForm_Shown(object sender, EventArgs e)
-		{
-			Driver.SetUpVeldrid();
-
-			VeldridSurface s = Driver.Surface;
-			s.Swapchain?.Resize((uint)s.Width, (uint)s.Height);
-
-			Driver.Draw();
+			surface.VeldridSurfaceInitialized += Surface_VeldridSurfaceInitialized;
 		}
 
 		private void Surface_SizeChanged(object sender, EventArgs e)
 		{
+			VeldridSurface s = Driver.Surface;
+			s?.Swapchain?.Resize((uint)s.Width, (uint)s.Height);
+
+			Driver.Draw();
+		}
+
+		private void Surface_VeldridSurfaceInitialized(object sender, EventArgs e)
+		{
+			Driver.SetUpVeldrid();
+
 			VeldridSurface s = Driver.Surface;
 			s?.Swapchain?.Resize((uint)s.Width, (uint)s.Height);
 
