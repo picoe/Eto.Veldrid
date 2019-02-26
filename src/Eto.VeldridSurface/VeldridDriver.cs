@@ -135,27 +135,33 @@ namespace Eto.VeldridSurface
 
 			switch (Surface.GraphicsDevice.BackendType)
 			{
-				case GraphicsBackend.Direct3D11:
-					extension = "hlsl.bytes";
-					break;
-				case GraphicsBackend.Vulkan:
-					extension = "spv";
-					break;
-				case GraphicsBackend.OpenGL:
-					extension = "glsl";
-					break;
 				case GraphicsBackend.Metal:
 					extension = "metallib";
 					break;
+				case GraphicsBackend.Vulkan:
+					extension = "450.glsl.spv";
+					break;
+				case GraphicsBackend.Direct3D11:
+					extension = "hlsl.bytes";
+					break;
+				case GraphicsBackend.OpenGL:
+					extension = "330.glsl";
+					break;
+				case GraphicsBackend.OpenGLES:
+					extension = "300.glsles";
+					break;
 				default:
-					throw new System.InvalidOperationException();
+					throw new InvalidOperationException();
 			}
 
-			string entryPoint = stage == ShaderStages.Vertex ? "VS" : "FS";
-			string path = Path.Combine(System.AppContext.BaseDirectory, "Shaders", $"{stage.ToString()}.{extension}");
-			byte[] shaderBytes = File.ReadAllBytes(path);
+			string name = $"VertexColor-{stage.ToString().ToLower()}.{extension}";
+			string path = Path.Combine(AppContext.BaseDirectory, "shaders", name);
 
-			return Surface.GraphicsDevice.ResourceFactory.CreateShader(new ShaderDescription(stage, shaderBytes, entryPoint));
+			byte[] shaderBytes = File.ReadAllBytes(path);
+			string entryPoint = stage == ShaderStages.Vertex ? "VS" : "FS";
+
+			return Surface.GraphicsDevice.ResourceFactory.CreateShader(
+				new ShaderDescription(stage, shaderBytes, entryPoint));
 		}
 	}
 }

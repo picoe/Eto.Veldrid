@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TopLevelDirectory>$(MSBuildThisFileDirectory)</TopLevelDirectory>
+    <ShaderOutputPath>$(TopLevelDirectory)src\shaders\</ShaderOutputPath>
   </PropertyGroup>
-
+  
 </Project>

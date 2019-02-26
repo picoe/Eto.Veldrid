@@ -1,0 +1,59 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Eto.Veldrid</RootNamespace>
+    <PackageVersion>1.0</PackageVersion>
+    <Title>Eto.Veldrid</Title>
+    <Copyright>Copyright © 2018</Copyright>
+    <Description>Description of Eto.Veldrid</Description>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\shaders\**\*" Link="shaders\%(Filename)%(Extension)" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <None Include="$(TopLevelDirectory)Directory.Build.props" Link="Directory.Build.props" />
+    <None Include="$(TopLevelDirectory)Directory.Build.targets" Link="Directory.Build.targets" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Eto.Forms" Version="2.5.0-ci-10124" />
+    <PackageReference Include="OpenTK" Version="3.0.1" />
+    <PackageReference Include="ShaderGen.Build" Version="1.2.0-beta3" />
+    <PackageReference Include="ShaderGen.Primitives" Version="1.2.0-beta3" />
+    <PackageReference Include="Veldrid" Version="4.5.0" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Reference Include="Eto.Gl">
+      <HintPath>$(TopLevelDirectory)lib\thirdparty\Eto.Gl\Eto.Gl\Debug\Eto.Gl.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Update="MainForm.eto.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <!--
+  This needs to run as late as possible to ensure OutputPath is actually set;
+  the GenerateShaderCode target is defined in ShaderGen.targets, part of the
+  ShaderGen.Build nuget package.
+  -->
+  <!--
+  <Target Name="SetShaderOutputPath" AfterTargets="ResolveReferences" BeforeTargets="GenerateShaderCode">
+    <PropertyGroup>
+      <ShaderOutputPath>$(OutputPath)Shaders</ShaderOutputPath>
+    </PropertyGroup>
+  </Target>
+  -->
+  
+</Project>

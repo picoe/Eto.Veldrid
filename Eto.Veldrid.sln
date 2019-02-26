@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.168
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eto.VeldridSurface", "Eto.Veldrid\Eto.Veldrid\Eto.VeldridSurface.csproj", "{72B9021E-5D60-4494-8C19-96EA28F1154E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eto.VeldridSurface", "src\Eto.VeldridSurface\Eto.VeldridSurface.csproj", "{72B9021E-5D60-4494-8C19-96EA28F1154E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eto.Veldrid.Gtk", "Eto.Veldrid\Eto.Veldrid.Gtk\Eto.Veldrid.Gtk.csproj", "{FECAE646-75A5-4BA8-A038-4F36F4C8A98B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eto.Veldrid.Gtk", "src\gui\Eto.Veldrid.Gtk\Eto.Veldrid.Gtk.csproj", "{FECAE646-75A5-4BA8-A038-4F36F4C8A98B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eto.Veldrid.Mac", "Eto.Veldrid\Eto.Veldrid.Mac\Eto.Veldrid.Mac.csproj", "{E8C6995B-791B-449A-A9B9-AEA2047FAA1E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eto.Veldrid.Mac", "src\gui\Eto.Veldrid.Mac\Eto.Veldrid.Mac.csproj", "{E8C6995B-791B-449A-A9B9-AEA2047FAA1E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eto.Veldrid.Wpf", "Eto.Veldrid\Eto.Veldrid.Wpf\Eto.Veldrid.Wpf.csproj", "{2B8EAE29-7D66-4C15-918E-A7C2ED97F040}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eto.Veldrid.Wpf", "src\gui\Eto.Veldrid.Wpf\Eto.Veldrid.Wpf.csproj", "{2B8EAE29-7D66-4C15-918E-A7C2ED97F040}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eto.Veldrid.WinForms", "Eto.Veldrid\Eto.Veldrid.WinForms\Eto.Veldrid.WinForms.csproj", "{748ABF6C-F3E3-4872-8746-627ABFA7D322}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eto.Veldrid.WinForms", "src\gui\Eto.Veldrid.WinForms\Eto.Veldrid.WinForms.csproj", "{748ABF6C-F3E3-4872-8746-627ABFA7D322}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8C8D5E21-3AAE-42EC-B70F-4DD7370DF21A}"
 	ProjectSection(SolutionItems) = preProject

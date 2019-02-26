@@ -19,13 +19,18 @@
     </ItemGroup>
     <Move SourceFiles="@(Uglies)" DestinationFolder="$(OutputPath)lib" />
   </Target>
-    
-  <Target Name="CopyShaders" AfterTargets="NeatenizeLibraries">
+
+  <PropertyGroup>
+    <NoCopyShaders>Eto.VeldridSurface</NoCopyShaders>
+  </PropertyGroup>
+
+  <Target Name="CopyShaders" AfterTargets="NeatenizeLibraries" Condition="!$(NoCopyShaders.Contains($(MSBuildProjectName)))">
     <ItemGroup>
-      <Shaders Include="$(TopLevelDirectory)Eto.Veldrid\Shaders\**\*" />
+      <Shaders Include="$(TopLevelDirectory)src\shaders\**\*" />
     </ItemGroup>
-    <Copy Condition="$(OutputAppPath) != ''" SourceFiles="@(Shaders)" DestinationFolder="$(OutputAppPath)\Contents\MonoBundle\Shaders\%(Shaders.RecursiveDir)" />
-    <Copy Condition="$(OutputAppPath) == ''" SourceFiles="@(Shaders)" DestinationFolder="$(OutputPath)\Shaders\%(Shaders.RecursiveDir)" />
+    <Message Text="OutputPath: $(OutputPath)" Importance="high" />
+    <Copy Condition="$(OutputAppPath) != ''" SourceFiles="@(Shaders)" DestinationFolder="$(OutputAppPath)\Contents\MonoBundle\shaders\%(Shaders.RecursiveDir)" />
+    <Copy Condition="$(OutputAppPath) == ''" SourceFiles="@(Shaders)" DestinationFolder="$(OutputPath)\shaders\%(Shaders.RecursiveDir)" />
   </Target>
 
 </Project>

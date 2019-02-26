@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Eto.Veldrid\Eto.VeldridSurface.csproj" />
+    <ProjectReference Include="..\..\Eto.VeldridSurface\Eto.VeldridSurface.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -17,10 +17,10 @@
 
   <ItemGroup>
     <Reference Include="Eto.Gl">
-      <HintPath>..\..\lib\thirdparty\Eto.Gl\Eto.Gl\Debug\Eto.Gl.dll</HintPath>
+      <HintPath>$(TopLevelDirectory)lib\thirdparty\Eto.Gl\Eto.Gl\Debug\Eto.Gl.dll</HintPath>
     </Reference>
     <Reference Include="Eto.Gl.Windows">
-      <HintPath>..\..\lib\thirdparty\Eto.Gl\Eto.Gl.WinForms\Debug\Eto.Gl.Windows.dll</HintPath>
+      <HintPath>$(TopLevelDirectory)lib\thirdparty\Eto.Gl\Eto.Gl.WinForms\Debug\Eto.Gl.Windows.dll</HintPath>
     </Reference>
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>

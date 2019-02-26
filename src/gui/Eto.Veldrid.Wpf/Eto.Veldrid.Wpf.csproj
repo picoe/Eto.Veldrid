@@ -59,7 +59,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Eto.Veldrid\Eto.VeldridSurface.csproj">
+    <ProjectReference Include="..\..\Eto.VeldridSurface\Eto.VeldridSurface.csproj">
       <Project>{72B9021E-5D60-4494-8C19-96EA28F1154E}</Project>
       <Name>Eto.VeldridSurface</Name>
     </ProjectReference>
