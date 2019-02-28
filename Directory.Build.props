@@ -4,5 +4,18 @@
     <TopLevelDirectory>$(MSBuildThisFileDirectory)</TopLevelDirectory>
     <ShaderOutputPath>$(TopLevelDirectory)src\shaders\</ShaderOutputPath>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Not all packages actually need this, but it's necessary to grab the
+    version number in every GUI project. That then facilitates copying the
+    appropriate native library for each platform. -->
+    <PackageReference Include="Veldrid.SPIRV" Version="1.0.7" />
+  </ItemGroup>
+
+  <Target Name="GetVeldridSpirvVersion" BeforeTargets="Build">
+    <CreateProperty Value="%(PackageReference.Version)" Condition="%(PackageReference.Identity) == 'Veldrid.SPIRV'">
+      <Output TaskParameter="Value" PropertyName="VeldridSpirvVersion" />
+    </CreateProperty>
+  </Target>
   
 </Project>

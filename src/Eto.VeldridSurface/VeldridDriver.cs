@@ -4,6 +4,7 @@ using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Veldrid;
+using Veldrid.SPIRV;
 
 namespace Eto.VeldridSurface
 {
@@ -84,10 +85,10 @@ namespace Eto.VeldridSurface
 
 			VertexPositionColor[] quadVertices =
 			{
-				new VertexPositionColor(new Vector2(-.75f, .75f), RgbaFloat.Red),
-				new VertexPositionColor(new Vector2(.75f, .75f), RgbaFloat.Green),
-				new VertexPositionColor(new Vector2(-.75f, -.75f), RgbaFloat.Blue),
-				new VertexPositionColor(new Vector2(.75f, -.75f), RgbaFloat.Yellow)
+				new VertexPositionColor(new Vector2(-.75f, -.75f), RgbaFloat.Red),
+				new VertexPositionColor(new Vector2(.75f, -.75f), RgbaFloat.Green),
+				new VertexPositionColor(new Vector2(-.75f, .75f), RgbaFloat.Blue),
+				new VertexPositionColor(new Vector2(.75f, .75f), RgbaFloat.Yellow)
 			};
 
 			ushort[] quadIndices = { 0, 1, 2, 3 };
@@ -98,12 +99,35 @@ namespace Eto.VeldridSurface
 			Surface.GraphicsDevice.UpdateBuffer(VertexBuffer, 0, quadVertices);
 			Surface.GraphicsDevice.UpdateBuffer(IndexBuffer, 0, quadIndices);
 
+			// https://github.com/mellinoe/veldrid/issues/121
+			//
+			// Veldrid.SPIRV, when cross-compiling to HLSL, will always produce
+			// TEXCOORD semantics; VertexElementSemantic.TextureCoordinate thus
+			// becomes necessary to let D3D11 work alongside Vulkan and OpenGL.
 			var vertexLayout = new VertexLayoutDescription(
-				new VertexElementDescription("Position", VertexElementSemantic.Position, VertexElementFormat.Float2),
-				new VertexElementDescription("Color", VertexElementSemantic.Color, VertexElementFormat.Float4));
+				new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2),
+				new VertexElementDescription("Color", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4));
 
-			VertexShader = LoadShader(ShaderStages.Vertex);
-			FragmentShader = LoadShader(ShaderStages.Fragment);
+			byte[] vertexShaderSpirvBytes = LoadSpirvBytes(ShaderStages.Vertex);
+			byte[] fragmentShaderSpirvBytes = LoadSpirvBytes(ShaderStages.Fragment);
+
+			var options = new CrossCompileOptions();
+			switch (Surface.GraphicsDevice.BackendType)
+			{
+				case GraphicsBackend.Direct3D11:
+					options.InvertVertexOutputY = true;
+					break;
+				case GraphicsBackend.OpenGL:
+					options.FixClipSpaceZ = true;
+					options.InvertVertexOutputY = true;
+					break;
+				default:
+					break;
+			}
+				
+			var vertex = new ShaderDescription(ShaderStages.Vertex, vertexShaderSpirvBytes, "main", true);
+			var fragment = new ShaderDescription(ShaderStages.Fragment, fragmentShaderSpirvBytes, "main", true);
+			Shader[] shaders = factory.CreateFromSpirv(vertex, fragment, options);
 
 			Pipeline = factory.CreateGraphicsPipeline(new GraphicsPipelineDescription
 			{
@@ -122,46 +146,31 @@ namespace Eto.VeldridSurface
 				ResourceLayouts = Array.Empty<ResourceLayout>(),
 				ShaderSet = new ShaderSetDescription(
 					vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
-					shaders: new Shader[] { VertexShader, FragmentShader }),
+					shaders: shaders),
 				Outputs = Surface.Swapchain.Framebuffer.OutputDescription
 			});
 
 			CommandList = factory.CreateCommandList();
 		}
 
-		private Shader LoadShader(ShaderStages stage)
+		private byte[] LoadSpirvBytes(ShaderStages stage)
 		{
-			string extension = null;
+			byte[] bytes;
 
-			switch (Surface.GraphicsDevice.BackendType)
+			string shaderDir = Path.Combine(AppContext.BaseDirectory, "shaders");
+			string name = $"VertexColor-{stage.ToString().ToLower()}.450.glsl";
+			string full = Path.Combine(shaderDir, name);
+
+			try
 			{
-				case GraphicsBackend.Metal:
-					extension = "metallib";
-					break;
-				case GraphicsBackend.Vulkan:
-					extension = "450.glsl.spv";
-					break;
-				case GraphicsBackend.Direct3D11:
-					extension = "hlsl.bytes";
-					break;
-				case GraphicsBackend.OpenGL:
-					extension = "330.glsl";
-					break;
-				case GraphicsBackend.OpenGLES:
-					extension = "300.glsles";
-					break;
-				default:
-					throw new InvalidOperationException();
+				bytes = File.ReadAllBytes($"{full}.spv");
+			}
+			catch (FileNotFoundException)
+			{
+				bytes = File.ReadAllBytes($"{full}");
 			}
 
-			string name = $"VertexColor-{stage.ToString().ToLower()}.{extension}";
-			string path = Path.Combine(AppContext.BaseDirectory, "shaders", name);
-
-			byte[] shaderBytes = File.ReadAllBytes(path);
-			string entryPoint = stage == ShaderStages.Vertex ? "VS" : "FS";
-
-			return Surface.GraphicsDevice.ResourceFactory.CreateShader(
-				new ShaderDescription(stage, shaderBytes, entryPoint));
+			return bytes;
 		}
 	}
 }

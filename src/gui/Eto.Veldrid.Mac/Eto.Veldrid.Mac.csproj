@@ -15,10 +15,17 @@
 	
   <ItemGroup>
     <Reference Include="Eto.Gl">
-      <HintPath>$(TopLevelDirectory)lib\thirdparty\Eto.Gl\Eto.Gl\Debug\Eto.Gl.dll</HintPath>
+      <HintPath>$(TopLevelDirectory)lib\thirdparty\Eto.Gl\Eto.Gl\$(Configuration)\Eto.Gl.dll</HintPath>
     </Reference>
     <Reference Include="Eto.Gl.Mac">
-      <HintPath>$(TopLevelDirectory)lib\thirdparty\Eto.Gl\Eto.Gl.Mac\Debug\Eto.Gl.Mac.dll</HintPath>
+      <HintPath>$(TopLevelDirectory)lib\thirdparty\Eto.Gl\Eto.Gl.Mac\$(Configuration)\Eto.Gl.Mac.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+  <Target Name="CopyVeldridSpirvNative" AfterTargets="Build" BeforeTargets="NeatenizeLibraries">
+    <Copy
+      SourceFiles="$([MSBuild]::EnsureTrailingSlash('$(NuGetPackageRoot)'))veldrid.spirv\$(VeldridSpirvVersion)\runtimes\osx-x64\native\libveldrid-spirv.dylib"
+      DestinationFolder="$(OutputPath)" />
+  </Target>
+  
 </Project>

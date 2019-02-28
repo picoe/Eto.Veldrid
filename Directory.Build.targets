@@ -2,20 +2,20 @@
 
   <Target Name="RemoveSupportDirectories" BeforeTargets="Clean">
     <RemoveDir Directories="$(OutputPath)lib" />
-    <RemoveDir Directories="$(OutputPath)Shaders" />
+    <RemoveDir Directories="$(OutputPath)shaders" />
   </Target>
 
   <PropertyGroup>
     <NoNeatenize>Eto.VeldridSurface</NoNeatenize>
   </PropertyGroup>
   
-  <Target Name="NeatenizeLibraries" AfterTargets="Build" Condition="!$(NoNeatenize.Contains($(MSBuildProjectName)))">
+  <Target Name="NeatenizeLibraries" AfterTargets="CopyVeldridSpirvNative" Condition="!$(NoNeatenize.Contains($(MSBuildProjectName)))">
     <ItemGroup>
       <Uglies Include="$(OutputPath)*" />
       <Uglies Remove="$(OutputPath)$(AssemblyName).exe" />
       <Uglies Remove="$(OutputPath)$(AssemblyName).exe.config" />
       <Uglies Remove="$(OutputPath)$(AssemblyName).pdb" />
-      <Uglies Remove="$(OutputPath)Shaders" />
+      <Uglies Remove="$(OutputPath)shaders" />
     </ItemGroup>
     <Move SourceFiles="@(Uglies)" DestinationFolder="$(OutputPath)lib" />
   </Target>

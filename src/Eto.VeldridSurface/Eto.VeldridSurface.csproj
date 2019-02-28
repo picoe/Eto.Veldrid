@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <None Include="..\shaders\**\*" Link="shaders\%(Filename)%(Extension)" />
+    <None Remove="..\shaders\**\*.spv" />
   </ItemGroup>
 	
   <ItemGroup>
@@ -26,34 +27,13 @@
   <ItemGroup>
     <PackageReference Include="Eto.Forms" Version="2.5.0-ci-10124" />
     <PackageReference Include="OpenTK" Version="3.0.1" />
-    <PackageReference Include="ShaderGen.Build" Version="1.2.0-beta3" />
-    <PackageReference Include="ShaderGen.Primitives" Version="1.2.0-beta3" />
     <PackageReference Include="Veldrid" Version="4.5.0" />
   </ItemGroup>
   
   <ItemGroup>
     <Reference Include="Eto.Gl">
-      <HintPath>$(TopLevelDirectory)lib\thirdparty\Eto.Gl\Eto.Gl\Debug\Eto.Gl.dll</HintPath>
+      <HintPath>$(TopLevelDirectory)lib\thirdparty\Eto.Gl\Eto.Gl\$(Configuration)\Eto.Gl.dll</HintPath>
     </Reference>
   </ItemGroup>
-  
-  <ItemGroup>
-    <Compile Update="MainForm.eto.cs">
-      <DependentUpon>MainForm.cs</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <!--
-  This needs to run as late as possible to ensure OutputPath is actually set;
-  the GenerateShaderCode target is defined in ShaderGen.targets, part of the
-  ShaderGen.Build nuget package.
-  -->
-  <!--
-  <Target Name="SetShaderOutputPath" AfterTargets="ResolveReferences" BeforeTargets="GenerateShaderCode">
-    <PropertyGroup>
-      <ShaderOutputPath>$(OutputPath)Shaders</ShaderOutputPath>
-    </PropertyGroup>
-  </Target>
-  -->
   
 </Project>

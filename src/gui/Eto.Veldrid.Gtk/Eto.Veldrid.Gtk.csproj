@@ -3,7 +3,6 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net461</TargetFramework>
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'Default' ">
@@ -21,10 +20,17 @@
 	
   <ItemGroup>
     <Reference Include="Eto.Gl">
-      <HintPath>$(TopLevelDirectory)lib\thirdparty\Eto.Gl\Eto.Gl\Debug\Eto.Gl.dll</HintPath>
+      <HintPath>$(TopLevelDirectory)lib\thirdparty\Eto.Gl\Eto.Gl\$(Configuration)\Eto.Gl.dll</HintPath>
     </Reference>
     <Reference Include="Eto.Gl.Gtk2">
-      <HintPath>$(TopLevelDirectory)lib\thirdparty\Eto.Gl\Eto.Gl.Gtk2\Debug\Eto.Gl.Gtk2.dll</HintPath>
+      <HintPath>$(TopLevelDirectory)lib\thirdparty\Eto.Gl\Eto.Gl.Gtk2\$(Configuration)\Eto.Gl.Gtk2.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+  <Target Name="CopyVeldridSpirvNative" AfterTargets="Build" BeforeTargets="NeatenizeLibraries">
+    <Copy
+      SourceFiles="$([MSBuild]::EnsureTrailingSlash('$(NuGetPackageRoot)'))veldrid.spirv\$(VeldridSpirvVersion)\runtimes\linux-x64\native\libveldrid-spirv.so"
+      DestinationFolder="$(OutputPath)" />
+  </Target>
+  
 </Project>
