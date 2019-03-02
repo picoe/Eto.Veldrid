@@ -35,6 +35,10 @@ namespace Eto.VeldridSurface
 		public Shader FragmentShader;
 		public Pipeline Pipeline;
 
+		public Matrix4x4 ModelMatrix = Matrix4x4.Identity;
+		public DeviceBuffer ModelBuffer;
+		public ResourceSet ModelMatrixSet;
+
 		private bool Ready = false;
 
 		public VeldridDriver()
@@ -48,6 +52,9 @@ namespace Eto.VeldridSurface
 			Draw();
 		}
 
+		private DateTime CurrentTime;
+		private DateTime PreviousTime = DateTime.Now;
+
 		public void Draw()
 		{
 			if (!Ready)
@@ -56,11 +63,21 @@ namespace Eto.VeldridSurface
 			}
 
 			CommandList.Begin();
+
+			CurrentTime = DateTime.Now;
+			ModelMatrix *= Matrix4x4.CreateFromAxisAngle(
+				new Vector3(0, 0, 1),
+				OpenTK.MathHelper.DegreesToRadians(Convert.ToSingle((CurrentTime - PreviousTime).TotalMilliseconds / 10.0)));
+			PreviousTime = CurrentTime;
+			CommandList.UpdateBuffer(ModelBuffer, 0, ModelMatrix);
+
 			CommandList.SetFramebuffer(Surface.Swapchain.Framebuffer);
 			CommandList.ClearColorTarget(0, RgbaFloat.Pink);
 			CommandList.SetVertexBuffer(0, VertexBuffer);
 			CommandList.SetIndexBuffer(IndexBuffer, IndexFormat.UInt16);
 			CommandList.SetPipeline(Pipeline);
+			CommandList.SetGraphicsResourceSet(0, ModelMatrixSet);
+
 			CommandList.DrawIndexed(
 				indexCount: 4,
 				instanceCount: 1,
@@ -82,6 +99,17 @@ namespace Eto.VeldridSurface
 		private void CreateResources()
 		{
 			ResourceFactory factory = Surface.GraphicsDevice.ResourceFactory;
+
+			ResourceLayout modelMatrixLayout = factory.CreateResourceLayout(
+				new ResourceLayoutDescription(
+					new ResourceLayoutElementDescription(
+						"ModelMatrix",
+						ResourceKind.UniformBuffer,
+						ShaderStages.Vertex)));
+			ModelBuffer = factory.CreateBuffer(
+				new BufferDescription(64, BufferUsage.UniformBuffer));
+			ModelMatrixSet = factory.CreateResourceSet(new ResourceSetDescription(
+				modelMatrixLayout, ModelBuffer));
 
 			VertexPositionColor[] quadVertices =
 			{
@@ -143,7 +171,7 @@ namespace Eto.VeldridSurface
 					depthClipEnabled: true,
 					scissorTestEnabled: false),
 				PrimitiveTopology = PrimitiveTopology.TriangleStrip,
-				ResourceLayouts = Array.Empty<ResourceLayout>(),
+				ResourceLayouts = new[] { modelMatrixLayout },
 				ShaderSet = new ShaderSetDescription(
 					vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
 					shaders: shaders),

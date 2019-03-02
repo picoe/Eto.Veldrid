@@ -74,7 +74,7 @@ namespace Eto.VeldridSurface
 			VeldridSurface s = Driver.Surface;
 			s?.Swapchain?.Resize((uint)s.Width, (uint)s.Height);
 
-			Driver.Draw();
+			Driver.Clock.Start();
 		}
 
 		private void Surface_SizeChanged(object sender, EventArgs e)
