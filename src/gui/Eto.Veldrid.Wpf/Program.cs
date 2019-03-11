@@ -1,5 +1,4 @@
-﻿using Eto.Drawing;
-using Eto.Forms;
+﻿using Eto.Forms;
 using Eto.Gl;
 using Eto.Gl.WPF_WFControl;
 using Eto.VeldridSurface;
@@ -35,19 +34,6 @@ namespace PlaceholderName
 		}
 	}
 
-	//public class WpfVeldridSurfaceHandler : ThemedContainerHandler<Panel, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IVeldridSurface
-	//{
-	//	public WpfVeldridSurfaceHandler()
-	//	{
-	//		Control = new Panel();
-	//	}
-
-	//	public void Skiboodle(bool fail)
-	//	{
-	//		int flumbus = 4;
-	//	}
-	//}
-
 	public static class MainClass
 	{
 		[STAThread]
@@ -68,13 +54,7 @@ namespace PlaceholderName
 				platform.Add<GLSurface.IHandler>(() => new PuppetWPFWFGLSurfaceHandler());
 			}
 
-			//platform.Add<VeldridSurface.IVeldridSurface>(() => new WpfVeldridSurfaceHandler());
-
-
-			var app = new Application(platform);
-			var test = new VeldridSurface(WindowsInit, GraphicsBackend.Direct3D11);
-
-			app.Run(new MainForm(WindowsInit, backend));
+			new Application(platform).Run(new MainForm(WindowsInit, backend));
 		}
 
 		public static void WindowsInit(VeldridSurface surface, GraphicsBackend backend, Action draw)
@@ -105,7 +85,7 @@ namespace PlaceholderName
 				throw new ArgumentException(message);
 			}
 
-			var dummy = new WpfVeldridHost();
+			var dummy = new WpfVeldridHost { Draw = draw };
 			dummy.Loaded += (sender, e) =>
 			{
 				var source = SwapchainSource.CreateWin32(
@@ -113,7 +93,6 @@ namespace PlaceholderName
 				surface.Swapchain = surface.GraphicsDevice.ResourceFactory.CreateSwapchain(
 					new SwapchainDescription(source, 640, 480, null, false));
 			};
-			dummy.Draw = draw;
 
 			surface.Content = WpfHelpers.ToEto(dummy);
 		}
