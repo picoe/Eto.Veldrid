@@ -19,7 +19,7 @@ namespace Eto.VeldridSurface
 			var drawCommand = new Command { MenuText = "Draw" };
 			drawCommand.Executed += (sender, e) =>
 			{
-				Driver.Draw();
+				Surface.Driver.Draw();
 			};
 
 			Menu = new MenuBar

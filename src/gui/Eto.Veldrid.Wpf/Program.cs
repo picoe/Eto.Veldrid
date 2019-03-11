@@ -1,4 +1,5 @@
-﻿using Eto.Forms;
+﻿using Eto.Drawing;
+using Eto.Forms;
 using Eto.Gl;
 using Eto.Gl.WPF_WFControl;
 using Eto.VeldridSurface;
@@ -34,13 +35,27 @@ namespace PlaceholderName
 		}
 	}
 
+	//public class WpfVeldridSurfaceHandler : ThemedContainerHandler<Panel, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IVeldridSurface
+	//{
+	//	public WpfVeldridSurfaceHandler()
+	//	{
+	//		Control = new Panel();
+	//	}
+
+	//	public void Skiboodle(bool fail)
+	//	{
+	//		int flumbus = 4;
+	//	}
+	//}
+
 	public static class MainClass
 	{
 		[STAThread]
 		public static void Main(string[] args)
 		{
 			GraphicsBackend backend = VeldridSurface.PreferredBackend;
-
+			//backend = GraphicsBackend.OpenGL;
+			//backend = GraphicsBackend.Direct3D11;
 			if (backend == GraphicsBackend.OpenGL)
 			{
 				Toolkit.Init(new ToolkitOptions { Backend = PlatformBackend.PreferNative });
@@ -53,14 +68,16 @@ namespace PlaceholderName
 				platform.Add<GLSurface.IHandler>(() => new PuppetWPFWFGLSurfaceHandler());
 			}
 
+			//platform.Add<VeldridSurface.IVeldridSurface>(() => new WpfVeldridSurfaceHandler());
+
+
 			var app = new Application(platform);
+			var test = new VeldridSurface(WindowsInit, GraphicsBackend.Direct3D11);
 
-			var form = new MainForm(WindowsInit, backend);
-
-			app.Run(form);
+			app.Run(new MainForm(WindowsInit, backend));
 		}
 
-		public static void WindowsInit(VeldridSurface surface, GraphicsBackend backend)
+		public static void WindowsInit(VeldridSurface surface, GraphicsBackend backend, Action draw)
 		{
 			// OpenGL initialization is technically platform-dependent, but it
 			// happens by way of GLSurface, which for users of the class is
@@ -88,17 +105,17 @@ namespace PlaceholderName
 				throw new ArgumentException(message);
 			}
 
-			// There are no handles for controls in WPF, so to get the native
-			// handle of a rectangle to draw in, a WinForms dummy saves the day.
-			var dummy = new System.Windows.Forms.Panel();
-			Control wrapped = Eto.Wpf.WinFormsHelpers.ToEto(dummy);
+			var dummy = new WpfVeldridHost();
+			dummy.Loaded += (sender, e) =>
+			{
+				var source = SwapchainSource.CreateWin32(
+					dummy.Hwnd, Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
+				surface.Swapchain = surface.GraphicsDevice.ResourceFactory.CreateSwapchain(
+					new SwapchainDescription(source, 640, 480, null, false));
+			};
+			dummy.Draw = draw;
 
-			surface.Content = wrapped;
-
-			var source = SwapchainSource.CreateWin32(
-				dummy.Handle, Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
-			surface.Swapchain = surface.GraphicsDevice.ResourceFactory.CreateSwapchain(
-				new SwapchainDescription(source, 640, 480, null, false));
+			surface.Content = WpfHelpers.ToEto(dummy);
 		}
 	}
 }

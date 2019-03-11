@@ -25,7 +25,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Eto.Forms" Version="2.5.0-ci-10124" />
+    <PackageReference Include="Eto.Forms" Version="2.5.0-ci-10144" />
     <PackageReference Include="OpenTK" Version="3.0.1" />
     <PackageReference Include="Veldrid" Version="4.5.0" />
   </ItemGroup>

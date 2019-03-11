@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Eto.Platform.Gtk2" Version="2.5.0-ci-10124" />
+    <PackageReference Include="Eto.Platform.Gtk2" Version="2.5.0-ci-10144" />
   </ItemGroup>
 
   <ItemGroup>

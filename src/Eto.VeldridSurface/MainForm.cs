@@ -7,7 +7,7 @@ namespace Eto.VeldridSurface
 {
 	public partial class MainForm : Form
 	{
-		public VeldridDriver Driver { get; } = new VeldridDriver();
+		VeldridSurface Surface;
 
 		private bool _veldridReady = false;
 		public bool VeldridReady
@@ -33,33 +33,31 @@ namespace Eto.VeldridSurface
 			}
 		}
 
-		public MainForm(Action<VeldridSurface, GraphicsBackend> initOther, GraphicsBackend backend)
+		public MainForm(Action<VeldridSurface, GraphicsBackend, Action> initOther, GraphicsBackend backend)
 		{
 			InitializeComponent();
 
 			Shown += (sender, e) => FormReady = true;
 
-			var surface = new VeldridSurface(initOther, backend);
+			Surface = new VeldridSurface(initOther, backend);
 
-			if (surface.Content is GLSurface g)
+			if (Surface.Content is GLSurface g)
 			{
-				g.Draw += (sender, e) => Driver.Draw();
+				g.Draw += (sender, e) => Surface.Driver.Draw();
 				g.SizeChanged += (sender, e) =>
 				{
-					VeldridSurface s = Driver.Surface;
+					VeldridSurface s = Surface.Driver.Surface;
 					s?.Swapchain?.Resize((uint)s.Width, (uint)s.Height);
 				};
 			}
 			else
 			{
-				surface.SizeChanged += Surface_SizeChanged;
+				Surface.SizeChanged += Surface_SizeChanged;
 			}
 
-			Content = surface;
+			Content = Surface;
 
-			Driver.Surface = surface;
-
-			surface.VeldridSurfaceInitialized += (sender, e) => VeldridReady = true;
+			Surface.VeldridSurfaceInitialized += (sender, e) => VeldridReady = true;
 		}
 
 		private void SetUpVeldrid(bool formReady, bool veldridReady)
@@ -69,20 +67,18 @@ namespace Eto.VeldridSurface
 				return;
 			}
 
-			Driver.SetUpVeldrid();
+			Surface.Driver.SetUpVeldrid();
 
-			VeldridSurface s = Driver.Surface;
-			s?.Swapchain?.Resize((uint)s.Width, (uint)s.Height);
+			Surface?.Swapchain?.Resize((uint)Surface.Width, (uint)Surface.Height);
 
-			Driver.Clock.Start();
+			Surface.Driver.Clock.Start();
 		}
 
 		private void Surface_SizeChanged(object sender, EventArgs e)
 		{
-			VeldridSurface s = Driver.Surface;
-			s?.Swapchain?.Resize((uint)s.Width, (uint)s.Height);
+			Surface?.Swapchain?.Resize((uint)Surface.Width, (uint)Surface.Height);
 
-			Driver.Draw();
+			Surface.Driver.Draw();
 		}
 	}
 }
