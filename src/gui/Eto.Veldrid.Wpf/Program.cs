@@ -40,8 +40,7 @@ namespace PlaceholderName
 		public static void Main(string[] args)
 		{
 			GraphicsBackend backend = VeldridSurface.PreferredBackend;
-			//backend = GraphicsBackend.OpenGL;
-			//backend = GraphicsBackend.Direct3D11;
+
 			if (backend == GraphicsBackend.OpenGL)
 			{
 				Toolkit.Init(new ToolkitOptions { Backend = PlatformBackend.PreferNative });

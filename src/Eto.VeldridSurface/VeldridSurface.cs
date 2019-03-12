@@ -125,6 +125,8 @@ namespace Eto.VeldridSurface
 			}
 		}
 
+		public Action<VeldridSurface, GraphicsBackend, Action> InitOther;
+
 		public static GraphicsBackend PreferredBackend
 		{
 			get
@@ -151,8 +153,34 @@ namespace Eto.VeldridSurface
 			}
 		}
 
+		public GraphicsBackend Backend { get; set; }
+
 		public GraphicsDevice GraphicsDevice { get; set; }
 		public Swapchain Swapchain { get; set; }
+
+		private bool? _glReady = null;
+		public bool? GLReady
+		{
+			get { return _glReady; }
+			private set
+			{
+				_glReady = value;
+
+				RaiseInitEventIfReady();
+			}
+		}
+
+		private bool _controlReady = false;
+		public bool ControlReady
+		{
+			get { return _controlReady; }
+			private set
+			{
+				_controlReady = value;
+
+				RaiseInitEventIfReady();
+			}
+		}
 
 		public static string VeldridSurfaceInitializedEvent = "VeldridSurface.Initialized";
 
@@ -174,40 +202,28 @@ namespace Eto.VeldridSurface
 		}
 		public VeldridSurface(Action<VeldridSurface, GraphicsBackend, Action> initOther, GraphicsBackend backend)
 		{
+			Backend = backend;
+
+			InitOther = initOther;
+
 			Driver = new VeldridDriver();
 
-			if (backend == GraphicsBackend.OpenGL)
+			if (Backend == GraphicsBackend.OpenGL)
 			{
+				GLReady = false;
+
 				var mode = new GraphicsMode();
 				int major = 3;
 				int minor = EtoEnvironment.Platform.IsMac ? 2 : 0;
 				GraphicsContextFlags flags = GraphicsContextFlags.ForwardCompatible;
 
 				var surface = new GLSurface(mode, major, minor, flags);
-				surface.GLInitalized += (sender, e) =>
-				{
-					InitGL();
-					OnVeldridInitialized(EventArgs.Empty);
-				};
+				surface.GLInitalized += (sender, e) => { GLReady = true; };
 
 				Content = surface;
 			}
-			else
-			{
-				// TODO: Add this all the time, but make a separate set of bools that
-				// check for OpenGL. On GLInitalized (sic), set some new boolean called,
-				// I don't know, "GLReady", to true. Make it nullable also. Have LoadComplete
-				// set one called "LoadComplete", or something, and on setting either of
-				// those new bools, call a function that checks for both LoadComplete being
-				// true, and GLReady being either null, or non-null and true. Raise the
-				// VeldridInitialized event if those conditions are met. Hopefully that'll
-				// take care of OpenGL in WPF.
-				LoadComplete += (sender, e) =>
-				{
-					initOther.Invoke(this, backend, Driver.Draw);
-					OnVeldridInitialized(EventArgs.Empty);
-				};
-			}
+
+			LoadComplete += (sender, e) => { ControlReady = true; };
 		}
 
 		private void InitGL()
@@ -238,6 +254,29 @@ namespace Eto.VeldridSurface
 		protected virtual void OnVeldridInitialized(EventArgs e)
 		{
 			Properties.TriggerEvent(VeldridSurfaceInitializedEvent, this, e);
+		}
+
+		private void RaiseInitEventIfReady()
+		{
+			if (!ControlReady)
+			{
+				return;
+			}
+
+			switch (GLReady)
+			{
+				case false:
+					return;
+				case true:
+					(Content as GLSurface).MakeCurrent();
+					InitGL();
+					break;
+				case null:
+					InitOther.Invoke(this, Backend, Driver.Draw);
+					break;
+			}
+
+			OnVeldridInitialized(EventArgs.Empty);
 		}
 	}
 }
