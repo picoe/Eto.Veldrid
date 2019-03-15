@@ -16,7 +16,7 @@ namespace Eto.VeldridSurface
 			{
 				_veldridReady = value;
 
-				SetUpVeldrid(FormReady, VeldridReady);
+				SetUpVeldrid();
 			}
 		}
 
@@ -28,7 +28,7 @@ namespace Eto.VeldridSurface
 			{
 				_formReady = value;
 
-				SetUpVeldrid(FormReady, VeldridReady);
+				SetUpVeldrid();
 			}
 		}
 
@@ -44,16 +44,16 @@ namespace Eto.VeldridSurface
 			Content = Surface;
 		}
 
-		private void SetUpVeldrid(bool formReady, bool veldridReady)
+		private void SetUpVeldrid()
 		{
-			if (!(formReady && VeldridReady))
+			if (!(FormReady && VeldridReady))
 			{
 				return;
 			}
 
 			Surface.Driver.SetUpVeldrid();
 
-			Surface?.Swapchain?.Resize((uint)Surface.Width, (uint)Surface.Height);
+			Surface.Resize(Surface.Width, Surface.Height);
 
 			Surface.Driver.Clock.Start();
 		}
