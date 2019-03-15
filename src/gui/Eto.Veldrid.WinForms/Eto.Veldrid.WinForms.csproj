@@ -24,10 +24,4 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
 
-  <Target Name="CopyVeldridSpirvNative" AfterTargets="Build" BeforeTargets="NeatenizeLibraries">
-    <Copy
-      SourceFiles="$([MSBuild]::EnsureTrailingSlash('$(NuGetPackageRoot)'))veldrid.spirv\$(VeldridSpirvVersion)\runtimes\win-x64\native\libveldrid-spirv.dll"
-      DestinationFolder="$(OutputPath)" />
-  </Target>
-
 </Project>

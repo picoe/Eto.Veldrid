@@ -26,11 +26,5 @@
       <HintPath>$(TopLevelDirectory)lib\thirdparty\Eto.Gl\Eto.Gl.Gtk2\$(Configuration)\Eto.Gl.Gtk2.dll</HintPath>
     </Reference>
   </ItemGroup>
-
-  <Target Name="CopyVeldridSpirvNative" AfterTargets="Build" BeforeTargets="NeatenizeLibraries">
-    <Copy
-      SourceFiles="$([MSBuild]::EnsureTrailingSlash('$(NuGetPackageRoot)'))veldrid.spirv\$(VeldridSpirvVersion)\runtimes\linux-x64\native\libveldrid-spirv.so"
-      DestinationFolder="$(OutputPath)" />
-  </Target>
   
 </Project>
