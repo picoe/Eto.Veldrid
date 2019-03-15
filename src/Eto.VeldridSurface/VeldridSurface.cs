@@ -212,12 +212,7 @@ namespace Eto.VeldridSurface
 			{
 				GLReady = false;
 
-				var mode = new GraphicsMode();
-				int major = 3;
-				int minor = EtoEnvironment.Platform.IsMac ? 2 : 0;
-				GraphicsContextFlags flags = GraphicsContextFlags.ForwardCompatible;
-
-				var surface = new GLSurface(mode, major, minor, flags);
+				var surface = new GLSurface(new GraphicsMode(), 3, 3, GraphicsContextFlags.ForwardCompatible);
 				surface.GLInitalized += (sender, e) => GLReady = true;
 				surface.Draw += (sender, e) => Driver.Draw();
 
