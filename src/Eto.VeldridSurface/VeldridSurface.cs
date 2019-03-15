@@ -125,7 +125,7 @@ namespace Eto.VeldridSurface
 			}
 		}
 
-		public Action<VeldridSurface, GraphicsBackend, Action> InitOther;
+		public Action<VeldridSurface, GraphicsBackend, Action, Action<int, int>> InitOther;
 
 		public static GraphicsBackend PreferredBackend
 		{
@@ -196,11 +196,11 @@ namespace Eto.VeldridSurface
 			set { base.Content = value; }
 		}
 
-		public VeldridSurface(Action<VeldridSurface, GraphicsBackend, Action> initOther) :
+		public VeldridSurface(Action<VeldridSurface, GraphicsBackend, Action, Action<int, int>> initOther) :
 			this(initOther, PreferredBackend)
 		{
 		}
-		public VeldridSurface(Action<VeldridSurface, GraphicsBackend, Action> initOther, GraphicsBackend backend)
+		public VeldridSurface(Action<VeldridSurface, GraphicsBackend, Action, Action<int, int>> initOther, GraphicsBackend backend)
 		{
 			Backend = backend;
 
@@ -218,12 +218,24 @@ namespace Eto.VeldridSurface
 				GraphicsContextFlags flags = GraphicsContextFlags.ForwardCompatible;
 
 				var surface = new GLSurface(mode, major, minor, flags);
-				surface.GLInitalized += (sender, e) => { GLReady = true; };
+				surface.GLInitalized += (sender, e) => GLReady = true;
+				surface.Draw += (sender, e) => Driver.Draw();
 
 				Content = surface;
 			}
 
-			LoadComplete += (sender, e) => { ControlReady = true; };
+			LoadComplete += (sender, e) => ControlReady = true;
+			SizeChanged += (sender, e) => Resize(Width, Height);
+		}
+
+		public void Resize(int width, int height)
+		{
+			Swapchain?.Resize((uint)Width, (uint)Height);
+		}
+
+		protected virtual void OnVeldridInitialized(EventArgs e)
+		{
+			Properties.TriggerEvent(VeldridSurfaceInitializedEvent, this, e);
 		}
 
 		private void InitGL()
@@ -251,11 +263,6 @@ namespace Eto.VeldridSurface
 			Swapchain = GraphicsDevice.MainSwapchain;
 		}
 
-		protected virtual void OnVeldridInitialized(EventArgs e)
-		{
-			Properties.TriggerEvent(VeldridSurfaceInitializedEvent, this, e);
-		}
-
 		private void RaiseInitEventIfReady()
 		{
 			if (!ControlReady)
@@ -272,7 +279,7 @@ namespace Eto.VeldridSurface
 					InitGL();
 					break;
 				case null:
-					InitOther.Invoke(this, Backend, Driver.Draw);
+					InitOther.Invoke(this, Backend, Driver.Draw, Resize);
 					break;
 			}
 

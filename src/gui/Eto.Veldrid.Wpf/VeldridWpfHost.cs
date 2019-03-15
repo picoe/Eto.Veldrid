@@ -146,6 +146,7 @@ namespace PlaceholderName
 		public IntPtr Hwnd { get; private set; }
 
 		public Action Draw { get; set; }
+		public Action<int, int> Resize { get; set; }
 
 		protected override HandleRef BuildWindowCore(HandleRef hwndParent)
 		{
@@ -170,11 +171,21 @@ namespace PlaceholderName
 		}
 
 		public static int
+			WM_SIZE = 5,
 			WM_PAINT = 15;
 
 		protected override IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
 		{
-			if (msg == WM_PAINT)
+			if (msg == WM_SIZE)
+			{
+				int width = (short)lParam.ToInt32();
+				int height = lParam.ToInt32() >> 16;
+
+				Resize.Invoke(width, height);
+
+				handled = true;
+			}
+			else if (msg == WM_PAINT)
 			{
 				BeginPaint(Hwnd, out PAINTSTRUCT ps);
 				Draw.Invoke();

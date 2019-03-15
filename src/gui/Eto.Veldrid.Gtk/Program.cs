@@ -34,7 +34,7 @@ namespace PlaceholderName
 			app.Run(form);
 		}
 
-		public static void LinuxInit(VeldridSurface surface, GraphicsBackend backend, Action draw)
+		public static void LinuxInit(VeldridSurface surface, GraphicsBackend backend, Action draw, Action<int, int> resize)
 		{
 			string message;
 			if (!Enum.IsDefined(typeof(GraphicsBackend), backend))

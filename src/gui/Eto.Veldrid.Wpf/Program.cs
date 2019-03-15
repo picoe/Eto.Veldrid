@@ -56,7 +56,7 @@ namespace PlaceholderName
 			new Application(platform).Run(new MainForm(WindowsInit, backend));
 		}
 
-		public static void WindowsInit(VeldridSurface surface, GraphicsBackend backend, Action draw)
+		public static void WindowsInit(VeldridSurface surface, GraphicsBackend backend, Action draw, Action<int, int> resize)
 		{
 			// OpenGL initialization is technically platform-dependent, but it
 			// happens by way of GLSurface, which for users of the class is
@@ -84,7 +84,7 @@ namespace PlaceholderName
 				throw new ArgumentException(message);
 			}
 
-			var dummy = new WpfVeldridHost { Draw = draw };
+			var dummy = new WpfVeldridHost { Draw = draw, Resize = resize };
 			dummy.Loaded += (sender, e) =>
 			{
 				var source = SwapchainSource.CreateWin32(

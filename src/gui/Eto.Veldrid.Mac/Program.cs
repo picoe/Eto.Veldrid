@@ -34,7 +34,7 @@ namespace PlaceholderName
 			app.Run(form);
 		}
 
-		public static void MacInit(VeldridSurface surface, GraphicsBackend backend, Action draw)
+		public static void MacInit(VeldridSurface surface, GraphicsBackend backend, Action draw, Action<int, int> resize)
 		{
 			if (backend == GraphicsBackend.Metal)
 			{

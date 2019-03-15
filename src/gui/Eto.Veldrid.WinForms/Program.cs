@@ -60,7 +60,7 @@ namespace PlaceholderName
 			app.Run(form);
 		}
 
-		public static void WindowsInit(VeldridSurface surface, GraphicsBackend backend, Action draw)
+		public static void WindowsInit(VeldridSurface surface, GraphicsBackend backend, Action draw, Action<int, int> resize)
 		{
 			// OpenGL initialization is technically platform-dependent, but it
 			// happens by way of GLSurface, which for users of the class is
