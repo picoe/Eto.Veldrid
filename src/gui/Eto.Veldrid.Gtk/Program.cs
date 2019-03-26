@@ -8,6 +8,24 @@ using Veldrid;
 
 namespace PlaceholderName
 {
+	public class GtkVeldridSurfaceHandler : VeldridSurfaceHandler
+	{
+		public override void InitializeGraphicsApi(Action draw, Action<int, int> resize)
+		{
+			string message;
+			if (!Enum.IsDefined(typeof(GraphicsBackend), Callback.Backend))
+			{
+				message = "Unrecognized backend!";
+			}
+			else
+			{
+				message = "Specified backend not supported on this platform!";
+			}
+
+			throw new ArgumentException(message);
+		}
+	}
+
 	public static class MainClass
 	{
 		[STAThread]
@@ -27,26 +45,9 @@ namespace PlaceholderName
 				platform.Add<GLSurface.IHandler>(() => new GtkGlSurfaceHandler());
 			}
 
-			var app = new Application(platform);
+			platform.Add<VeldridSurface.IHandler>(() => new GtkVeldridSurfaceHandler());
 
-			var form = new MainForm(LinuxInit, backend);
-
-			app.Run(form);
-		}
-
-		public static void LinuxInit(VeldridSurface surface, GraphicsBackend backend, Action draw, Action<int, int> resize)
-		{
-			string message;
-			if (!Enum.IsDefined(typeof(GraphicsBackend), backend))
-			{
-				message = "Unrecognized backend!";
-			}
-			else
-			{
-				message = "Specified backend not supported on this platform!";
-			}
-
-			throw new ArgumentException(message);
+			new Application(platform).Run(new MainForm(backend));
 		}
 	}
 }

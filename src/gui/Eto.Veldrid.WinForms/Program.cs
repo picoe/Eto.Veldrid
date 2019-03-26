@@ -34,6 +34,43 @@ namespace PlaceholderName
 		}
 	}
 
+	public class WinFormsVeldridSurfaceHandler : VeldridSurfaceHandler
+	{
+		public override void InitializeGraphicsApi(Action draw, Action<int, int> resize)
+		{
+			// OpenGL initialization is technically platform-dependent, but it
+			// happens by way of GLSurface, which for users of the class is
+			// cross platform. See VeldridSurface for initialization details.
+			if (Callback.Backend == GraphicsBackend.Vulkan)
+			{
+				Callback.GraphicsDevice = GraphicsDevice.CreateVulkan(new GraphicsDeviceOptions());
+			}
+			else if (Callback.Backend == GraphicsBackend.Direct3D11)
+			{
+				Callback.GraphicsDevice = GraphicsDevice.CreateD3D11(new GraphicsDeviceOptions());
+			}
+			else
+			{
+				string message;
+				if (!Enum.IsDefined(typeof(GraphicsBackend), Callback.Backend))
+				{
+					message = "Unrecognized backend!";
+				}
+				else
+				{
+					message = "Specified backend not supported on this platform!";
+				}
+
+				throw new ArgumentException(message);
+			}
+
+			var source = SwapchainSource.CreateWin32(
+				Control.NativeHandle, Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
+			Callback.Swapchain = Callback.GraphicsDevice.ResourceFactory.CreateSwapchain(
+				new SwapchainDescription(source, 640, 480, null, false));
+		}
+	}
+
 	public static class Program
 	{
 		[STAThread]
@@ -53,45 +90,9 @@ namespace PlaceholderName
 				platform.Add<GLSurface.IHandler>(() => new PuppetWinGLSurfaceHandler());
 			}
 
-			var app = new Application(platform);
+			platform.Add<VeldridSurface.IHandler>(() => new WinFormsVeldridSurfaceHandler());
 
-			var form = new MainForm(WindowsInit, backend);
-
-			app.Run(form);
-		}
-
-		public static void WindowsInit(VeldridSurface surface, GraphicsBackend backend, Action draw, Action<int, int> resize)
-		{
-			// OpenGL initialization is technically platform-dependent, but it
-			// happens by way of GLSurface, which for users of the class is
-			// cross platform. See VeldridSurface for initialization details.
-			if (backend == GraphicsBackend.Vulkan)
-			{
-				surface.GraphicsDevice = GraphicsDevice.CreateVulkan(new GraphicsDeviceOptions());
-			}
-			else if (backend == GraphicsBackend.Direct3D11)
-			{
-				surface.GraphicsDevice = GraphicsDevice.CreateD3D11(new GraphicsDeviceOptions());
-			}
-			else
-			{
-				string message;
-				if (!Enum.IsDefined(typeof(GraphicsBackend), backend))
-				{
-					message = "Unrecognized backend!";
-				}
-				else
-				{
-					message = "Specified backend not supported on this platform!";
-				}
-
-				throw new ArgumentException(message);
-			}
-
-			var source = SwapchainSource.CreateWin32(
-				surface.NativeHandle, Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
-			surface.Swapchain = surface.GraphicsDevice.ResourceFactory.CreateSwapchain(
-				new SwapchainDescription(source, 640, 480, null, false));
+			new Application(platform).Run(new MainForm(backend));
 		}
 	}
 }

@@ -8,6 +8,35 @@ using Veldrid;
 
 namespace PlaceholderName
 {
+	public class MacVeldridSurfaceHandler : VeldridSurfaceHandler
+	{
+		public override void InitializeGraphicsApi(Action draw, Action<int, int> resize)
+		{
+			if (Callback.Backend == GraphicsBackend.Metal)
+			{
+				Callback.GraphicsDevice = GraphicsDevice.CreateMetal(new GraphicsDeviceOptions());
+			}
+			else
+			{
+				string message;
+				if (!Enum.IsDefined(typeof(GraphicsBackend), Callback.Backend))
+				{
+					message = "Unrecognized backend!";
+				}
+				else
+				{
+					message = "Specified backend not supported on this platform!";
+				}
+
+				throw new ArgumentException(message);
+			}
+
+			var source = SwapchainSource.CreateNSView(Control.NativeHandle);
+			Callback.Swapchain = Callback.GraphicsDevice.ResourceFactory.CreateSwapchain(
+				new SwapchainDescription(source, 640, 480, null, false));
+		}
+	}
+
 	public static class MainClass
 	{
 		[STAThread]
@@ -27,37 +56,9 @@ namespace PlaceholderName
 				platform.Add<GLSurface.IHandler>(() => new MacGLSurfaceHandler());
 			}
 
-			var app = new Application(platform);
+			platform.Add<VeldridSurface.IHandler>(() => new MacVeldridSurfaceHandler());
 
-			var form = new MainForm(MacInit, backend);
-
-			app.Run(form);
-		}
-
-		public static void MacInit(VeldridSurface surface, GraphicsBackend backend, Action draw, Action<int, int> resize)
-		{
-			if (backend == GraphicsBackend.Metal)
-			{
-				surface.GraphicsDevice = GraphicsDevice.CreateMetal(new GraphicsDeviceOptions());
-			}
-			else
-			{
-				string message;
-				if (!Enum.IsDefined(typeof(GraphicsBackend), backend))
-				{
-					message = "Unrecognized backend!";
-				}
-				else
-				{
-					message = "Specified backend not supported on this platform!";
-				}
-
-				throw new ArgumentException(message);
-			}
-
-			var source = SwapchainSource.CreateNSView(surface.NativeHandle);
-			surface.Swapchain = surface.GraphicsDevice.ResourceFactory.CreateSwapchain(
-				new SwapchainDescription(source, 640, 480, null, false));
+			new Application(platform).Run(new MainForm(backend));
 		}
 	}
 }

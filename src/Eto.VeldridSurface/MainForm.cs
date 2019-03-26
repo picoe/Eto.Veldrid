@@ -32,13 +32,13 @@ namespace Eto.VeldridSurface
 			}
 		}
 
-		public MainForm(Action<VeldridSurface, GraphicsBackend, Action, Action<int, int>> initOther, GraphicsBackend backend)
+		public MainForm(GraphicsBackend backend)
 		{
 			InitializeComponent();
 
 			Shown += (sender, e) => FormReady = true;
 
-			Surface = new VeldridSurface(initOther, backend);
+			Surface = new VeldridSurface(backend);
 			Surface.VeldridSurfaceInitialized += (sender, e) => VeldridReady = true;
 
 			Content = Surface;

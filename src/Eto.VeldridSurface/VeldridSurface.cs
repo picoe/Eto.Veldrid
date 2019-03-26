@@ -108,11 +108,79 @@ namespace Eto.VeldridSurface
 		}
 	}
 
+	public class VeldridSurfaceHandler : ThemedControlHandler<Panel, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
+	{
+		public VeldridSurfaceHandler()
+		{
+			Control = new Panel();
+		}
+
+		public Control RenderTarget
+		{
+			get { return Control.Content; }
+			set { Control.Content = value; }
+		}
+
+		public virtual void InitializeGraphicsApi(Action draw, Action<int, int> resize)
+		{
+		}
+	}
+
 	/// <summary>
 	/// A simple control that allows drawing with Veldrid.
 	/// </summary>
-	public class VeldridSurface : Panel
+	[Handler(typeof(VeldridSurface.IHandler))]
+	public class VeldridSurface : Control
 	{
+		public new interface IHandler : Control.IHandler
+		{
+			Control RenderTarget { get; set; }
+			void InitializeGraphicsApi(Action draw, Action<int, int> resize);
+		}
+
+		public new IHandler Handler => (IHandler)base.Handler;
+
+		public new interface ICallback : Control.ICallback
+		{
+			GraphicsBackend Backend { get; }
+			GraphicsDevice GraphicsDevice { get; set; }
+			Swapchain Swapchain { get; set; }
+		}
+
+		protected new class Callback : Control.Callback, ICallback
+		{
+			public Func<GraphicsBackend> GetBackend { get; set; }
+			public GraphicsBackend Backend => GetBackend.Invoke();
+
+			public Func<GraphicsDevice> GetGraphicsDevice { get; set; }
+			public Action<GraphicsDevice> SetGraphicsDevice { get; set; }
+			public GraphicsDevice GraphicsDevice
+			{
+				get { return GetGraphicsDevice.Invoke(); }
+				set { SetGraphicsDevice(value); }
+			}
+
+			public Func<Swapchain> GetSwapchain { get; set; }
+			public Action<Swapchain> SetSwapchain { get; set; }
+			public Swapchain Swapchain
+			{
+				get { return GetSwapchain.Invoke(); }
+				set { SetSwapchain.Invoke(value); }
+			}
+		}
+
+		protected override object GetCallback()
+		{
+			return new Callback
+			{
+				GetBackend = () => { return Backend; },
+				GetGraphicsDevice = () => { return GraphicsDevice; },
+				SetGraphicsDevice = (d) => { GraphicsDevice = d; },
+				GetSwapchain = () => { return Swapchain; },
+				SetSwapchain = (s) => { Swapchain = s; }
+			};
+		}
+
 		private VeldridDriver _driver;
 		public VeldridDriver Driver
 		{
@@ -190,21 +258,12 @@ namespace Eto.VeldridSurface
 			remove { Properties.RemoveEvent(VeldridSurfaceInitializedEvent, value); }
 		}
 
-		private new Control Content
-		{
-			get { return base.Content; }
-			set { base.Content = value; }
-		}
-
-		public VeldridSurface(Action<VeldridSurface, GraphicsBackend, Action, Action<int, int>> initOther) :
-			this(initOther, PreferredBackend)
+		public VeldridSurface() : this(PreferredBackend)
 		{
 		}
-		public VeldridSurface(Action<VeldridSurface, GraphicsBackend, Action, Action<int, int>> initOther, GraphicsBackend backend)
+		public VeldridSurface(GraphicsBackend backend)
 		{
 			Backend = backend;
-
-			InitOther = initOther;
 
 			Driver = new VeldridDriver();
 
@@ -216,7 +275,7 @@ namespace Eto.VeldridSurface
 				surface.GLInitalized += (sender, e) => GLReady = true;
 				surface.Draw += (sender, e) => Driver.Draw();
 
-				Content = surface;
+				Handler.RenderTarget = surface;
 			}
 
 			LoadComplete += (sender, e) => ControlReady = true;
@@ -235,7 +294,7 @@ namespace Eto.VeldridSurface
 
 		private void InitGL()
 		{
-			VeldridGL.Surfaces.Add(Content as GLSurface);
+			VeldridGL.Surfaces.Add(Handler.RenderTarget as GLSurface);
 
 			var platformInfo = new Veldrid.OpenGL.OpenGLPlatformInfo(
 				VeldridGL.GetGLContextHandle(),
@@ -270,11 +329,11 @@ namespace Eto.VeldridSurface
 				case false:
 					return;
 				case true:
-					(Content as GLSurface).MakeCurrent();
+					(Handler.RenderTarget as GLSurface).MakeCurrent();
 					InitGL();
 					break;
 				case null:
-					InitOther.Invoke(this, Backend, Driver.Draw, Resize);
+					Handler.InitializeGraphicsApi(Driver.Draw, Resize);
 					break;
 			}
 
