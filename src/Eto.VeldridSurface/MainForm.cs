@@ -8,6 +8,8 @@ namespace Eto.VeldridSurface
 	{
 		VeldridSurface Surface;
 
+		VeldridDriver Driver;
+
 		private bool _veldridReady = false;
 		public bool VeldridReady
 		{
@@ -40,8 +42,11 @@ namespace Eto.VeldridSurface
 
 			Surface = new VeldridSurface(backend);
 			Surface.VeldridSurfaceInitialized += (sender, e) => VeldridReady = true;
+			Surface.VeldridSurfaceDraw += (sender, e) => Driver.Draw();
 
 			Content = Surface;
+
+			Driver = new VeldridDriver { Surface = Surface };
 		}
 
 		private void SetUpVeldrid()
@@ -51,11 +56,11 @@ namespace Eto.VeldridSurface
 				return;
 			}
 
-			Surface.Driver.SetUpVeldrid();
+			Driver.SetUpVeldrid();
 
 			Surface.Resize(Surface.Width, Surface.Height);
 
-			Surface.Driver.Clock.Start();
+			Driver.Clock.Start();
 		}
 	}
 }

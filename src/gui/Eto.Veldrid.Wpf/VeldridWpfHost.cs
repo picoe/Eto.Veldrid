@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Eto.VeldridSurface;
+using System;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
 
@@ -145,8 +146,8 @@ namespace PlaceholderName
 
 		public IntPtr Hwnd { get; private set; }
 
-		public Action Draw { get; set; }
-		public Action<int, int> Resize { get; set; }
+		public event EventHandler<EventArgs> WmPaint;
+		public event EventHandler<ResizeEventArgs> WmSize;
 
 		protected override HandleRef BuildWindowCore(HandleRef hwndParent)
 		{
@@ -181,14 +182,14 @@ namespace PlaceholderName
 				int width = (short)lParam.ToInt32();
 				int height = lParam.ToInt32() >> 16;
 
-				Resize.Invoke(width, height);
+				OnWmSize(new ResizeEventArgs { Width = width, Height = height });
 
 				handled = true;
 			}
 			else if (msg == WM_PAINT)
 			{
 				BeginPaint(Hwnd, out PAINTSTRUCT ps);
-				Draw.Invoke();
+				OnWmPaint(EventArgs.Empty);
 				EndPaint(Hwnd, ref ps);
 
 				handled = true;
@@ -199,6 +200,15 @@ namespace PlaceholderName
 			}
 
 			return IntPtr.Zero;
+		}
+
+		protected virtual void OnWmPaint(EventArgs e)
+		{
+			WmPaint?.Invoke(this, e);
+		}
+		protected virtual void OnWmSize(ResizeEventArgs e)
+		{
+			WmSize?.Invoke(this, e);
 		}
 
 		[DllImport("user32.dll", EntryPoint = "CreateWindowEx", CharSet = CharSet.Unicode)]

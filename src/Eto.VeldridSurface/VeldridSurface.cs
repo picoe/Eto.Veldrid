@@ -121,9 +121,15 @@ namespace Eto.VeldridSurface
 			set { Control.Content = value; }
 		}
 
-		public virtual void InitializeGraphicsApi(Action draw, Action<int, int> resize)
+		public virtual void InitializeGraphicsApi()
 		{
 		}
+	}
+
+	public class ResizeEventArgs : EventArgs
+	{
+		public int Width { get; set; }
+		public int Height { get; set; }
 	}
 
 	/// <summary>
@@ -135,7 +141,7 @@ namespace Eto.VeldridSurface
 		public new interface IHandler : Control.IHandler
 		{
 			Control RenderTarget { get; set; }
-			void InitializeGraphicsApi(Action draw, Action<int, int> resize);
+			void InitializeGraphicsApi();
 		}
 
 		public new IHandler Handler => (IHandler)base.Handler;
@@ -145,6 +151,9 @@ namespace Eto.VeldridSurface
 			GraphicsBackend Backend { get; }
 			GraphicsDevice GraphicsDevice { get; set; }
 			Swapchain Swapchain { get; set; }
+
+			void OnDraw(VeldridSurface s, EventArgs e);
+			void OnResize(VeldridSurface s, ResizeEventArgs e);
 		}
 
 		protected new class Callback : Control.Callback, ICallback
@@ -156,7 +165,7 @@ namespace Eto.VeldridSurface
 			public Action<GraphicsDevice> SetGraphicsDevice { get; set; }
 			public GraphicsDevice GraphicsDevice
 			{
-				get { return GetGraphicsDevice.Invoke(); }
+				get { return GetGraphicsDevice(); }
 				set { SetGraphicsDevice(value); }
 			}
 
@@ -164,8 +173,18 @@ namespace Eto.VeldridSurface
 			public Action<Swapchain> SetSwapchain { get; set; }
 			public Swapchain Swapchain
 			{
-				get { return GetSwapchain.Invoke(); }
-				set { SetSwapchain.Invoke(value); }
+				get { return GetSwapchain(); }
+				set { SetSwapchain(value); }
+			}
+
+			public void OnDraw(VeldridSurface s, EventArgs e)
+			{
+				s.OnDraw(e);
+			}
+
+			public void OnResize(VeldridSurface s, ResizeEventArgs e)
+			{
+				s.OnResize(e);
 			}
 		}
 
@@ -180,20 +199,6 @@ namespace Eto.VeldridSurface
 				SetSwapchain = (s) => { Swapchain = s; }
 			};
 		}
-
-		private VeldridDriver _driver;
-		public VeldridDriver Driver
-		{
-			get { return _driver; }
-			set
-			{
-				_driver = value;
-
-				_driver.Surface = this;
-			}
-		}
-
-		public Action<VeldridSurface, GraphicsBackend, Action, Action<int, int>> InitOther;
 
 		public static GraphicsBackend PreferredBackend
 		{
@@ -251,11 +256,23 @@ namespace Eto.VeldridSurface
 		}
 
 		public static string VeldridSurfaceInitializedEvent = "VeldridSurface.Initialized";
+		public static string VeldridSurfaceDrawEvent = "VeldridSurface.Draw";
+		public static string VeldridSurfaceResizeEvent = "VeldridSurface.Resize";
 
 		public event EventHandler<EventArgs> VeldridSurfaceInitialized
 		{
 			add { Properties.AddHandlerEvent(VeldridSurfaceInitializedEvent, value); }
 			remove { Properties.RemoveEvent(VeldridSurfaceInitializedEvent, value); }
+		}
+		public event EventHandler<EventArgs> VeldridSurfaceDraw
+		{
+			add { Properties.AddHandlerEvent(VeldridSurfaceDrawEvent, value); }
+			remove { Properties.RemoveEvent(VeldridSurfaceDrawEvent, value); }
+		}
+		public event EventHandler<EventArgs> VeldridSurfaceResize
+		{
+			add { Properties.AddHandlerEvent(VeldridSurfaceResizeEvent, value); }
+			remove { Properties.RemoveEvent(VeldridSurfaceResizeEvent, value); }
 		}
 
 		public VeldridSurface() : this(PreferredBackend)
@@ -265,15 +282,13 @@ namespace Eto.VeldridSurface
 		{
 			Backend = backend;
 
-			Driver = new VeldridDriver();
-
 			if (Backend == GraphicsBackend.OpenGL)
 			{
 				GLReady = false;
 
 				var surface = new GLSurface(new GraphicsMode(), 3, 3, GraphicsContextFlags.ForwardCompatible);
 				surface.GLInitalized += (sender, e) => GLReady = true;
-				surface.Draw += (sender, e) => Driver.Draw();
+				surface.Draw += (sender, e) => OnDraw(EventArgs.Empty);
 
 				Handler.RenderTarget = surface;
 			}
@@ -290,6 +305,16 @@ namespace Eto.VeldridSurface
 		protected virtual void OnVeldridInitialized(EventArgs e)
 		{
 			Properties.TriggerEvent(VeldridSurfaceInitializedEvent, this, e);
+		}
+		protected virtual void OnDraw(EventArgs e)
+		{
+			Properties.TriggerEvent(VeldridSurfaceDrawEvent, this, e);
+		}
+		protected virtual void OnResize(ResizeEventArgs e)
+		{
+			Resize(e.Width, e.Height);
+
+			Properties.TriggerEvent(VeldridSurfaceResizeEvent, this, e);
 		}
 
 		private void InitGL()
@@ -333,7 +358,7 @@ namespace Eto.VeldridSurface
 					InitGL();
 					break;
 				case null:
-					Handler.InitializeGraphicsApi(Driver.Draw, Resize);
+					Handler.InitializeGraphicsApi();
 					break;
 			}
 
