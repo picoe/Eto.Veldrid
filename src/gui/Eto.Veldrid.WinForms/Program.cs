@@ -67,7 +67,7 @@ namespace PlaceholderName
 			var source = SwapchainSource.CreateWin32(
 				Control.NativeHandle, Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
 			Callback.Swapchain = Callback.GraphicsDevice.ResourceFactory.CreateSwapchain(
-				new SwapchainDescription(source, 640, 480, null, false));
+				new SwapchainDescription(source, (uint)Widget.Width, (uint)Widget.Height, null, false));
 		}
 	}
 

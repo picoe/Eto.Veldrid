@@ -1,4 +1,5 @@
-﻿using Eto.Forms;
+﻿using Eto.Drawing;
+using Eto.Forms;
 using Eto.Gl;
 using OpenTK;
 using OpenTK.Graphics;
@@ -108,28 +109,55 @@ namespace Eto.VeldridSurface
 		}
 	}
 
+	public class ResizeEventArgs : EventArgs
+	{
+		public int Width { get; set; }
+		public int Height { get; set; }
+
+		public ResizeEventArgs()
+		{
+		}
+		public ResizeEventArgs(int width, int height)
+		{
+			Width = width;
+			Height = height;
+		}
+		public ResizeEventArgs(Size size)
+		{
+			Width = size.Width;
+			Height = size.Height;
+		}
+	}
+
 	public class VeldridSurfaceHandler : ThemedControlHandler<Panel, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
-		public VeldridSurfaceHandler()
-		{
-			Control = new Panel();
-		}
-
 		public Control RenderTarget
 		{
 			get { return Control.Content; }
 			set { Control.Content = value; }
 		}
 
+		public VeldridSurfaceHandler()
+		{
+			Control = new Panel();
+		}
+
+		public override void AttachEvent(string id)
+		{
+			switch (id)
+			{
+				case VeldridSurface.SizeChangedEvent:
+					Control.SizeChanged += (sender, e) => Callback.OnResize(Widget, new ResizeEventArgs(Control.Size));
+					break;
+				default:
+					base.AttachEvent(id);
+					break;
+			}
+		}
+
 		public virtual void InitializeGraphicsApi()
 		{
 		}
-	}
-
-	public class ResizeEventArgs : EventArgs
-	{
-		public int Width { get; set; }
-		public int Height { get; set; }
 	}
 
 	/// <summary>
@@ -255,24 +283,24 @@ namespace Eto.VeldridSurface
 			}
 		}
 
-		public static string VeldridSurfaceInitializedEvent = "VeldridSurface.Initialized";
-		public static string VeldridSurfaceDrawEvent = "VeldridSurface.Draw";
-		public static string VeldridSurfaceResizeEvent = "VeldridSurface.Resize";
+		public static string VeldridInitializedEvent = "VeldridSurface.VeldridInitialized";
+		public static string DrawEvent = "VeldridSurface.Draw";
+		public static string ResizeEvent = "VeldridSurface.Resize";
 
-		public event EventHandler<EventArgs> VeldridSurfaceInitialized
+		public event EventHandler<EventArgs> VeldridInitialized
 		{
-			add { Properties.AddHandlerEvent(VeldridSurfaceInitializedEvent, value); }
-			remove { Properties.RemoveEvent(VeldridSurfaceInitializedEvent, value); }
+			add { Properties.AddHandlerEvent(VeldridInitializedEvent, value); }
+			remove { Properties.RemoveEvent(VeldridInitializedEvent, value); }
 		}
-		public event EventHandler<EventArgs> VeldridSurfaceDraw
+		public event EventHandler<EventArgs> Draw
 		{
-			add { Properties.AddHandlerEvent(VeldridSurfaceDrawEvent, value); }
-			remove { Properties.RemoveEvent(VeldridSurfaceDrawEvent, value); }
+			add { Properties.AddHandlerEvent(DrawEvent, value); }
+			remove { Properties.RemoveEvent(DrawEvent, value); }
 		}
-		public event EventHandler<EventArgs> VeldridSurfaceResize
+		public event EventHandler<EventArgs> Resize
 		{
-			add { Properties.AddHandlerEvent(VeldridSurfaceResizeEvent, value); }
-			remove { Properties.RemoveEvent(VeldridSurfaceResizeEvent, value); }
+			add { Properties.AddHandlerEvent(ResizeEvent, value); }
+			remove { Properties.RemoveEvent(ResizeEvent, value); }
 		}
 
 		public VeldridSurface() : this(PreferredBackend)
@@ -294,27 +322,28 @@ namespace Eto.VeldridSurface
 			}
 
 			LoadComplete += (sender, e) => ControlReady = true;
-			SizeChanged += (sender, e) => Resize(Width, Height);
-		}
-
-		public void Resize(int width, int height)
-		{
-			Swapchain?.Resize((uint)Width, (uint)Height);
 		}
 
 		protected virtual void OnVeldridInitialized(EventArgs e)
 		{
-			Properties.TriggerEvent(VeldridSurfaceInitializedEvent, this, e);
+			Properties.TriggerEvent(VeldridInitializedEvent, this, e);
 		}
 		protected virtual void OnDraw(EventArgs e)
 		{
-			Properties.TriggerEvent(VeldridSurfaceDrawEvent, this, e);
+			Properties.TriggerEvent(DrawEvent, this, e);
 		}
 		protected virtual void OnResize(ResizeEventArgs e)
 		{
-			Resize(e.Width, e.Height);
+			Swapchain?.Resize((uint)e.Width, (uint)e.Height);
 
-			Properties.TriggerEvent(VeldridSurfaceResizeEvent, this, e);
+			Properties.TriggerEvent(ResizeEvent, this, e);
+		}
+
+		protected override void OnSizeChanged(EventArgs e)
+		{
+			base.OnSizeChanged(e);
+
+			OnResize(new ResizeEventArgs(Width, Height));
 		}
 
 		private void InitGL()

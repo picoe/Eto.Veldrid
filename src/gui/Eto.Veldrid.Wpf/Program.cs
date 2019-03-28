@@ -70,10 +70,10 @@ namespace PlaceholderName
 				var source = SwapchainSource.CreateWin32(
 					dummy.Hwnd, Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
 				Callback.Swapchain = Callback.GraphicsDevice.ResourceFactory.CreateSwapchain(
-					new SwapchainDescription(source, 640, 480, null, false));
+					new SwapchainDescription(source, (uint)Widget.Width, (uint)Widget.Height, null, false));
 			};
-			dummy.WmPaint += (sender, e) => { Callback.OnDraw(Widget, e); };
-			dummy.WmSize += (sender, e) => { Callback.OnResize(Widget, e); };
+			dummy.WmPaint += (sender, e) => Callback.OnDraw(Widget, e);
+			dummy.WmSize += (sender, e) => Callback.OnResize(Widget, e);
 
 			RenderTarget = WpfHelpers.ToEto(dummy);
 		}

@@ -41,8 +41,8 @@ namespace Eto.VeldridSurface
 			Shown += (sender, e) => FormReady = true;
 
 			Surface = new VeldridSurface(backend);
-			Surface.VeldridSurfaceInitialized += (sender, e) => VeldridReady = true;
-			Surface.VeldridSurfaceDraw += (sender, e) => Driver.Draw();
+			Surface.VeldridInitialized += (sender, e) => VeldridReady = true;
+			Surface.Draw += (sender, e) => Driver.Draw();
 
 			Content = Surface;
 
@@ -57,9 +57,6 @@ namespace Eto.VeldridSurface
 			}
 
 			Driver.SetUpVeldrid();
-
-			Surface.Resize(Surface.Width, Surface.Height);
-
 			Driver.Clock.Start();
 		}
 	}
