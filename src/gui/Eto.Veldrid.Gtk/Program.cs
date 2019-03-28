@@ -13,7 +13,7 @@ namespace PlaceholderName
 		public override void InitializeGraphicsApi()
 		{
 			string message;
-			if (!Enum.IsDefined(typeof(GraphicsBackend), Callback.Backend))
+			if (!Enum.IsDefined(typeof(GraphicsBackend), Widget.Backend))
 			{
 				message = "Unrecognized backend!";
 			}

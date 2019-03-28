@@ -12,14 +12,14 @@ namespace PlaceholderName
 	{
 		public override void InitializeGraphicsApi()
 		{
-			if (Callback.Backend == GraphicsBackend.Metal)
+			if (Widget.Backend == GraphicsBackend.Metal)
 			{
-				Callback.GraphicsDevice = GraphicsDevice.CreateMetal(new GraphicsDeviceOptions());
+				Widget.GraphicsDevice = GraphicsDevice.CreateMetal(new GraphicsDeviceOptions());
 			}
 			else
 			{
 				string message;
-				if (!Enum.IsDefined(typeof(GraphicsBackend), Callback.Backend))
+				if (!Enum.IsDefined(typeof(GraphicsBackend), Widget.Backend))
 				{
 					message = "Unrecognized backend!";
 				}
@@ -32,7 +32,7 @@ namespace PlaceholderName
 			}
 
 			var source = SwapchainSource.CreateNSView(Control.NativeHandle);
-			Callback.Swapchain = Callback.GraphicsDevice.ResourceFactory.CreateSwapchain(
+			Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
 				new SwapchainDescription(source, (uint)Widget.Width, (uint)Widget.Height, null, false));
 		}
 	}

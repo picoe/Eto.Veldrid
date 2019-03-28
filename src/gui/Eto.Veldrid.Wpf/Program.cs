@@ -41,18 +41,18 @@ namespace PlaceholderName
 			// OpenGL initialization is technically platform-dependent, but it
 			// happens by way of GLSurface, which for users of the class is
 			// cross platform. See VeldridSurface for initialization details.
-			if (Callback.Backend == GraphicsBackend.Vulkan)
+			if (Widget.Backend == GraphicsBackend.Vulkan)
 			{
-				Callback.GraphicsDevice = GraphicsDevice.CreateVulkan(new GraphicsDeviceOptions());
+				Widget.GraphicsDevice = GraphicsDevice.CreateVulkan(new GraphicsDeviceOptions());
 			}
-			else if (Callback.Backend == GraphicsBackend.Direct3D11)
+			else if (Widget.Backend == GraphicsBackend.Direct3D11)
 			{
-				Callback.GraphicsDevice = GraphicsDevice.CreateD3D11(new GraphicsDeviceOptions());
+				Widget.GraphicsDevice = GraphicsDevice.CreateD3D11(new GraphicsDeviceOptions());
 			}
 			else
 			{
 				string message;
-				if (!Enum.IsDefined(typeof(GraphicsBackend), Callback.Backend))
+				if (!Enum.IsDefined(typeof(GraphicsBackend), Widget.Backend))
 				{
 					message = "Unrecognized backend!";
 				}
@@ -69,7 +69,7 @@ namespace PlaceholderName
 			{
 				var source = SwapchainSource.CreateWin32(
 					dummy.Hwnd, Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
-				Callback.Swapchain = Callback.GraphicsDevice.ResourceFactory.CreateSwapchain(
+				Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
 					new SwapchainDescription(source, (uint)Widget.Width, (uint)Widget.Height, null, false));
 			};
 			dummy.WmPaint += (sender, e) => Callback.OnDraw(Widget, e);

@@ -176,35 +176,12 @@ namespace Eto.VeldridSurface
 
 		public new interface ICallback : Control.ICallback
 		{
-			GraphicsBackend Backend { get; }
-			GraphicsDevice GraphicsDevice { get; set; }
-			Swapchain Swapchain { get; set; }
-
 			void OnDraw(VeldridSurface s, EventArgs e);
 			void OnResize(VeldridSurface s, ResizeEventArgs e);
 		}
 
 		protected new class Callback : Control.Callback, ICallback
 		{
-			public Func<GraphicsBackend> GetBackend { get; set; }
-			public GraphicsBackend Backend => GetBackend.Invoke();
-
-			public Func<GraphicsDevice> GetGraphicsDevice { get; set; }
-			public Action<GraphicsDevice> SetGraphicsDevice { get; set; }
-			public GraphicsDevice GraphicsDevice
-			{
-				get { return GetGraphicsDevice(); }
-				set { SetGraphicsDevice(value); }
-			}
-
-			public Func<Swapchain> GetSwapchain { get; set; }
-			public Action<Swapchain> SetSwapchain { get; set; }
-			public Swapchain Swapchain
-			{
-				get { return GetSwapchain(); }
-				set { SetSwapchain(value); }
-			}
-
 			public void OnDraw(VeldridSurface s, EventArgs e)
 			{
 				s.OnDraw(e);
@@ -218,14 +195,7 @@ namespace Eto.VeldridSurface
 
 		protected override object GetCallback()
 		{
-			return new Callback
-			{
-				GetBackend = () => { return Backend; },
-				GetGraphicsDevice = () => { return GraphicsDevice; },
-				SetGraphicsDevice = (d) => { GraphicsDevice = d; },
-				GetSwapchain = () => { return Swapchain; },
-				SetSwapchain = (s) => { Swapchain = s; }
-			};
+			return new Callback();
 		}
 
 		public static GraphicsBackend PreferredBackend
