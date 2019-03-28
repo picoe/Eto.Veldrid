@@ -36,7 +36,7 @@ namespace PlaceholderName
 
 	public class WpfVeldridSurfaceHandler : VeldridSurfaceHandler
 	{
-		public override void InitializeGraphicsApi()
+		protected override void InitializeOtherApi()
 		{
 			// OpenGL initialization is technically platform-dependent, but it
 			// happens by way of GLSurface, which for users of the class is
@@ -72,8 +72,8 @@ namespace PlaceholderName
 				Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
 					new SwapchainDescription(source, (uint)Widget.Width, (uint)Widget.Height, null, false));
 			};
-			dummy.WmPaint += (sender, e) => Callback.OnDraw(Widget, e);
-			dummy.WmSize += (sender, e) => Callback.OnResize(Widget, e);
+			dummy.WMPaint += (sender, e) => Callback.OnDraw(Widget, e);
+			dummy.WMSize += (sender, e) => Callback.OnResize(Widget, e);
 
 			RenderTarget = WpfHelpers.ToEto(dummy);
 		}

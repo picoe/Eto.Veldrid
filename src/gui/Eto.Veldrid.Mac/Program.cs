@@ -10,7 +10,7 @@ namespace PlaceholderName
 {
 	public class MacVeldridSurfaceHandler : VeldridSurfaceHandler
 	{
-		public override void InitializeGraphicsApi()
+		protected override void InitializeOtherApi()
 		{
 			if (Widget.Backend == GraphicsBackend.Metal)
 			{

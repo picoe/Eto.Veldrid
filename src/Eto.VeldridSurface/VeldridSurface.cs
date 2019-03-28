@@ -157,6 +157,53 @@ namespace Eto.VeldridSurface
 
 		public virtual void InitializeGraphicsApi()
 		{
+			switch (Widget.GLReady)
+			{
+				case false:
+					return;
+				case true:
+					(RenderTarget as GLSurface).MakeCurrent();
+					InitializeOpenGL();
+					break;
+				case null:
+					InitializeOtherApi();
+					break;
+			}
+		}
+
+		/// <summary>
+		/// Prepare this VeldridSurface to use OpenGL.
+		/// </summary>
+		protected virtual void InitializeOpenGL()
+		{
+			VeldridGL.Surfaces.Add(RenderTarget as GLSurface);
+
+			var platformInfo = new Veldrid.OpenGL.OpenGLPlatformInfo(
+				VeldridGL.GetGLContextHandle(),
+				VeldridGL.GetProcAddress,
+				VeldridGL.MakeCurrent,
+				VeldridGL.GetCurrentContext,
+				VeldridGL.ClearCurrentContext,
+				VeldridGL.DeleteContext,
+				VeldridGL.SwapBuffers,
+				VeldridGL.SetVSync,
+				VeldridGL.SetSwapchainFramebuffer,
+				VeldridGL.ResizeSwapchain);
+
+			Widget.GraphicsDevice = GraphicsDevice.CreateOpenGL(
+				new GraphicsDeviceOptions(),
+				platformInfo,
+				(uint)Widget.Width,
+				(uint)Widget.Height);
+
+			Widget.Swapchain = Widget.GraphicsDevice.MainSwapchain;
+		}
+
+		/// <summary>
+		/// Prepare this VeldridSurface to use a graphics API other than OpenGL.
+		/// </summary>
+		protected virtual void InitializeOtherApi()
+		{
 		}
 	}
 
@@ -316,31 +363,6 @@ namespace Eto.VeldridSurface
 			OnResize(new ResizeEventArgs(Width, Height));
 		}
 
-		private void InitGL()
-		{
-			VeldridGL.Surfaces.Add(Handler.RenderTarget as GLSurface);
-
-			var platformInfo = new Veldrid.OpenGL.OpenGLPlatformInfo(
-				VeldridGL.GetGLContextHandle(),
-				VeldridGL.GetProcAddress,
-				VeldridGL.MakeCurrent,
-				VeldridGL.GetCurrentContext,
-				VeldridGL.ClearCurrentContext,
-				VeldridGL.DeleteContext,
-				VeldridGL.SwapBuffers,
-				VeldridGL.SetVSync,
-				VeldridGL.SetSwapchainFramebuffer,
-				VeldridGL.ResizeSwapchain);
-
-			GraphicsDevice = GraphicsDevice.CreateOpenGL(
-				new GraphicsDeviceOptions(),
-				platformInfo,
-				640,
-				480);
-
-			Swapchain = GraphicsDevice.MainSwapchain;
-		}
-
 		private void RaiseInitEventIfReady()
 		{
 			if (!ControlReady)
@@ -348,18 +370,7 @@ namespace Eto.VeldridSurface
 				return;
 			}
 
-			switch (GLReady)
-			{
-				case false:
-					return;
-				case true:
-					(Handler.RenderTarget as GLSurface).MakeCurrent();
-					InitGL();
-					break;
-				case null:
-					Handler.InitializeGraphicsApi();
-					break;
-			}
+			Handler.InitializeGraphicsApi();
 
 			OnVeldridInitialized(EventArgs.Empty);
 		}

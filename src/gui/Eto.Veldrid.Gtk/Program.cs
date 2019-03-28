@@ -10,7 +10,7 @@ namespace PlaceholderName
 {
 	public class GtkVeldridSurfaceHandler : VeldridSurfaceHandler
 	{
-		public override void InitializeGraphicsApi()
+		protected override void InitializeOtherApi()
 		{
 			string message;
 			if (!Enum.IsDefined(typeof(GraphicsBackend), Widget.Backend))

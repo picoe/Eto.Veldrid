@@ -36,7 +36,7 @@ namespace PlaceholderName
 
 	public class WinFormsVeldridSurfaceHandler : VeldridSurfaceHandler
 	{
-		public override void InitializeGraphicsApi()
+		protected override void InitializeOtherApi()
 		{
 			// OpenGL initialization is technically platform-dependent, but it
 			// happens by way of GLSurface, which for users of the class is

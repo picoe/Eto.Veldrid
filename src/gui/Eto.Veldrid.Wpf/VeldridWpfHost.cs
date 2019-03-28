@@ -146,8 +146,8 @@ namespace PlaceholderName
 
 		public IntPtr Hwnd { get; private set; }
 
-		public event EventHandler<EventArgs> WmPaint;
-		public event EventHandler<ResizeEventArgs> WmSize;
+		public event EventHandler<EventArgs> WMPaint;
+		public event EventHandler<ResizeEventArgs> WMSize;
 
 		protected override HandleRef BuildWindowCore(HandleRef hwndParent)
 		{
@@ -182,14 +182,14 @@ namespace PlaceholderName
 				int width = (short)lParam.ToInt32();
 				int height = lParam.ToInt32() >> 16;
 
-				OnWmSize(new ResizeEventArgs { Width = width, Height = height });
+				OnWMSize(new ResizeEventArgs(width, height));
 
 				handled = true;
 			}
 			else if (msg == WM_PAINT)
 			{
 				BeginPaint(Hwnd, out PAINTSTRUCT ps);
-				OnWmPaint(EventArgs.Empty);
+				OnWMPaint(EventArgs.Empty);
 				EndPaint(Hwnd, ref ps);
 
 				handled = true;
@@ -202,13 +202,13 @@ namespace PlaceholderName
 			return IntPtr.Zero;
 		}
 
-		protected virtual void OnWmPaint(EventArgs e)
+		protected virtual void OnWMPaint(EventArgs e)
 		{
-			WmPaint?.Invoke(this, e);
+			WMPaint?.Invoke(this, e);
 		}
-		protected virtual void OnWmSize(ResizeEventArgs e)
+		protected virtual void OnWMSize(ResizeEventArgs e)
 		{
-			WmSize?.Invoke(this, e);
+			WMSize?.Invoke(this, e);
 		}
 
 		[DllImport("user32.dll", EntryPoint = "CreateWindowEx", CharSet = CharSet.Unicode)]
