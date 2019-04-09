@@ -1,7 +1,6 @@
 ﻿using Eto.Forms;
 using Eto.Gl;
 using Eto.Gl.Gtk;
-using Eto.VeldridSurface;
 using OpenTK;
 using System;
 using Veldrid;
@@ -12,17 +11,21 @@ namespace PlaceholderName
 	{
 		protected override void InitializeOtherApi()
 		{
-			string message;
-			if (!Enum.IsDefined(typeof(GraphicsBackend), Widget.Backend))
-			{
-				message = "Unrecognized backend!";
-			}
-			else
-			{
-				message = "Specified backend not supported on this platform!";
-			}
+			base.InitializeOtherApi();
 
-			throw new ArgumentException(message);
+			global::Gtk.Widget native = Control.ToNative();
+
+			var source = SwapchainSource.CreateXlib(
+				native.Display.Handle, native.GdkWindow.Handle);
+			Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
+				new SwapchainDescription(
+					source,
+					(uint)Widget.Width,
+					(uint)Widget.Height,
+					PixelFormat.R32_Float,
+					false));
+
+			Callback.OnVeldridInitialized(Widget, EventArgs.Empty);
 		}
 	}
 
@@ -39,12 +42,7 @@ namespace PlaceholderName
 			}
 
 			var platform = new Eto.GtkSharp.Platform();
-
-			if (backend == GraphicsBackend.OpenGL)
-			{
-				platform.Add<GLSurface.IHandler>(() => new GtkGlSurfaceHandler());
-			}
-
+			platform.Add<GLSurface.IHandler>(() => new GtkGlSurfaceHandler());
 			platform.Add<VeldridSurface.IHandler>(() => new GtkVeldridSurfaceHandler());
 
 			new Application(platform).Run(new MainForm(backend));

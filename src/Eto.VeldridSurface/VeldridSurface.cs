@@ -1,4 +1,5 @@
-﻿using Eto.Drawing;
+﻿using Eto;
+using Eto.Drawing;
 using Eto.Forms;
 using Eto.Gl;
 using OpenTK;
@@ -7,19 +8,38 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Veldrid;
+using Veldrid.OpenGL;
 
-namespace Eto.VeldridSurface
+// TODO: Come up with a suitable namespace. Eto.Veldrid will conflict with the
+// global Veldrid, and Eto.VeldridSurface makes the VeldridSurface class harder
+// to use. Suggestions welcome!
+namespace PlaceholderName
 {
+	/// <summary>
+	/// A collection of helper methods to grant Veldrid access to an OpenGL context.
+	/// </summary>
+	/// <remarks>
+	/// These are potentially dangerous methods, so please don't try to use them
+	/// for your own purposes. Hand them off to Veldrid as VeldridSurfaceHandler
+	/// does in InitializeOpenGL, and forget about them.
+	/// </remarks>
 	public static class VeldridGL
 	{
-		public static Dictionary<IntPtr, GLSurface> Contexts = new Dictionary<IntPtr, GLSurface>();
+		public static Dictionary<IntPtr, GLSurface> Contexts { get; } = new Dictionary<IntPtr, GLSurface>();
 
-		public static List<GLSurface> Surfaces = new List<GLSurface>();
+		public static List<GLSurface> Surfaces { get; } = new List<GLSurface>();
 
 		public static IntPtr GetGLContextHandle()
 		{
 			return GetCurrentContext();
 		}
+
+		// It should be noted that both GetProcAddress and MakeCurrent aren't
+		// exactly following best practices here; they depend on a private
+		// method and field, respectively, to grant Veldrid access to OpenTK's
+		// internals. It's not pretty, but since this Eto integration was
+		// designed specifically with OpenTK 3.0.1 in mind, sticking with that
+		// version will guarantee that anything private will stay where it is.
 
 		public static IntPtr GetProcAddress(string name)
 		{
@@ -129,6 +149,10 @@ namespace Eto.VeldridSurface
 		}
 	}
 
+	// VeldridSurface only has a few needs that are different for each platform
+	// offered by Eto, so a "themed" handler based on Panel takes care of all
+	// the common busywork. Derived classes, e.g. WinFormsVeldridSurfaceHandler,
+	// provide the platform-specific code necessary to get up and running.
 	public class VeldridSurfaceHandler : ThemedControlHandler<Panel, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
 		public Control RenderTarget
@@ -157,28 +181,43 @@ namespace Eto.VeldridSurface
 
 		public virtual void InitializeGraphicsApi()
 		{
+			if (!Widget.ControlReady)
+			{
+				return;
+			}
+
 			switch (Widget.GLReady)
 			{
 				case false:
 					return;
 				case true:
-					(RenderTarget as GLSurface).MakeCurrent();
 					InitializeOpenGL();
 					break;
 				case null:
 					InitializeOtherApi();
 					break;
 			}
+
+			// Ideally Callback.OnVeldridInitialized would be called here, but
+			// WPF needs to delay raising that event until after WpfVeldridHost
+			// has been Loaded. Each platform's XVeldridSurfaceHandler therefore
+			// has to call OnVeldridInitialized itself.
 		}
 
 		/// <summary>
 		/// Prepare this VeldridSurface to use OpenGL.
 		/// </summary>
+		/// <remarks>
+		/// OpenGL initialization is platform-dependent, but here it happens by
+		/// way of GLSurface, which for users of the class is cross-platform.
+		/// </remarks>
 		protected virtual void InitializeOpenGL()
 		{
+			(RenderTarget as GLSurface).MakeCurrent();
+
 			VeldridGL.Surfaces.Add(RenderTarget as GLSurface);
 
-			var platformInfo = new Veldrid.OpenGL.OpenGLPlatformInfo(
+			var platformInfo = new OpenGLPlatformInfo(
 				VeldridGL.GetGLContextHandle(),
 				VeldridGL.GetProcAddress,
 				VeldridGL.MakeCurrent,
@@ -191,12 +230,14 @@ namespace Eto.VeldridSurface
 				VeldridGL.ResizeSwapchain);
 
 			Widget.GraphicsDevice = GraphicsDevice.CreateOpenGL(
-				new GraphicsDeviceOptions(),
+				new GraphicsDeviceOptions(false, Veldrid.PixelFormat.R32_Float, false),
 				platformInfo,
 				(uint)Widget.Width,
 				(uint)Widget.Height);
 
 			Widget.Swapchain = Widget.GraphicsDevice.MainSwapchain;
+
+			Callback.OnVeldridInitialized(Widget, EventArgs.Empty);
 		}
 
 		/// <summary>
@@ -204,6 +245,32 @@ namespace Eto.VeldridSurface
 		/// </summary>
 		protected virtual void InitializeOtherApi()
 		{
+			if (Widget.Backend == GraphicsBackend.Metal)
+			{
+				Widget.GraphicsDevice = GraphicsDevice.CreateMetal(new GraphicsDeviceOptions());
+			}
+			else if (Widget.Backend == GraphicsBackend.Vulkan)
+			{
+				Widget.GraphicsDevice = GraphicsDevice.CreateVulkan(new GraphicsDeviceOptions());
+			}
+			else if (Widget.Backend == GraphicsBackend.Direct3D11)
+			{
+				Widget.GraphicsDevice = GraphicsDevice.CreateD3D11(new GraphicsDeviceOptions());
+			}
+			else
+			{
+				string message;
+				if (!Enum.IsDefined(typeof(GraphicsBackend), Widget.Backend))
+				{
+					message = "Unrecognized backend!";
+				}
+				else
+				{
+					message = "Specified backend not supported on this platform!";
+				}
+
+				throw new ArgumentException(message);
+			}
 		}
 	}
 
@@ -225,6 +292,7 @@ namespace Eto.VeldridSurface
 		{
 			void OnDraw(VeldridSurface s, EventArgs e);
 			void OnResize(VeldridSurface s, ResizeEventArgs e);
+			void OnVeldridInitialized(VeldridSurface s, EventArgs e);
 		}
 
 		protected new class Callback : Control.Callback, ICallback
@@ -237,6 +305,11 @@ namespace Eto.VeldridSurface
 			public void OnResize(VeldridSurface s, ResizeEventArgs e)
 			{
 				s.OnResize(e);
+			}
+
+			public void OnVeldridInitialized(VeldridSurface s, EventArgs e)
+			{
+				s.OnVeldridInitialized(e);
 			}
 		}
 
@@ -284,7 +357,7 @@ namespace Eto.VeldridSurface
 			{
 				_glReady = value;
 
-				RaiseInitEventIfReady();
+				Handler.InitializeGraphicsApi();
 			}
 		}
 
@@ -296,13 +369,13 @@ namespace Eto.VeldridSurface
 			{
 				_controlReady = value;
 
-				RaiseInitEventIfReady();
+				Handler.InitializeGraphicsApi();
 			}
 		}
 
-		public static string VeldridInitializedEvent = "VeldridSurface.VeldridInitialized";
-		public static string DrawEvent = "VeldridSurface.Draw";
-		public static string ResizeEvent = "VeldridSurface.Resize";
+		public const string VeldridInitializedEvent = "VeldridSurface.VeldridInitialized";
+		public const string DrawEvent = "VeldridSurface.Draw";
+		public const string ResizeEvent = "VeldridSurface.Resize";
 
 		public event EventHandler<EventArgs> VeldridInitialized
 		{
@@ -331,7 +404,15 @@ namespace Eto.VeldridSurface
 			{
 				GLReady = false;
 
-				var surface = new GLSurface(new GraphicsMode(), 3, 3, GraphicsContextFlags.ForwardCompatible);
+				// Remember to match these graphics mode settings to whatever's
+				// used in VeldridBackEnd.CreatePipeline and in the instance of
+				// XVeldridSurfaceHandler for a given platform.
+				var mode = new GraphicsMode(new ColorFormat(32), 32);
+				int major = 3;
+				int minor = 3;
+				GraphicsContextFlags flags = GraphicsContextFlags.ForwardCompatible;
+
+				var surface = new GLSurface(mode, major, minor, flags);
 				surface.GLInitalized += (sender, e) => GLReady = true;
 				surface.Draw += (sender, e) => OnDraw(EventArgs.Empty);
 
@@ -361,18 +442,6 @@ namespace Eto.VeldridSurface
 			base.OnSizeChanged(e);
 
 			OnResize(new ResizeEventArgs(Width, Height));
-		}
-
-		private void RaiseInitEventIfReady()
-		{
-			if (!ControlReady)
-			{
-				return;
-			}
-
-			Handler.InitializeGraphicsApi();
-
-			OnVeldridInitialized(EventArgs.Empty);
 		}
 	}
 }

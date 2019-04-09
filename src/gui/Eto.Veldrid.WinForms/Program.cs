@@ -1,7 +1,6 @@
 ﻿using Eto.Forms;
 using Eto.Gl;
 using Eto.Gl.Windows;
-using Eto.VeldridSurface;
 using OpenTK;
 using System;
 using System.Runtime.InteropServices;
@@ -38,36 +37,24 @@ namespace PlaceholderName
 	{
 		protected override void InitializeOtherApi()
 		{
-			// OpenGL initialization is technically platform-dependent, but it
-			// happens by way of GLSurface, which for users of the class is
-			// cross platform. See VeldridSurface for initialization details.
-			if (Widget.Backend == GraphicsBackend.Vulkan)
-			{
-				Widget.GraphicsDevice = GraphicsDevice.CreateVulkan(new GraphicsDeviceOptions());
-			}
-			else if (Widget.Backend == GraphicsBackend.Direct3D11)
-			{
-				Widget.GraphicsDevice = GraphicsDevice.CreateD3D11(new GraphicsDeviceOptions());
-			}
-			else
-			{
-				string message;
-				if (!Enum.IsDefined(typeof(GraphicsBackend), Widget.Backend))
-				{
-					message = "Unrecognized backend!";
-				}
-				else
-				{
-					message = "Specified backend not supported on this platform!";
-				}
+			base.InitializeOtherApi();
 
-				throw new ArgumentException(message);
-			}
-
+			// To embed Veldrid in an Eto control, all these platform-specific
+			// overrides of InitializeOtherApi use the technique outlined here:
+			//
+			//   https://github.com/mellinoe/veldrid/issues/155
+			//
 			var source = SwapchainSource.CreateWin32(
 				Control.NativeHandle, Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
 			Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
-				new SwapchainDescription(source, (uint)Widget.Width, (uint)Widget.Height, null, false));
+				new SwapchainDescription(
+					source,
+					(uint)Widget.Width,
+					(uint)Widget.Height,
+					PixelFormat.R32_Float,
+					false));
+
+			Callback.OnVeldridInitialized(Widget, EventArgs.Empty);
 		}
 	}
 
@@ -84,12 +71,7 @@ namespace PlaceholderName
 			}
 
 			var platform = new Eto.WinForms.Platform();
-
-			if (backend == GraphicsBackend.OpenGL)
-			{
-				platform.Add<GLSurface.IHandler>(() => new PuppetWinGLSurfaceHandler());
-			}
-
+			platform.Add<GLSurface.IHandler>(() => new PuppetWinGLSurfaceHandler());
 			platform.Add<VeldridSurface.IHandler>(() => new WinFormsVeldridSurfaceHandler());
 
 			new Application(platform).Run(new MainForm(backend));

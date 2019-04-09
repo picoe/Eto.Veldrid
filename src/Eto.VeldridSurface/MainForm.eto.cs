@@ -1,7 +1,7 @@
 using Eto.Drawing;
 using Eto.Forms;
 
-namespace Eto.VeldridSurface
+namespace PlaceholderName
 {
 	public partial class MainForm : Form
 	{
@@ -16,18 +16,8 @@ namespace Eto.VeldridSurface
 			var aboutCommand = new Command { MenuText = "About..." };
 			aboutCommand.Executed += (sender, e) => new AboutDialog().ShowDialog(this);
 
-			var drawCommand = new Command { MenuText = "Draw" };
-			drawCommand.Executed += (sender, e) =>
-			{
-				Driver.Draw();
-			};
-
 			Menu = new MenuBar
 			{
-				Items =
-				{
-					new ButtonMenuItem { Text = "&File", Items = { drawCommand } }
-				},
 				QuitItem = quitCommand,
 				AboutItem = aboutCommand
 			};

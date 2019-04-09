@@ -2,7 +2,7 @@
 using System;
 using Veldrid;
 
-namespace Eto.VeldridSurface
+namespace PlaceholderName
 {
 	public partial class MainForm : Form
 	{
