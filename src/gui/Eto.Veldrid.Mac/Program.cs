@@ -13,6 +13,11 @@ namespace PlaceholderName
 		{
 			base.InitializeOtherApi();
 
+			// To embed Veldrid in an Eto control, all these platform-specific
+			// overrides of InitializeOtherApi use the technique outlined here:
+			//
+			//   https://github.com/mellinoe/veldrid/issues/155
+			//
 			var source = SwapchainSource.CreateNSView(Control.NativeHandle);
 			Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
 				new SwapchainDescription(

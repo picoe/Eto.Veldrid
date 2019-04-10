@@ -405,8 +405,9 @@ namespace PlaceholderName
 				GLReady = false;
 
 				// Remember to match these graphics mode settings to whatever's
-				// used in VeldridBackEnd.CreatePipeline and in the instance of
-				// XVeldridSurfaceHandler for a given platform.
+				// used during pipeline creation and what's used in the instance
+				// of XVeldridSurfaceHandler for a given platform. The depth and
+				// stencil formats, for example, need to match.
 				var mode = new GraphicsMode(new ColorFormat(32), 32);
 				int major = 3;
 				int minor = 3;

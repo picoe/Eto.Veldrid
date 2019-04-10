@@ -4,6 +4,7 @@ using System.Windows.Interop;
 
 namespace PlaceholderName
 {
+	// https://www.pinvoke.net/default.aspx/Structures/RECT.html
 	[StructLayout(LayoutKind.Sequential)]
 	internal struct RECT
 	{
@@ -123,6 +124,7 @@ namespace PlaceholderName
 		}
 	}
 
+	// http://pinvoke.net/default.aspx/Structures/PAINTSTRUCT.html
 	[StructLayout(LayoutKind.Sequential)]
 	internal struct PAINTSTRUCT
 	{
@@ -170,6 +172,8 @@ namespace PlaceholderName
 			DestroyWindow(hwnd.Handle);
 		}
 
+		// A reference chart mapping Windows message names to integer codes is
+		// available at https://wiki.winehq.org/List_Of_Windows_Messages
 		public static int
 			WM_SIZE = 5,
 			WM_PAINT = 15;
@@ -210,6 +214,7 @@ namespace PlaceholderName
 			WMSize?.Invoke(this, e);
 		}
 
+		// https://docs.microsoft.com/en-us/dotnet/framework/wpf/advanced/walkthrough-hosting-a-win32-control-in-wpf#implement-a-class-to-host-the-microsoft-win32-control
 		[DllImport("user32.dll", EntryPoint = "CreateWindowEx", CharSet = CharSet.Unicode)]
 		internal static extern IntPtr CreateWindowEx(
 			int dwExStyle,
@@ -223,12 +228,15 @@ namespace PlaceholderName
 			IntPtr hInst,
 			[MarshalAs(UnmanagedType.AsAny)] object pvParam);
 
+		// https://docs.microsoft.com/en-us/dotnet/framework/wpf/advanced/walkthrough-hosting-a-win32-control-in-wpf#implement-a-class-to-host-the-microsoft-win32-control
 		[DllImport("user32.dll", EntryPoint = "DestroyWindow", CharSet = CharSet.Unicode)]
 		internal static extern bool DestroyWindow(IntPtr hwnd);
 
+		// http://pinvoke.net/default.aspx/user32/BeginPaint.html
 		[DllImport("user32.dll", EntryPoint = "BeginPaint", CharSet = CharSet.Unicode)]
 		internal static extern IntPtr BeginPaint(IntPtr hwnd, out PAINTSTRUCT lpPaint);
 
+		// http://pinvoke.net/default.aspx/user32/EndPaint.html
 		[DllImport("user32.dll", EntryPoint = "EndPaint", CharSet = CharSet.Unicode)]
 		internal static extern bool EndPaint(IntPtr hwnd, [In] ref PAINTSTRUCT lpPaint);
 	}

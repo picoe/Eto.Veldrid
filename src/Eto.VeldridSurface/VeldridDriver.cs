@@ -150,7 +150,7 @@ namespace PlaceholderName
 				new VertexElementDescription("Color", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4));
 
 			// Veldrid.SPIRV is an additional library that complements Veldrid
-			// by simplifying the development of cross-platform shaders, and is
+			// by simplifying the development of cross-backend shaders, and is
 			// currently the recommended approach to doing so:
 			//
 			//   https://veldrid.dev/articles/portable-shaders.html
@@ -164,13 +164,19 @@ namespace PlaceholderName
 			var options = new CrossCompileOptions();
 			switch (Surface.GraphicsDevice.BackendType)
 			{
-				// InvertVertexOutputY and FixClipSpaceZ are only applicable
-				// because the vertices being drawn are stored the way Vulkan
-				// stores vertex data. These two options therefore properly
-				// convert from one format to another; if your vertices are
-				// stored in a different coordinate system, these may not do
-				// anything for you, and you'll need to write shaders that can
-				// accommodate whatever vertex format you want to use.
+				// InvertVertexOutputY and FixClipSpaceZ address two major
+				// differences between Veldrid's various graphics APIs, as
+				// discussed here:
+				//
+				//   https://veldrid.dev/articles/backend-differences.html
+				//
+				// Note that the only reason those options are useful in this
+				// example project is that the vertices being drawn are stored
+				// the way Vulkan stores vertex data. The options will therefore
+				// properly convert from the Vulkan style to whatever's used by
+				// the destination backend. If you store vertices in a different
+				// coordinate system, these may not do anything for you, and
+				// you'll need to handle the difference in your shader code.
 				case GraphicsBackend.Direct3D11:
 					options.InvertVertexOutputY = true;
 					break;

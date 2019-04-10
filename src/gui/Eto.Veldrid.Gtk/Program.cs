@@ -15,6 +15,11 @@ namespace PlaceholderName
 
 			global::Gtk.Widget native = Control.ToNative();
 
+			// To embed Veldrid in an Eto control, all these platform-specific
+			// overrides of InitializeOtherApi use the technique outlined here:
+			//
+			//   https://github.com/mellinoe/veldrid/issues/155
+			//
 			var source = SwapchainSource.CreateXlib(
 				native.Display.Handle, native.GdkWindow.Handle);
 			Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(

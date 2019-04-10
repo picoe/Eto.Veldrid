@@ -2,32 +2,20 @@
 	
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>Eto.Veldrid</RootNamespace>
-    <PackageVersion>1.0</PackageVersion>
-    <Title>Eto.Veldrid</Title>
-    <Copyright>Copyright © 2018</Copyright>
-    <Description>Description of Eto.Veldrid</Description>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <RootNamespace>Eto.Veldrid</RootNamespace>
+    <Title>Eto.Veldrid</Title>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="..\shaders\**\*" Link="shaders\%(Filename)%(Extension)" />
     <None Remove="..\shaders\**\*.spv" />
   </ItemGroup>
-	
-  <ItemGroup>
-    <None Include="$(TopLevelDirectory)Directory.Build.props" Link="Directory.Build.props" />
-    <None Include="$(TopLevelDirectory)Directory.Build.targets" Link="Directory.Build.targets" />
-  </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Eto.Forms" Version="2.5.0-ci-10144" />
+    <PackageReference Include="Eto.Forms" Version="2.4.1" />
     <PackageReference Include="OpenTK" Version="3.0.1" />
-    <PackageReference Include="Veldrid" Version="4.5.0" />
+    <PackageReference Include="Veldrid" Version="4.6.1" />
   </ItemGroup>
   
   <ItemGroup>

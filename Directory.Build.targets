@@ -75,7 +75,6 @@
     <ItemGroup>
       <Shaders Include="$(TopLevelDirectory)src\shaders\**\*" />
     </ItemGroup>
-    <Message Text="OutputPath: $(OutputPath)" Importance="high" />
     <Copy Condition="$(OutputAppPath) != ''" SourceFiles="@(Shaders)" DestinationFolder="$(OutputAppPath)\Contents\MonoBundle\shaders\%(Shaders.RecursiveDir)" />
     <Copy Condition="$(OutputAppPath) == ''" SourceFiles="@(Shaders)" DestinationFolder="$(OutputPath)\shaders\%(Shaders.RecursiveDir)" />
   </Target>

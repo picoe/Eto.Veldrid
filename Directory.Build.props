@@ -6,10 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Not all packages actually need this, but it's necessary to grab the
-    version number in every GUI project. That then facilitates copying the
-    appropriate native library for each platform. -->
-    <PackageReference Include="Veldrid.SPIRV" Version="1.0.7" />
+    <!-- Not all projects actually need this, but it's necessary in order to
+    grab the version number in every GUI project. That then facilitates copying
+    the appropriate native library for each platform. -->
+    <PackageReference Include="Veldrid.SPIRV" Version="1.0.9" />
   </ItemGroup>
 
   <Target Name="GetVeldridSpirvVersion" BeforeTargets="Build">
