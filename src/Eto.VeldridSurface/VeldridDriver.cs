@@ -177,6 +177,9 @@ namespace PlaceholderName
 				// the destination backend. If you store vertices in a different
 				// coordinate system, these may not do anything for you, and
 				// you'll need to handle the difference in your shader code.
+				case GraphicsBackend.Metal:
+					options.InvertVertexOutputY = true;
+					break;
 				case GraphicsBackend.Direct3D11:
 					options.InvertVertexOutputY = true;
 					break;
