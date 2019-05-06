@@ -12,8 +12,8 @@ namespace PlaceholderName
 	{
 		public static uint SizeInBytes = (uint)Marshal.SizeOf(typeof(VertexPositionColor));
 
-		public Vector2 Position;
-		public RgbaFloat Color;
+		Vector2 Position;
+		RgbaFloat Color;
 
 		public VertexPositionColor(Vector2 position, RgbaFloat color)
 		{
@@ -36,16 +36,19 @@ namespace PlaceholderName
 
 		public UITimer Clock = new UITimer();
 
-		public CommandList CommandList;
-		public DeviceBuffer VertexBuffer;
-		public DeviceBuffer IndexBuffer;
-		public Shader VertexShader;
-		public Shader FragmentShader;
-		public Pipeline Pipeline;
+		CommandList CommandList;
+		DeviceBuffer VertexBuffer;
+		DeviceBuffer IndexBuffer;
+		DeviceBuffer Vertex2Buffer;
+		DeviceBuffer Index2Buffer;
+		Shader VertexShader;
+		Shader FragmentShader;
+		Pipeline Pipeline;
+		Pipeline Pipeline2;
 
-		public Matrix4x4 ModelMatrix = Matrix4x4.Identity;
-		public DeviceBuffer ModelBuffer;
-		public ResourceSet ModelMatrixSet;
+		Matrix4x4 ModelMatrix = Matrix4x4.Identity;
+		DeviceBuffer ModelBuffer;
+		ResourceSet ModelMatrixSet;
 
 		private bool Ready = false;
 
@@ -103,6 +106,18 @@ namespace PlaceholderName
 				vertexOffset: 0,
 				instanceStart: 0);
 
+			CommandList.SetVertexBuffer(0, Vertex2Buffer);
+			CommandList.SetIndexBuffer(Index2Buffer, IndexFormat.UInt16);
+			CommandList.SetPipeline(Pipeline2);
+			CommandList.SetGraphicsResourceSet(0, ModelMatrixSet);
+
+			CommandList.DrawIndexed(
+				indexCount: 4,
+				instanceCount: 1,
+				indexStart: 0,
+				vertexOffset: 0,
+				instanceStart: 0);
+
 			CommandList.End();
 
 			Surface.GraphicsDevice.SubmitCommands(CommandList);
@@ -148,6 +163,22 @@ namespace PlaceholderName
 
 			Surface.GraphicsDevice.UpdateBuffer(VertexBuffer, 0, quadVertices);
 			Surface.GraphicsDevice.UpdateBuffer(IndexBuffer, 0, quadIndices);
+
+			VertexPositionColor[] quad2Vertices =
+{
+				new VertexPositionColor(new Vector2(-.85f, -.85f), RgbaFloat.Red),
+				new VertexPositionColor(new Vector2(.85f, -.85f), RgbaFloat.Green),
+				new VertexPositionColor(new Vector2(-.85f, .85f), RgbaFloat.Blue),
+				new VertexPositionColor(new Vector2(.85f, .85f), RgbaFloat.Yellow)
+			};
+
+			ushort[] quad2Indices = { 0, 1, 2, 3 };
+
+			Vertex2Buffer = factory.CreateBuffer(new BufferDescription(4 * VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer));
+			Index2Buffer = factory.CreateBuffer(new BufferDescription(4 * sizeof(ushort), BufferUsage.IndexBuffer));
+
+			Surface.GraphicsDevice.UpdateBuffer(Vertex2Buffer, 0, quad2Vertices);
+			Surface.GraphicsDevice.UpdateBuffer(Index2Buffer, 0, quad2Indices);
 
 			// Veldrid.SPIRV, when cross-compiling to HLSL, will always produce
 			// TEXCOORD semantics; VertexElementSemantic.TextureCoordinate thus
@@ -219,6 +250,27 @@ namespace PlaceholderName
 					depthClipEnabled: true,
 					scissorTestEnabled: false),
 				PrimitiveTopology = PrimitiveTopology.TriangleStrip,
+				ResourceLayouts = new[] { modelMatrixLayout },
+				ShaderSet = new ShaderSetDescription(
+					vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
+					shaders: shaders),
+				Outputs = Surface.Swapchain.Framebuffer.OutputDescription
+			});
+
+			Pipeline2 = factory.CreateGraphicsPipeline(new GraphicsPipelineDescription
+			{
+				BlendState = BlendStateDescription.SingleOverrideBlend,
+				DepthStencilState = new DepthStencilStateDescription(
+					depthTestEnabled: true,
+					depthWriteEnabled: true,
+					comparisonKind: ComparisonKind.LessEqual),
+				RasterizerState = new RasterizerStateDescription(
+					cullMode: FaceCullMode.Back,
+					fillMode: PolygonFillMode.Solid,
+					frontFace: FrontFace.Clockwise,
+					depthClipEnabled: true,
+					scissorTestEnabled: false),
+				PrimitiveTopology = PrimitiveTopology.LineList,
 				ResourceLayouts = new[] { modelMatrixLayout },
 				ShaderSet = new ShaderSetDescription(
 					vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
