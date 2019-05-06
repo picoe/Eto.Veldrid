@@ -166,10 +166,10 @@ namespace PlaceholderName
 
 			VertexPositionColor[] quad2Vertices =
 {
-				new VertexPositionColor(new Vector3(-.85f, -.85f, 0.1f), RgbaFloat.Red),
-				new VertexPositionColor(new Vector3(.85f, -.85f, 0.1f), RgbaFloat.Green),
-				new VertexPositionColor(new Vector3(-.85f, .85f, 0.1f), RgbaFloat.Blue),
-				new VertexPositionColor(new Vector3(.85f, .85f, 0.1f), RgbaFloat.Yellow)
+				new VertexPositionColor(new Vector3(-.85f, -.85f, 0.1f), RgbaFloat.Yellow),
+				new VertexPositionColor(new Vector3(.85f, -.85f, 0.1f), RgbaFloat.Blue),
+				new VertexPositionColor(new Vector3(-.85f, .85f, 0.1f), RgbaFloat.Green),
+				new VertexPositionColor(new Vector3(.85f, .85f, 0.1f), RgbaFloat.Red)
 			};
 
 			ushort[] quad2Indices = { 0, 1, 2, 3 };
@@ -270,7 +270,7 @@ namespace PlaceholderName
 					frontFace: FrontFace.Clockwise,
 					depthClipEnabled: true,
 					scissorTestEnabled: false),
-				PrimitiveTopology = PrimitiveTopology.LineList,
+				PrimitiveTopology = PrimitiveTopology.LineStrip,
 				ResourceLayouts = new[] { modelMatrixLayout },
 				ShaderSet = new ShaderSetDescription(
 					vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
