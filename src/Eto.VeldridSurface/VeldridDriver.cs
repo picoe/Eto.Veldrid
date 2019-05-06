@@ -12,10 +12,10 @@ namespace PlaceholderName
 	{
 		public static uint SizeInBytes = (uint)Marshal.SizeOf(typeof(VertexPositionColor));
 
-		Vector2 Position;
+		Vector3 Position;
 		RgbaFloat Color;
 
-		public VertexPositionColor(Vector2 position, RgbaFloat color)
+		public VertexPositionColor(Vector3 position, RgbaFloat color)
 		{
 			Position = position;
 			Color = color;
@@ -150,10 +150,10 @@ namespace PlaceholderName
 
 			VertexPositionColor[] quadVertices =
 			{
-				new VertexPositionColor(new Vector2(-.75f, -.75f), RgbaFloat.Red),
-				new VertexPositionColor(new Vector2(.75f, -.75f), RgbaFloat.Green),
-				new VertexPositionColor(new Vector2(-.75f, .75f), RgbaFloat.Blue),
-				new VertexPositionColor(new Vector2(.75f, .75f), RgbaFloat.Yellow)
+				new VertexPositionColor(new Vector3(-.75f, -.75f, 0), RgbaFloat.Red),
+				new VertexPositionColor(new Vector3(.75f, -.75f, 0), RgbaFloat.Green),
+				new VertexPositionColor(new Vector3(-.75f, .75f, 0), RgbaFloat.Blue),
+				new VertexPositionColor(new Vector3(.75f, .75f, 0), RgbaFloat.Yellow)
 			};
 
 			ushort[] quadIndices = { 0, 1, 2, 3 };
@@ -166,10 +166,10 @@ namespace PlaceholderName
 
 			VertexPositionColor[] quad2Vertices =
 {
-				new VertexPositionColor(new Vector2(-.85f, -.85f), RgbaFloat.Red),
-				new VertexPositionColor(new Vector2(.85f, -.85f), RgbaFloat.Green),
-				new VertexPositionColor(new Vector2(-.85f, .85f), RgbaFloat.Blue),
-				new VertexPositionColor(new Vector2(.85f, .85f), RgbaFloat.Yellow)
+				new VertexPositionColor(new Vector3(-.85f, -.85f, 0.1f), RgbaFloat.Red),
+				new VertexPositionColor(new Vector3(.85f, -.85f, 0.1f), RgbaFloat.Green),
+				new VertexPositionColor(new Vector3(-.85f, .85f, 0.1f), RgbaFloat.Blue),
+				new VertexPositionColor(new Vector3(.85f, .85f, 0.1f), RgbaFloat.Yellow)
 			};
 
 			ushort[] quad2Indices = { 0, 1, 2, 3 };
@@ -187,7 +187,7 @@ namespace PlaceholderName
 			//   https://github.com/mellinoe/veldrid/issues/121
 			//
 			var vertexLayout = new VertexLayoutDescription(
-				new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2),
+				new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
 				new VertexElementDescription("Color", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4));
 
 			// Veldrid.SPIRV is an additional library that complements Veldrid
