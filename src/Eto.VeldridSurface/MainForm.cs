@@ -10,6 +10,8 @@ namespace PlaceholderName
 
 		VeldridDriver Driver;
 
+		OVPSettings ovpSettings;
+
 		private bool _veldridReady = false;
 		public bool VeldridReady
 		{
@@ -46,7 +48,9 @@ namespace PlaceholderName
 
 			Content = Surface;
 
-			Driver = new VeldridDriver { Surface = Surface };
+			ovpSettings = new OVPSettings();
+
+			Driver = new VeldridDriver(ref ovpSettings) {  Surface = Surface };
 		}
 
 		private void SetUpVeldrid()
