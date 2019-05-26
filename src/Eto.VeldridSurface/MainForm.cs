@@ -50,7 +50,7 @@ namespace PlaceholderName
 
 			ovpSettings = new OVPSettings();
 
-			Driver = new VeldridDriver(ref ovpSettings) {  Surface = Surface };
+			Driver = new VeldridDriver(ref ovpSettings, ref Surface);
 		}
 
 		private void SetUpVeldrid()

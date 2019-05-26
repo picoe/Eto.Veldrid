@@ -48,36 +48,31 @@ namespace PlaceholderName
 		public bool savedLocation_valid;
 		PointF savedLocation;
 
-		Vector3[] polyArray;
-		Vector4[] polyColorArray;
+		VertexPositionColor[] polyArray;
 		int[] first;
 		int[] count;
 		int poly_vbo_size;
 
-		Vector3[] lineArray;
-		Vector4[] lineColorArray;
+		VertexPositionColor[] lineArray;
 		int[] lineFirst;
 		int[] lineCount;
 		int line_vbo_size;
 
-		Vector3[] gridArray;
-		Vector3[] gridColorArray;
+		VertexPositionColor[] gridArray;
+		uint[] gridIndices;
 		int grid_vbo_size;
 
-		Vector3[] axesArray;
-		Vector3[] axesColorArray;
+		VertexPositionColor[] axesArray;
 		int axes_vbo_size;
 
 		public OVPSettings ovpSettings;
 
 		CommandList CommandList;
-		DeviceBuffer VertexBuffer;
-		DeviceBuffer IndexBuffer;
-		DeviceBuffer Vertex2Buffer;
-		DeviceBuffer Index2Buffer;
+		DeviceBuffer GridVertexBuffer;
+		DeviceBuffer GridIndexBuffer;
 		Shader VertexShader;
 		Shader FragmentShader;
-		Pipeline Pipeline;
+		Pipeline GridPipeline;
 		Pipeline Pipeline2;
 
 		Matrix4x4 ModelMatrix = Matrix4x4.Identity;
@@ -86,11 +81,12 @@ namespace PlaceholderName
 
 		private bool Ready = false;
 
-		public VeldridDriver(ref OVPSettings svpSettings)
+		public VeldridDriver(ref OVPSettings svpSettings, ref VeldridSurface surface)
 		{
 			try
 			{
 				ovpSettings = svpSettings;
+				Surface = surface;
 				Surface.MouseDown += downHandler;
 				Surface.MouseMove += dragHandler;
 				Surface.MouseUp += upHandler;
@@ -529,8 +525,7 @@ namespace PlaceholderName
 		{
 			try
 			{
-				List<Vector3> polyList = new List<Vector3>();
-				List<Vector4> polyColorList = new List<Vector4>();
+				List<VertexPositionColor> polyList = new List<VertexPositionColor>();
 
 				// Carve our Z-space up to stack polygons
 				float polyZStep = 1.0f / ovpSettings.polyList.Count();
@@ -549,12 +544,9 @@ namespace PlaceholderName
 					previouscounter = counter;
 					if ((ovpSettings.enableFilledPolys) && (!ovpSettings.drawnPoly[poly]))
 					{
-						polyList.Add(new Vector3(ovpSettings.polyList[poly].poly[0].X, ovpSettings.polyList[poly].poly[0].Y, polyZ));
-						polyList.Add(new Vector3(ovpSettings.polyList[poly].poly[1].X, ovpSettings.polyList[poly].poly[1].Y, polyZ));
-						polyList.Add(new Vector3(ovpSettings.polyList[poly].poly[2].X, ovpSettings.polyList[poly].poly[2].Y, polyZ));
-						polyColorList.Add(new Vector4(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha));
-						polyColorList.Add(new Vector4(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha));
-						polyColorList.Add(new Vector4(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha));
+						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[0].X, ovpSettings.polyList[poly].poly[0].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
+						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[1].X, ovpSettings.polyList[poly].poly[1].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
+						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[2].X, ovpSettings.polyList[poly].poly[2].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
 						counter += 3;
 						count[poly] = 3;
 					}
@@ -562,19 +554,16 @@ namespace PlaceholderName
 					{
 						for (int pt = 0; pt < ovpSettings.polyList[poly].poly.Length - 1; pt++)
 						{
-							polyList.Add(new Vector3(ovpSettings.polyList[poly].poly[pt].X, ovpSettings.polyList[poly].poly[pt].Y, polyZ));
+							polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[pt].X, ovpSettings.polyList[poly].poly[pt].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
 							counter++;
-							polyColorList.Add(new Vector4(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha));
-							polyList.Add(new Vector3(ovpSettings.polyList[poly].poly[pt + 1].X, ovpSettings.polyList[poly].poly[pt + 1].Y, polyZ));
+							polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[pt + 1].X, ovpSettings.polyList[poly].poly[pt + 1].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
 							counter++;
-							polyColorList.Add(new Vector4(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha));
 						}
 						count[poly] = counter - previouscounter; // set our vertex count for the polygon.
 					}
 				}
 
 				polyArray = polyList.ToArray();
-				polyColorArray = polyColorList.ToArray();
 			}
 			catch (Exception)
 			{
@@ -586,8 +575,7 @@ namespace PlaceholderName
 		{
 			try
 			{
-				List<Vector3> polyList = new List<Vector3>();
-				List<Vector4> polyColorList = new List<Vector4>();
+				List<VertexPositionColor> polyList = new List<VertexPositionColor>();
 
 				// Carve our Z-space up to stack polygons
 				float polyZStep = 1.0f / ovpSettings.lineList.Count();
@@ -607,18 +595,15 @@ namespace PlaceholderName
 					previouscounter = counter;
 					for (int pt = 0; pt < ovpSettings.lineList[poly].poly.Length - 1; pt++)
 					{
-						polyList.Add(new Vector3(ovpSettings.lineList[poly].poly[pt].X, ovpSettings.lineList[poly].poly[pt].Y, polyZ));
+						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.lineList[poly].poly[pt].X, ovpSettings.lineList[poly].poly[pt].Y, polyZ), new RgbaFloat(ovpSettings.lineList[poly].color.R, ovpSettings.lineList[poly].color.G, ovpSettings.lineList[poly].color.B, alpha)));
 						counter++;
-						polyColorList.Add(new Vector4(ovpSettings.lineList[poly].color.R, ovpSettings.lineList[poly].color.G, ovpSettings.lineList[poly].color.B, alpha));
-						polyList.Add(new Vector3(ovpSettings.lineList[poly].poly[pt + 1].X, ovpSettings.lineList[poly].poly[pt + 1].Y, polyZ));
+						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.lineList[poly].poly[pt + 1].X, ovpSettings.lineList[poly].poly[pt + 1].Y, polyZ), new RgbaFloat(ovpSettings.lineList[poly].color.R, ovpSettings.lineList[poly].color.G, ovpSettings.lineList[poly].color.B, alpha)));
 						counter++;
-						polyColorList.Add(new Vector4(ovpSettings.lineList[poly].color.R, ovpSettings.lineList[poly].color.G, ovpSettings.lineList[poly].color.B, alpha));
 					}
 					lineCount[poly] = counter - previouscounter; // set our vertex count for the polygon.
 				}
 
 				lineArray = polyList.ToArray();
-				lineColorArray = polyColorList.ToArray();
 			}
 			catch (Exception)
 			{
@@ -640,8 +625,7 @@ namespace PlaceholderName
 						spacing *= 10.0f;
 				}
 
-				List<Vector3> grid = new List<Vector3>();
-				List<Vector3> gridColors = new List<Vector3>();
+				List<VertexPositionColor> grid = new List<VertexPositionColor>();
 
 				if (WorldToScreen(new SizeF(spacing, 0.0f)).Width >= 4.0f)
 				{
@@ -665,10 +649,8 @@ namespace PlaceholderName
 							k = 0;
 						}
 						k++;
-						grid.Add(new Vector3(i, ovpSettings.cameraPosition.Y + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * Surface.Height, gridZ));
-						gridColors.Add(new Vector3(r, g, b));
-						grid.Add(new Vector3(i, ovpSettings.cameraPosition.Y + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * -Surface.Height, gridZ));
-						gridColors.Add(new Vector3(r, g, b));
+						grid.Add(new VertexPositionColor(new Vector3(i, ovpSettings.cameraPosition.Y + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * Surface.Height, gridZ), new RgbaFloat(r, g, b, 1.0f)));
+						grid.Add(new VertexPositionColor(new Vector3(i, ovpSettings.cameraPosition.Y + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * -Surface.Height, gridZ), new RgbaFloat(r, g, b, 1.0f)));
 					}
 					k = 0;
 					for (float i = 0; i < (Surface.Width * (ovpSettings.zoomFactor * ovpSettings.base_zoom)) + ovpSettings.cameraPosition.X; i += spacing)
@@ -690,10 +672,8 @@ namespace PlaceholderName
 							k = 0;
 						}
 						k++;
-						grid.Add(new Vector3(i, ovpSettings.cameraPosition.Y + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * Surface.Height, gridZ));
-						gridColors.Add(new Vector3(r, g, b));
-						grid.Add(new Vector3(i, ovpSettings.cameraPosition.Y + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * -Surface.Height, gridZ));
-						gridColors.Add(new Vector3(r, g, b));
+						grid.Add(new VertexPositionColor(new Vector3(i, ovpSettings.cameraPosition.Y + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * Surface.Height, gridZ), new RgbaFloat(r, g, b, 1.0f)));
+						grid.Add(new VertexPositionColor(new Vector3(i, ovpSettings.cameraPosition.Y + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * -Surface.Height, gridZ), new RgbaFloat(r, g, b, 1.0f)));
 					}
 					k = 0;
 					for (float i = 0; i > -(Surface.Height * (ovpSettings.zoomFactor * ovpSettings.base_zoom)) + ovpSettings.cameraPosition.Y; i -= spacing)
@@ -715,10 +695,8 @@ namespace PlaceholderName
 							k = 0;
 						}
 						k++;
-						grid.Add(new Vector3(ovpSettings.cameraPosition.X + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * Surface.Width, i, gridZ));
-						gridColors.Add(new Vector3(r, g, b));
-						grid.Add(new Vector3(ovpSettings.cameraPosition.X + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * -Surface.Width, i, gridZ));
-						gridColors.Add(new Vector3(r, g, b));
+						grid.Add(new VertexPositionColor(new Vector3(ovpSettings.cameraPosition.X + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * Surface.Width, i, gridZ), new RgbaFloat(r, g, b, 1.0f)));
+						grid.Add(new VertexPositionColor(new Vector3(ovpSettings.cameraPosition.X + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * -Surface.Width, i, gridZ), new RgbaFloat(r, g, b, 1.0f)));
 					}
 					k = 0;
 					for (float i = 0; i < (Surface.Height * (ovpSettings.zoomFactor * ovpSettings.base_zoom)) + ovpSettings.cameraPosition.Y; i += spacing)
@@ -740,13 +718,15 @@ namespace PlaceholderName
 							k = 0;
 						}
 						k++;
-						grid.Add(new Vector3(ovpSettings.cameraPosition.X + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * Surface.Width, i, gridZ));
-						gridColors.Add(new Vector3(r, g, b));
-						grid.Add(new Vector3(ovpSettings.cameraPosition.X + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * -Surface.Width, i, gridZ));
-						gridColors.Add(new Vector3(r, g, b));
+						grid.Add(new VertexPositionColor(new Vector3(ovpSettings.cameraPosition.X + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * Surface.Width, i, gridZ), new RgbaFloat(r, g, b, 1.0f)));
+						grid.Add(new VertexPositionColor(new Vector3(ovpSettings.cameraPosition.X + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * -Surface.Width, i, gridZ), new RgbaFloat(r, g, b, 1.0f)));
 					}
 					gridArray = grid.ToArray();
-					gridColorArray = gridColors.ToArray();
+					gridIndices = new uint[gridArray.Length];
+					for (uint i = 0; i < gridIndices.Length; i++)
+					{
+						gridIndices[i] = i;
+					}
 				}
 			}
 		}
@@ -755,21 +735,18 @@ namespace PlaceholderName
 		{
 			if (ovpSettings.showAxes)
 			{
-				axesArray = new Vector3[4];
-				axesColorArray = new Vector3[4];
-				for (int i = 0; i < axesColorArray.Length; i++)
-				{
-					axesColorArray[i] = new Vector3(ovpSettings.axisColor.R, ovpSettings.axisColor.G, ovpSettings.axisColor.B);
-				}
-				axesArray[0] = new Vector3(0.0f, ovpSettings.cameraPosition.Y + Surface.Height * (ovpSettings.zoomFactor * ovpSettings.base_zoom), axisZ);
-				axesArray[1] = new Vector3(0.0f, ovpSettings.cameraPosition.Y - Surface.Height * (ovpSettings.zoomFactor * ovpSettings.base_zoom), axisZ);
-				axesArray[2] = new Vector3(ovpSettings.cameraPosition.X + Surface.Width * (ovpSettings.zoomFactor * ovpSettings.base_zoom), 0.0f, axisZ);
-				axesArray[3] = new Vector3(ovpSettings.cameraPosition.X - Surface.Width * (ovpSettings.zoomFactor * ovpSettings.base_zoom), 0.0f, axisZ);
+				axesArray = new VertexPositionColor[4];
+				axesArray[0] = new VertexPositionColor(new Vector3(0.0f, ovpSettings.cameraPosition.Y + Surface.Height * (ovpSettings.zoomFactor * ovpSettings.base_zoom), axisZ), new RgbaFloat(ovpSettings.axisColor.R, ovpSettings.axisColor.G, ovpSettings.axisColor.B, 1.0f));
+				axesArray[1] = new VertexPositionColor(new Vector3(0.0f, ovpSettings.cameraPosition.Y - Surface.Height * (ovpSettings.zoomFactor * ovpSettings.base_zoom), axisZ), new RgbaFloat(ovpSettings.axisColor.R, ovpSettings.axisColor.G, ovpSettings.axisColor.B, 1.0f));
+				axesArray[2] = new VertexPositionColor(new Vector3(ovpSettings.cameraPosition.X + Surface.Width * (ovpSettings.zoomFactor * ovpSettings.base_zoom), 0.0f, axisZ), new RgbaFloat(ovpSettings.axisColor.R, ovpSettings.axisColor.G, ovpSettings.axisColor.B, 1.0f));
+				axesArray[3] = new VertexPositionColor(new Vector3(ovpSettings.cameraPosition.X - Surface.Width * (ovpSettings.zoomFactor * ovpSettings.base_zoom), 0.0f, axisZ), new RgbaFloat(ovpSettings.axisColor.R, ovpSettings.axisColor.G, ovpSettings.axisColor.B, 1.0f));
 			}
 		}
 
 		public void updateViewport()
 		{
+			drawAxes();
+			drawGrid();
 			Draw();
 		}
 
@@ -782,11 +759,8 @@ namespace PlaceholderName
 
 			CommandList.Begin();
 
-			CurrentTime = DateTime.Now;
 			ModelMatrix *= Matrix4x4.CreateFromAxisAngle(
-				new Vector3(0, 0, 1),
-				OpenTK.MathHelper.DegreesToRadians(Convert.ToSingle((CurrentTime - PreviousTime).TotalMilliseconds / 10.0)));
-			PreviousTime = CurrentTime;
+				new Vector3(0, 0, 1),0);
 			CommandList.UpdateBuffer(ModelBuffer, 0, ModelMatrix);
 
 			CommandList.SetFramebuffer(Surface.Swapchain.Framebuffer);
@@ -801,18 +775,19 @@ namespace PlaceholderName
 			CommandList.ClearColorTarget(0, RgbaFloat.Pink);
 			CommandList.ClearDepthStencil(1.0f);
 
-			CommandList.SetVertexBuffer(0, VertexBuffer);
-			CommandList.SetIndexBuffer(IndexBuffer, IndexFormat.UInt16);
-			CommandList.SetPipeline(Pipeline);
+			CommandList.SetVertexBuffer(0, GridVertexBuffer);
+			CommandList.SetIndexBuffer(GridIndexBuffer, IndexFormat.UInt16);
+			CommandList.SetPipeline(GridPipeline);
 			CommandList.SetGraphicsResourceSet(0, ModelMatrixSet);
 
 			CommandList.DrawIndexed(
-				indexCount: 4,
+				indexCount: (uint)gridArray.Length,
 				instanceCount: 1,
 				indexStart: 0,
 				vertexOffset: 0,
 				instanceStart: 0);
 
+			/*
 			CommandList.SetVertexBuffer(0, Vertex2Buffer);
 			CommandList.SetIndexBuffer(Index2Buffer, IndexFormat.UInt16);
 			CommandList.SetPipeline(Pipeline2);
@@ -824,7 +799,7 @@ namespace PlaceholderName
 				indexStart: 0,
 				vertexOffset: 0,
 				instanceStart: 0);
-
+			*/
 			CommandList.End();
 
 			Surface.GraphicsDevice.SubmitCommands(CommandList);
@@ -855,22 +830,15 @@ namespace PlaceholderName
 			ModelMatrixSet = factory.CreateResourceSet(new ResourceSetDescription(
 				modelMatrixLayout, ModelBuffer));
 
-			VertexPositionColor[] quadVertices =
-			{
-				new VertexPositionColor(new Vector3(-.75f, -.75f, 0), RgbaFloat.Red),
-				new VertexPositionColor(new Vector3(.75f, -.75f, 0), RgbaFloat.Green),
-				new VertexPositionColor(new Vector3(-.75f, .75f, 0), RgbaFloat.Blue),
-				new VertexPositionColor(new Vector3(.75f, .75f, 0), RgbaFloat.Yellow)
-			};
+			drawGrid();
 
-			ushort[] quadIndices = { 0, 1, 2, 3 };
+			GridVertexBuffer = factory.CreateBuffer(new BufferDescription((uint)gridArray.Length * VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer));
+			GridIndexBuffer = factory.CreateBuffer(new BufferDescription(2 * (uint)gridArray.Length * sizeof(ushort), BufferUsage.IndexBuffer));
 
-			VertexBuffer = factory.CreateBuffer(new BufferDescription(4 * VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer));
-			IndexBuffer = factory.CreateBuffer(new BufferDescription(4 * sizeof(ushort), BufferUsage.IndexBuffer));
+			Surface.GraphicsDevice.UpdateBuffer(GridVertexBuffer, 0, gridArray);
+			Surface.GraphicsDevice.UpdateBuffer(GridIndexBuffer, 0, gridIndices);
 
-			Surface.GraphicsDevice.UpdateBuffer(VertexBuffer, 0, quadVertices);
-			Surface.GraphicsDevice.UpdateBuffer(IndexBuffer, 0, quadIndices);
-
+			/*
 			VertexPositionColor[] quad2Vertices =
 {
 				new VertexPositionColor(new Vector3(-.85f, -.85f, 0.1f), RgbaFloat.Yellow),
@@ -886,6 +854,7 @@ namespace PlaceholderName
 
 			Surface.GraphicsDevice.UpdateBuffer(Vertex2Buffer, 0, quad2Vertices);
 			Surface.GraphicsDevice.UpdateBuffer(Index2Buffer, 0, quad2Indices);
+			*/
 
 			// Veldrid.SPIRV, when cross-compiling to HLSL, will always produce
 			// TEXCOORD semantics; VertexElementSemantic.TextureCoordinate thus
@@ -943,7 +912,7 @@ namespace PlaceholderName
 			var fragment = new ShaderDescription(ShaderStages.Fragment, fragmentShaderSpirvBytes, "main", true);
 			Shader[] shaders = factory.CreateFromSpirv(vertex, fragment, options);
 
-			Pipeline = factory.CreateGraphicsPipeline(new GraphicsPipelineDescription
+			GridPipeline = factory.CreateGraphicsPipeline(new GraphicsPipelineDescription
 			{
 				BlendState = BlendStateDescription.SingleOverrideBlend,
 				DepthStencilState = new DepthStencilStateDescription(
@@ -956,7 +925,7 @@ namespace PlaceholderName
 					frontFace: FrontFace.Clockwise,
 					depthClipEnabled: true,
 					scissorTestEnabled: false),
-				PrimitiveTopology = PrimitiveTopology.TriangleStrip,
+				PrimitiveTopology = PrimitiveTopology.LineList,
 				ResourceLayouts = new[] { modelMatrixLayout },
 				ShaderSet = new ShaderSetDescription(
 					vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
@@ -964,6 +933,7 @@ namespace PlaceholderName
 				Outputs = Surface.Swapchain.Framebuffer.OutputDescription
 			});
 
+			/*
 			Pipeline2 = factory.CreateGraphicsPipeline(new GraphicsPipelineDescription
 			{
 				BlendState = BlendStateDescription.SingleOverrideBlend,
@@ -984,6 +954,7 @@ namespace PlaceholderName
 					shaders: shaders),
 				Outputs = Surface.Swapchain.Framebuffer.OutputDescription
 			});
+			*/
 
 			CommandList = factory.CreateCommandList();
 		}
