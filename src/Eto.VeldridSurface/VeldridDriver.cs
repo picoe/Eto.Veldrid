@@ -59,7 +59,7 @@ namespace PlaceholderName
 		int line_vbo_size;
 
 		VertexPositionColor[] gridArray;
-		uint[] gridIndices;
+		ushort[] gridIndices;
 		int grid_vbo_size;
 
 		VertexPositionColor[] axesArray;
@@ -78,6 +78,10 @@ namespace PlaceholderName
 		Matrix4x4 ModelMatrix = Matrix4x4.Identity;
 		DeviceBuffer ModelBuffer;
 		ResourceSet ModelMatrixSet;
+
+		Matrix4x4 ViewMatrix;
+		DeviceBuffer ViewBuffer;
+		ResourceSet ViewMatrixSet;
 
 		private bool Ready = false;
 
@@ -101,6 +105,8 @@ namespace PlaceholderName
 			}
 			Clock.Interval = 1.0f / 60.0f;
 			Clock.Elapsed += Clock_Elapsed;
+
+			Surface.Resize += (sender, e) => updateViewport();
 		}
 
 		private void Clock_Elapsed(object sender, EventArgs e)
@@ -722,12 +728,23 @@ namespace PlaceholderName
 						grid.Add(new VertexPositionColor(new Vector3(ovpSettings.cameraPosition.X + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * -Surface.Width, i, gridZ), new RgbaFloat(r, g, b, 1.0f)));
 					}
 					gridArray = grid.ToArray();
-					gridIndices = new uint[gridArray.Length];
-					for (uint i = 0; i < gridIndices.Length; i++)
+					gridIndices = new ushort[gridArray.Length];
+					for (ushort i = 0; i < gridIndices.Length; i++)
 					{
 						gridIndices[i] = i;
 					}
 				}
+
+				GridVertexBuffer?.Dispose();
+				GridIndexBuffer?.Dispose();
+
+				ResourceFactory factory = Surface.GraphicsDevice.ResourceFactory;
+
+				GridVertexBuffer = factory.CreateBuffer(new BufferDescription((uint)gridArray.Length * VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer));
+				GridIndexBuffer = factory.CreateBuffer(new BufferDescription((uint)gridIndices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
+
+				Surface.GraphicsDevice.UpdateBuffer(GridVertexBuffer, 0, gridArray);
+				Surface.GraphicsDevice.UpdateBuffer(GridIndexBuffer, 0, gridIndices);
 			}
 		}
 
@@ -763,6 +780,9 @@ namespace PlaceholderName
 				new Vector3(0, 0, 1),0);
 			CommandList.UpdateBuffer(ModelBuffer, 0, ModelMatrix);
 
+			ViewMatrix = Matrix4x4.CreateOrthographic(Surface.Width, Surface.Height, 0.0f, 1.0f);
+			CommandList.UpdateBuffer(ViewBuffer, 0, ViewMatrix);
+
 			CommandList.SetFramebuffer(Surface.Swapchain.Framebuffer);
 
 			// These commands differ from the stock Veldrid "Getting Started"
@@ -778,10 +798,11 @@ namespace PlaceholderName
 			CommandList.SetVertexBuffer(0, GridVertexBuffer);
 			CommandList.SetIndexBuffer(GridIndexBuffer, IndexFormat.UInt16);
 			CommandList.SetPipeline(GridPipeline);
-			CommandList.SetGraphicsResourceSet(0, ModelMatrixSet);
+			CommandList.SetGraphicsResourceSet(0, ViewMatrixSet);
+			CommandList.SetGraphicsResourceSet(1, ModelMatrixSet);
 
 			CommandList.DrawIndexed(
-				indexCount: (uint)gridArray.Length,
+				indexCount: (uint)gridIndices.Length,
 				instanceCount: 1,
 				indexStart: 0,
 				vertexOffset: 0,
@@ -817,6 +838,19 @@ namespace PlaceholderName
 		{
 			ResourceFactory factory = Surface.GraphicsDevice.ResourceFactory;
 
+			ResourceLayout viewMatrixLayout = factory.CreateResourceLayout(
+				new ResourceLayoutDescription(
+					new ResourceLayoutElementDescription(
+						"ViewMatrix",
+						ResourceKind.UniformBuffer,
+						ShaderStages.Vertex)));
+
+			ViewBuffer = factory.CreateBuffer(
+				new BufferDescription(64, BufferUsage.UniformBuffer));
+
+			ViewMatrixSet = factory.CreateResourceSet(new ResourceSetDescription(
+				viewMatrixLayout, ViewBuffer));
+
 			ResourceLayout modelMatrixLayout = factory.CreateResourceLayout(
 				new ResourceLayoutDescription(
 					new ResourceLayoutElementDescription(
@@ -832,11 +866,6 @@ namespace PlaceholderName
 
 			drawGrid();
 
-			GridVertexBuffer = factory.CreateBuffer(new BufferDescription((uint)gridArray.Length * VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer));
-			GridIndexBuffer = factory.CreateBuffer(new BufferDescription(2 * (uint)gridArray.Length * sizeof(ushort), BufferUsage.IndexBuffer));
-
-			Surface.GraphicsDevice.UpdateBuffer(GridVertexBuffer, 0, gridArray);
-			Surface.GraphicsDevice.UpdateBuffer(GridIndexBuffer, 0, gridIndices);
 
 			/*
 			VertexPositionColor[] quad2Vertices =
@@ -926,7 +955,7 @@ namespace PlaceholderName
 					depthClipEnabled: true,
 					scissorTestEnabled: false),
 				PrimitiveTopology = PrimitiveTopology.LineList,
-				ResourceLayouts = new[] { modelMatrixLayout },
+				ResourceLayouts = new[] { viewMatrixLayout, modelMatrixLayout },
 				ShaderSet = new ShaderSetDescription(
 					vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
 					shaders: shaders),
