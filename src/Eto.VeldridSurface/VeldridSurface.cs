@@ -450,7 +450,7 @@ namespace PlaceholderName
 		{
 			Swapchain?.Resize((uint)e.Width, (uint)e.Height);
 
-			Properties.TriggerEvent(ResizeEvent, this, e);
+			Properties.TriggerEvent(ResizeEvent, this, EventArgs.Empty);
 		}
 
 		protected override void OnSizeChanged(EventArgs e)
