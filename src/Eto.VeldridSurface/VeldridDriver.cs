@@ -49,13 +49,13 @@ namespace PlaceholderName
 		PointF savedLocation;
 
 		VertexPositionColor[] polyArray;
-		int[] polyFirst;
-		int[] polyIndices;
+		ushort[] polyFirst;
+		ushort[] polyIndices;
 		int poly_vbo_size;
 
 		VertexPositionColor[] lineArray;
-		int[] lineFirst;
-		int[] lineIndices;
+		ushort[] lineFirst;
+		ushort[] lineIndices;
 		int line_vbo_size;
 
 		VertexPositionColor[] gridArray;
@@ -548,8 +548,8 @@ namespace PlaceholderName
 				float polyZStep = 1.0f / ovpSettings.polyList.Count();
 
 				// Create our first and count arrays for the vertex indices, to enable polygon separation when rendering.
-				polyFirst = new int[ovpSettings.polyList.Count()];
-				polyIndices = new int[ovpSettings.polyList.Count()];
+				polyFirst = new ushort[ovpSettings.polyList.Count()];
+				polyIndices = new ushort[ovpSettings.polyList.Count()];
 				int counter = 0; // vertex count that will be used to define 'first' index for each polygon.
 				int previouscounter = 0; // will be used to derive the number of vertices in each polygon.
 
@@ -557,7 +557,7 @@ namespace PlaceholderName
 				{
 					float alpha = ovpSettings.polyList[poly].alpha;
 					float polyZ = poly * polyZStep;
-					polyFirst[poly] = counter;
+					polyFirst[poly] = (ushort)counter;
 					previouscounter = counter;
 					if ((ovpSettings.enableFilledPolys) && (!ovpSettings.drawnPoly[poly]))
 					{
@@ -576,7 +576,7 @@ namespace PlaceholderName
 							polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[pt + 1].X, ovpSettings.polyList[poly].poly[pt + 1].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
 							counter++;
 						}
-						polyIndices[poly] = counter - previouscounter; // set our vertex count for the polygon.
+						polyIndices[poly] = (ushort)(counter - previouscounter); // set our vertex count for the polygon.
 					}
 				}
 
@@ -611,8 +611,8 @@ namespace PlaceholderName
 
 				// Create our first and count arrays for the vertex indices, to enable polygon separation when rendering.
 				int tmp = ovpSettings.lineList.Count();
-				lineFirst = new int[tmp];
-				lineIndices = new int[tmp];
+				lineFirst = new ushort[tmp];
+				lineIndices = new ushort[tmp];
 				int counter = 0; // vertex count that will be used to define 'first' index for each polygon.
 				int previouscounter = 0; // will be used to derive the number of vertices in each polygon.
 
@@ -620,7 +620,7 @@ namespace PlaceholderName
 				{
 					float alpha = ovpSettings.lineList[poly].alpha;
 					float polyZ = poly * polyZStep;
-					lineFirst[poly] = counter;
+					lineFirst[poly] = (ushort)counter;
 					previouscounter = counter;
 					for (int pt = 0; pt < ovpSettings.lineList[poly].poly.Length - 1; pt++)
 					{
@@ -629,7 +629,7 @@ namespace PlaceholderName
 						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.lineList[poly].poly[pt + 1].X, ovpSettings.lineList[poly].poly[pt + 1].Y, polyZ), new RgbaFloat(ovpSettings.lineList[poly].color.R, ovpSettings.lineList[poly].color.G, ovpSettings.lineList[poly].color.B, alpha)));
 						counter++;
 					}
-					lineIndices[poly] = counter - previouscounter; // set our vertex count for the polygon.
+					lineIndices[poly] = (ushort)(counter - previouscounter); // set our vertex count for the polygon.
 				}
 
 				lineArray = polyList.ToArray();
@@ -884,13 +884,15 @@ namespace PlaceholderName
 			CommandList.SetGraphicsResourceSet(0, ViewMatrixSet);
 			CommandList.SetGraphicsResourceSet(1, ModelMatrixSet);
 
-			CommandList.DrawIndexed(
-				indexCount: (uint)lineIndices.Length,
-				instanceCount: 1,
-				indexStart: 0,
-				vertexOffset: 0,
-				instanceStart: 0);
-
+			//for (int l = 0; l < lineIndices.Length; l++)
+			{
+				CommandList.DrawIndexed(
+					indexCount: (uint)lineIndices.Length,
+					instanceCount: 1,
+					indexStart: (uint)lineFirst[0],
+					vertexOffset: 0,
+					instanceStart: 0);
+			}
 			/*
 			CommandList.SetVertexBuffer(0, PolysVertexBuffer);
 			CommandList.SetIndexBuffer(PolysIndexBuffer, IndexFormat.UInt16);
