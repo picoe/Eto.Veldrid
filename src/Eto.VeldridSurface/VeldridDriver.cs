@@ -83,6 +83,7 @@ namespace PlaceholderName
 		Shader VertexShader;
 		Shader FragmentShader;
 		Pipeline LinePipeline;
+		Pipeline LinesPipeline;
 		Pipeline FilledPipeline;
 
 		Matrix4x4 ModelMatrix = Matrix4x4.Identity;
@@ -877,6 +878,33 @@ namespace PlaceholderName
 				vertexOffset: 0,
 				instanceStart: 0);
 
+			CommandList.SetVertexBuffer(0, LinesVertexBuffer);
+			CommandList.SetIndexBuffer(LinesIndexBuffer, IndexFormat.UInt16);
+			CommandList.SetPipeline(LinesPipeline);
+			CommandList.SetGraphicsResourceSet(0, ViewMatrixSet);
+			CommandList.SetGraphicsResourceSet(1, ModelMatrixSet);
+
+			CommandList.DrawIndexed(
+				indexCount: (uint)lineIndices.Length,
+				instanceCount: 1,
+				indexStart: 0,
+				vertexOffset: 0,
+				instanceStart: 0);
+
+			/*
+			CommandList.SetVertexBuffer(0, PolysVertexBuffer);
+			CommandList.SetIndexBuffer(PolysIndexBuffer, IndexFormat.UInt16);
+			CommandList.SetPipeline(FilledPipeline);
+			CommandList.SetGraphicsResourceSet(0, ViewMatrixSet);
+			CommandList.SetGraphicsResourceSet(1, ModelMatrixSet);
+
+			CommandList.DrawIndexed(
+				indexCount: (uint)polyIndices.Length,
+				instanceCount: 1,
+				indexStart: 0,
+				vertexOffset: 0,
+				instanceStart: 0);
+				*/
 			CommandList.End();
 
 			Surface.GraphicsDevice.SubmitCommands(CommandList);
@@ -1018,8 +1046,7 @@ namespace PlaceholderName
 				Outputs = Surface.Swapchain.Framebuffer.OutputDescription
 			});
 
-			/*
-			Pipeline2 = factory.CreateGraphicsPipeline(new GraphicsPipelineDescription
+			LinesPipeline = factory.CreateGraphicsPipeline(new GraphicsPipelineDescription
 			{
 				BlendState = BlendStateDescription.SingleOverrideBlend,
 				DepthStencilState = new DepthStencilStateDescription(
@@ -1033,13 +1060,33 @@ namespace PlaceholderName
 					depthClipEnabled: true,
 					scissorTestEnabled: false),
 				PrimitiveTopology = PrimitiveTopology.LineStrip,
+				ResourceLayouts = new[] { viewMatrixLayout, modelMatrixLayout },
+				ShaderSet = new ShaderSetDescription(
+					vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
+					shaders: shaders),
+				Outputs = Surface.Swapchain.Framebuffer.OutputDescription
+			});
+
+			FilledPipeline = factory.CreateGraphicsPipeline(new GraphicsPipelineDescription
+			{
+				BlendState = BlendStateDescription.SingleOverrideBlend,
+				DepthStencilState = new DepthStencilStateDescription(
+					depthTestEnabled: true,
+					depthWriteEnabled: true,
+					comparisonKind: ComparisonKind.LessEqual),
+				RasterizerState = new RasterizerStateDescription(
+					cullMode: FaceCullMode.Back,
+					fillMode: PolygonFillMode.Solid,
+					frontFace: FrontFace.Clockwise,
+					depthClipEnabled: true,
+					scissorTestEnabled: false),
+				PrimitiveTopology = PrimitiveTopology.TriangleStrip,
 				ResourceLayouts = new[] { modelMatrixLayout },
 				ShaderSet = new ShaderSetDescription(
 					vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
 					shaders: shaders),
 				Outputs = Surface.Swapchain.Framebuffer.OutputDescription
 			});
-			*/
 
 			CommandList = factory.CreateCommandList();
 		}
