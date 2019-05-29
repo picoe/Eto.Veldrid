@@ -1,4 +1,5 @@
-﻿using Eto.Forms;
+﻿using Eto.Drawing;
+using Eto.Forms;
 using System;
 using Veldrid;
 
@@ -49,6 +50,16 @@ namespace PlaceholderName
 			Content = Surface;
 
 			ovpSettings = new OVPSettings();
+
+			PointF[] testPoly = new PointF[6];
+			testPoly[0] = new PointF(2.0f, 2.0f);
+			testPoly[1] = new PointF(15.0f, 12.0f);
+			testPoly[2] = new PointF(8.0f, 24.0f);
+			testPoly[3] = new PointF(8.0f, 15.0f);
+			testPoly[4] = new PointF(3.0f, 2.0f);
+			testPoly[5] = new PointF(2.0f, 2.0f);
+
+			ovpSettings.addPolygon(testPoly, Color.FromArgb(255, 0, 0), 1.0f, true);
 
 			Driver = new VeldridDriver(ref ovpSettings, ref Surface);
 		}
