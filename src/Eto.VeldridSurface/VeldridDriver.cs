@@ -49,13 +49,13 @@ namespace PlaceholderName
 		PointF savedLocation;
 
 		VertexPositionColor[] polyArray;
-		int[] first;
-		int[] count;
+		int[] polyFirst;
+		int[] polyIndices;
 		int poly_vbo_size;
 
 		VertexPositionColor[] lineArray;
 		int[] lineFirst;
-		int[] lineCount;
+		int[] lineIndices;
 		int line_vbo_size;
 
 		VertexPositionColor[] gridArray;
@@ -73,10 +73,17 @@ namespace PlaceholderName
 		DeviceBuffer GridIndexBuffer;
 		DeviceBuffer AxesVertexBuffer;
 		DeviceBuffer AxesIndexBuffer;
+
+		DeviceBuffer LinesVertexBuffer;
+		DeviceBuffer LinesIndexBuffer;
+
+		DeviceBuffer PolysVertexBuffer;
+		DeviceBuffer PolysIndexBuffer;
+
 		Shader VertexShader;
 		Shader FragmentShader;
-		Pipeline GridPipeline;
-		Pipeline Pipeline2;
+		Pipeline LinePipeline;
+		Pipeline FilledPipeline;
 
 		Matrix4x4 ModelMatrix = Matrix4x4.Identity;
 		DeviceBuffer ModelBuffer;
@@ -540,8 +547,8 @@ namespace PlaceholderName
 				float polyZStep = 1.0f / ovpSettings.polyList.Count();
 
 				// Create our first and count arrays for the vertex indices, to enable polygon separation when rendering.
-				first = new int[ovpSettings.polyList.Count()];
-				count = new int[ovpSettings.polyList.Count()];
+				polyFirst = new int[ovpSettings.polyList.Count()];
+				polyIndices = new int[ovpSettings.polyList.Count()];
 				int counter = 0; // vertex count that will be used to define 'first' index for each polygon.
 				int previouscounter = 0; // will be used to derive the number of vertices in each polygon.
 
@@ -549,7 +556,7 @@ namespace PlaceholderName
 				{
 					float alpha = ovpSettings.polyList[poly].alpha;
 					float polyZ = poly * polyZStep;
-					first[poly] = counter;
+					polyFirst[poly] = counter;
 					previouscounter = counter;
 					if ((ovpSettings.enableFilledPolys) && (!ovpSettings.drawnPoly[poly]))
 					{
@@ -557,7 +564,7 @@ namespace PlaceholderName
 						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[1].X, ovpSettings.polyList[poly].poly[1].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
 						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[2].X, ovpSettings.polyList[poly].poly[2].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
 						counter += 3;
-						count[poly] = 3;
+						polyIndices[poly] = 3;
 					}
 					else
 					{
@@ -568,11 +575,23 @@ namespace PlaceholderName
 							polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[pt + 1].X, ovpSettings.polyList[poly].poly[pt + 1].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
 							counter++;
 						}
-						count[poly] = counter - previouscounter; // set our vertex count for the polygon.
+						polyIndices[poly] = counter - previouscounter; // set our vertex count for the polygon.
 					}
 				}
 
 				polyArray = polyList.ToArray();
+
+				PolysVertexBuffer?.Dispose();
+				PolysIndexBuffer?.Dispose();
+
+				ResourceFactory factory = Surface.GraphicsDevice.ResourceFactory;
+
+				PolysVertexBuffer = factory.CreateBuffer(new BufferDescription((uint)polyArray.Length * VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer));
+				PolysIndexBuffer = factory.CreateBuffer(new BufferDescription((uint)polyIndices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
+
+				Surface.GraphicsDevice.UpdateBuffer(PolysVertexBuffer, 0, polyArray);
+				Surface.GraphicsDevice.UpdateBuffer(PolysIndexBuffer, 0, polyIndices);
+
 			}
 			catch (Exception)
 			{
@@ -592,7 +611,7 @@ namespace PlaceholderName
 				// Create our first and count arrays for the vertex indices, to enable polygon separation when rendering.
 				int tmp = ovpSettings.lineList.Count();
 				lineFirst = new int[tmp];
-				lineCount = new int[tmp];
+				lineIndices = new int[tmp];
 				int counter = 0; // vertex count that will be used to define 'first' index for each polygon.
 				int previouscounter = 0; // will be used to derive the number of vertices in each polygon.
 
@@ -609,10 +628,21 @@ namespace PlaceholderName
 						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.lineList[poly].poly[pt + 1].X, ovpSettings.lineList[poly].poly[pt + 1].Y, polyZ), new RgbaFloat(ovpSettings.lineList[poly].color.R, ovpSettings.lineList[poly].color.G, ovpSettings.lineList[poly].color.B, alpha)));
 						counter++;
 					}
-					lineCount[poly] = counter - previouscounter; // set our vertex count for the polygon.
+					lineIndices[poly] = counter - previouscounter; // set our vertex count for the polygon.
 				}
 
 				lineArray = polyList.ToArray();
+
+				LinesVertexBuffer?.Dispose();
+				LinesIndexBuffer?.Dispose();
+
+				ResourceFactory factory = Surface.GraphicsDevice.ResourceFactory;
+
+				LinesVertexBuffer = factory.CreateBuffer(new BufferDescription((uint)lineArray.Length * VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer));
+				LinesIndexBuffer = factory.CreateBuffer(new BufferDescription((uint)lineIndices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
+
+				Surface.GraphicsDevice.UpdateBuffer(LinesVertexBuffer, 0, lineArray);
+				Surface.GraphicsDevice.UpdateBuffer(LinesIndexBuffer, 0, lineIndices);
 			}
 			catch (Exception)
 			{
@@ -781,6 +811,8 @@ namespace PlaceholderName
 		{
 			drawAxes();
 			drawGrid();
+			drawLines();
+			drawPolygons();
 			Draw();
 		}
 
@@ -821,7 +853,7 @@ namespace PlaceholderName
 
 			CommandList.SetVertexBuffer(0, GridVertexBuffer);
 			CommandList.SetIndexBuffer(GridIndexBuffer, IndexFormat.UInt16);
-			CommandList.SetPipeline(GridPipeline);
+			CommandList.SetPipeline(LinePipeline);
 			CommandList.SetGraphicsResourceSet(0, ViewMatrixSet);
 			CommandList.SetGraphicsResourceSet(1, ModelMatrixSet);
 
@@ -834,7 +866,7 @@ namespace PlaceholderName
 
 			CommandList.SetVertexBuffer(0, AxesVertexBuffer);
 			CommandList.SetIndexBuffer(AxesIndexBuffer, IndexFormat.UInt16);
-			CommandList.SetPipeline(GridPipeline);
+			CommandList.SetPipeline(LinePipeline);
 			CommandList.SetGraphicsResourceSet(0, ViewMatrixSet);
 			CommandList.SetGraphicsResourceSet(1, ModelMatrixSet);
 
@@ -965,7 +997,7 @@ namespace PlaceholderName
 			var fragment = new ShaderDescription(ShaderStages.Fragment, fragmentShaderSpirvBytes, "main", true);
 			Shader[] shaders = factory.CreateFromSpirv(vertex, fragment, options);
 
-			GridPipeline = factory.CreateGraphicsPipeline(new GraphicsPipelineDescription
+			LinePipeline = factory.CreateGraphicsPipeline(new GraphicsPipelineDescription
 			{
 				BlendState = BlendStateDescription.SingleOverrideBlend,
 				DepthStencilState = new DepthStencilStateDescription(
