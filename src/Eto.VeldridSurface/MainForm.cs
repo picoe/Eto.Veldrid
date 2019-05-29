@@ -61,6 +61,16 @@ namespace PlaceholderName
 
 			ovpSettings.addPolygon(testPoly, Color.FromArgb(255, 0, 0), 1.0f, true);
 
+			PointF[] testPoly2 = new PointF[6];
+			testPoly2[0] = new PointF(12.0f, 2.0f);
+			testPoly2[1] = new PointF(25.0f, 12.0f);
+			testPoly2[2] = new PointF(18.0f, 24.0f);
+			testPoly2[3] = new PointF(18.0f, 15.0f);
+			testPoly2[4] = new PointF(13.0f, 2.0f);
+			testPoly2[5] = new PointF(12.0f, 2.0f);
+
+			ovpSettings.addPolygon(testPoly2, Color.FromArgb(255, 0, 255), 1.0f, true);
+
 			Driver = new VeldridDriver(ref ovpSettings, ref Surface);
 		}
 
