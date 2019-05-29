@@ -780,7 +780,14 @@ namespace PlaceholderName
 				new Vector3(0, 0, 1),0);
 			CommandList.UpdateBuffer(ModelBuffer, 0, ModelMatrix);
 
-			ViewMatrix = Matrix4x4.CreateOrthographic(Surface.Width, Surface.Height, 0.0f, 1.0f);
+			float zoom = ovpSettings.zoomFactor * ovpSettings.base_zoom;
+
+			float left = ovpSettings.cameraPosition.X - (Surface.Width / 2) * zoom;
+			float right = ovpSettings.cameraPosition.X + (Surface.Width / 2) * zoom;
+			float bottom = ovpSettings.cameraPosition.Y + (Surface.Height / 2) * zoom;
+			float top = ovpSettings.cameraPosition.Y - (Surface.Height / 2) * zoom;
+
+			ViewMatrix = Matrix4x4.CreateOrthographicOffCenter(left, right, bottom, top, 0.0f, 1.0f);
 			CommandList.UpdateBuffer(ViewBuffer, 0, ViewMatrix);
 
 			CommandList.SetFramebuffer(Surface.Swapchain.Framebuffer);
