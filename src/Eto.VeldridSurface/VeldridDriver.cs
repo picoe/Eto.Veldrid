@@ -63,6 +63,7 @@ namespace PlaceholderName
 		int grid_vbo_size;
 
 		VertexPositionColor[] axesArray;
+		ushort[] axesIndices;
 		int axes_vbo_size;
 
 		public OVPSettings ovpSettings;
@@ -70,6 +71,8 @@ namespace PlaceholderName
 		CommandList CommandList;
 		DeviceBuffer GridVertexBuffer;
 		DeviceBuffer GridIndexBuffer;
+		DeviceBuffer AxesVertexBuffer;
+		DeviceBuffer AxesIndexBuffer;
 		Shader VertexShader;
 		Shader FragmentShader;
 		Pipeline GridPipeline;
@@ -757,7 +760,21 @@ namespace PlaceholderName
 				axesArray[1] = new VertexPositionColor(new Vector3(0.0f, ovpSettings.cameraPosition.Y - Surface.Height * (ovpSettings.zoomFactor * ovpSettings.base_zoom), axisZ), new RgbaFloat(ovpSettings.axisColor.R, ovpSettings.axisColor.G, ovpSettings.axisColor.B, 1.0f));
 				axesArray[2] = new VertexPositionColor(new Vector3(ovpSettings.cameraPosition.X + Surface.Width * (ovpSettings.zoomFactor * ovpSettings.base_zoom), 0.0f, axisZ), new RgbaFloat(ovpSettings.axisColor.R, ovpSettings.axisColor.G, ovpSettings.axisColor.B, 1.0f));
 				axesArray[3] = new VertexPositionColor(new Vector3(ovpSettings.cameraPosition.X - Surface.Width * (ovpSettings.zoomFactor * ovpSettings.base_zoom), 0.0f, axisZ), new RgbaFloat(ovpSettings.axisColor.R, ovpSettings.axisColor.G, ovpSettings.axisColor.B, 1.0f));
+
+				axesIndices = new ushort[4] { 0, 1, 2, 3 };
+
+				AxesVertexBuffer?.Dispose();
+				AxesIndexBuffer?.Dispose();
+
+				ResourceFactory factory = Surface.GraphicsDevice.ResourceFactory;
+
+				AxesVertexBuffer = factory.CreateBuffer(new BufferDescription((uint)axesArray.Length * VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer));
+				AxesIndexBuffer = factory.CreateBuffer(new BufferDescription((uint)axesIndices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
+
+				Surface.GraphicsDevice.UpdateBuffer(AxesVertexBuffer, 0, axesArray);
+				Surface.GraphicsDevice.UpdateBuffer(AxesIndexBuffer, 0, axesIndices);
 			}
+
 		}
 
 		public void updateViewport()
@@ -815,19 +832,19 @@ namespace PlaceholderName
 				vertexOffset: 0,
 				instanceStart: 0);
 
-			/*
-			CommandList.SetVertexBuffer(0, Vertex2Buffer);
-			CommandList.SetIndexBuffer(Index2Buffer, IndexFormat.UInt16);
-			CommandList.SetPipeline(Pipeline2);
-			CommandList.SetGraphicsResourceSet(0, ModelMatrixSet);
+			CommandList.SetVertexBuffer(0, AxesVertexBuffer);
+			CommandList.SetIndexBuffer(AxesIndexBuffer, IndexFormat.UInt16);
+			CommandList.SetPipeline(GridPipeline);
+			CommandList.SetGraphicsResourceSet(0, ViewMatrixSet);
+			CommandList.SetGraphicsResourceSet(1, ModelMatrixSet);
 
 			CommandList.DrawIndexed(
-				indexCount: 4,
+				indexCount: (uint)axesIndices.Length,
 				instanceCount: 1,
 				indexStart: 0,
 				vertexOffset: 0,
 				instanceStart: 0);
-			*/
+
 			CommandList.End();
 
 			Surface.GraphicsDevice.SubmitCommands(CommandList);
