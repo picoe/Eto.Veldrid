@@ -4,6 +4,7 @@ using Eto.Gl.WPF_WFControl;
 using OpenTK;
 using System;
 using System.Runtime.InteropServices;
+using System.Windows.Forms.Integration;
 using Veldrid;
 
 namespace PlaceholderName
@@ -33,22 +34,45 @@ namespace PlaceholderName
 		}
 	}
 
-	public class WpfVeldridSurfaceHandler : VeldridSurfaceHandler
+	public class WpfVeldridSurfaceHandler : Eto.Wpf.Forms.Controls.PanelHandler, VeldridSurface.IHandler
 	{
-		protected override void InitializeOtherApi()
-		{
-			base.InitializeOtherApi();
+		public new VeldridSurface.ICallback Callback => (VeldridSurface.ICallback)base.Callback;
+		public new VeldridSurface Widget => (VeldridSurface)base.Widget;
 
-			var dummy = new WpfVeldridHost();
-			dummy.Loaded += (sender, e) =>
+		// Provides a WinForms child control, from which a native handle can be
+		// obtained for Veldrid integration purposes. WPF otherwise doesn't use
+		// native handles, and asking for one from Eto returns only a handle for
+		// the top level window client area.
+		private WindowsFormsHost Host { get; } = new WindowsFormsHost
+		{
+			Child = new System.Windows.Forms.Panel()
+		};
+
+		public WpfVeldridSurfaceHandler()
+		{
+			Control = new System.Windows.Controls.Border();
+		}
+
+		/// <summary>
+		/// Prepare this VeldridSurface to use a graphics API other than OpenGL.
+		/// </summary>
+		public void InitializeOtherApi()
+		{
+			Control.Loaded += (sender, e) =>
 			{
+				Host.Child.Width = Widget.Width;
+				Host.Child.Height = Widget.Height;
+
+				Content = Host.ToEto();
+
 				// To embed Veldrid in an Eto control, all these platform-specific
-				// overrides of InitializeOtherApi use the technique outlined here:
+				// versions of InitializeOtherApi use the technique outlined here:
 				//
 				//   https://github.com/mellinoe/veldrid/issues/155
 				//
 				var source = SwapchainSource.CreateWin32(
-					dummy.Hwnd, Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
+					Host.Child.Handle,
+					Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
 				Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
 					new SwapchainDescription(
 						source,
@@ -59,10 +83,22 @@ namespace PlaceholderName
 
 				Callback.OnVeldridInitialized(Widget, EventArgs.Empty);
 			};
-			dummy.WMPaint += (sender, e) => Callback.OnDraw(Widget, e);
-			dummy.WMSize += (sender, e) => Callback.OnResize(Widget, e);
+		}
 
-			RenderTarget = WpfHelpers.ToEto(dummy);
+		public override void AttachEvent(string id)
+		{
+			switch (id)
+			{
+				case VeldridSurface.DrawEvent:
+					Host.Child.Paint += (sender, e) => Callback.OnDraw(Widget, EventArgs.Empty);
+					break;
+				case VeldridSurface.ResizeEvent:
+					Host.Child.SizeChanged += (sender, e) => Callback.OnResize(Widget, new ResizeEventArgs(Widget.Size));
+					break;
+				default:
+					base.AttachEvent(id);
+					break;
+			}
 		}
 	}
 

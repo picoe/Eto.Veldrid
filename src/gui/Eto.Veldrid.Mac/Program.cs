@@ -7,18 +7,24 @@ using Veldrid;
 
 namespace PlaceholderName
 {
-	public class MacVeldridSurfaceHandler : VeldridSurfaceHandler
+	public class MacVeldridSurfaceHandler : Eto.Mac.Forms.Controls.PanelHandler, VeldridSurface.IHandler
 	{
-		protected override void InitializeOtherApi()
-		{
-			base.InitializeOtherApi();
+		public new VeldridSurface.ICallback Callback => (VeldridSurface.ICallback)base.Callback;
+		public new VeldridSurface Widget => (VeldridSurface)base.Widget;
 
+		public MacVeldridSurfaceHandler()
+		{
+			Control = new MonoMac.AppKit.NSView();
+		}
+
+		public void InitializeOtherApi()
+		{
 			// To embed Veldrid in an Eto control, all these platform-specific
-			// overrides of InitializeOtherApi use the technique outlined here:
+			// versions of InitializeOtherApi use the technique outlined here:
 			//
 			//   https://github.com/mellinoe/veldrid/issues/155
 			//
-			var source = SwapchainSource.CreateNSView(Control.NativeHandle);
+			var source = SwapchainSource.CreateNSView(Control.Handle);
 			Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
 				new SwapchainDescription(
 					source,

@@ -12,6 +12,7 @@
   <ItemGroup>
     <PackageReference Include="Eto.Platform.Windows" Version="2.4.1" />
     <PackageReference Include="Eto.Platform.Wpf" Version="2.4.1" />
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="3.5.0" />
     <PackageReference Include="OpenTK" Version="3.0.1" />
     <PackageReference Include="OpenTK.GLControl" Version="3.0.1" />
   </ItemGroup>
@@ -20,12 +21,14 @@
     <Reference Include="Eto.Gl">
       <HintPath>$(TopLevelDirectory)lib\thirdparty\Eto.Gl\Eto.Gl\$(Configuration)\Eto.Gl.dll</HintPath>
     </Reference>
-    <Reference Include="Eto.Gl.Windows">
+    <Reference Include="Eto.Gl.WPF_WinformsHost">
       <HintPath>$(TopLevelDirectory)lib\thirdparty\Eto.Gl\Eto.Gl.WPF_WinformsHost\$(Configuration)\Eto.Gl.WPF_WinformsHost.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="ReachFramework" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
     <Reference Include="WindowsBase" />
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
