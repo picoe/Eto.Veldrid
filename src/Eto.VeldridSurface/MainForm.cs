@@ -50,6 +50,8 @@ namespace PlaceholderName
 			Content = Surface;
 
 			ovpSettings = new OVPSettings();
+			ovpSettings.enableFilledPolys = true;
+			ovpSettings.drawPoints = true;
 
 			PointF[] testPoly = new PointF[6];
 			testPoly[0] = new PointF(2.0f, 2.0f);
@@ -71,6 +73,10 @@ namespace PlaceholderName
 			ovpSettings.addPolygon(testPoly2, Color.FromArgb(0, 255, 255), 1.0f, true);
 
 			ovpSettings.addPolygon(testPoly, Color.FromArgb(255, 0, 0), 1.0f, true);
+
+			ovpSettings.addPolygon(testPoly2, Color.FromArgb(0, 255, 255), 1.0f, false);
+
+			ovpSettings.addPolygon(testPoly, Color.FromArgb(255, 0, 0), 1.0f, false);
 
 
 			Driver = new VeldridDriver(ref ovpSettings, ref Surface);

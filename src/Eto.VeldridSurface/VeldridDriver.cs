@@ -43,28 +43,23 @@ namespace PlaceholderName
 		public updateHost updateHostFunc { get; set; }
 
 		public bool ok;
-		bool immediateMode;
 		public bool lockedViewport;
 		public bool savedLocation_valid;
 		PointF savedLocation;
 
 		VertexPositionColor[] polyArray;
 		ushort[] polyFirst;
-		ushort[] polyIndices;
-		int poly_vbo_size;
+		ushort[] polyVertexCount;
 
 		VertexPositionColor[] lineArray;
 		ushort[] lineFirst;
 		ushort[] lineVertexCount;
-		int line_vbo_size;
 
 		VertexPositionColor[] gridArray;
 		ushort[] gridIndices;
-		int grid_vbo_size;
 
 		VertexPositionColor[] axesArray;
 		ushort[] axesIndices;
-		int axes_vbo_size;
 
 		public OVPSettings ovpSettings;
 
@@ -75,7 +70,7 @@ namespace PlaceholderName
 		DeviceBuffer AxesIndexBuffer;
 
 		DeviceBuffer LinesVertexBuffer;
-
+		DeviceBuffer PointsVertexBuffer;
 		DeviceBuffer PolysVertexBuffer;
 
 		Shader VertexShader;
@@ -546,34 +541,30 @@ namespace PlaceholderName
 				float polyZStep = 1.0f / ovpSettings.polyList.Count();
 
 				// Create our first and count arrays for the vertex indices, to enable polygon separation when rendering.
-				polyFirst = new ushort[ovpSettings.polyList.Count()];
-				polyIndices = new ushort[ovpSettings.polyList.Count()];
-				int counter = 0; // vertex count that will be used to define 'first' index for each polygon.
-				int previouscounter = 0; // will be used to derive the number of vertices in each polygon.
+				int tmp = ovpSettings.polyList.Count();
+				polyFirst = new ushort[tmp];
+				polyVertexCount = new ushort[tmp];
 
-				for (int poly = 0; poly < ovpSettings.polyList.Count(); poly++)
+				for (int poly = 0; poly < tmp; poly++)
 				{
 					float alpha = ovpSettings.polyList[poly].alpha;
 					float polyZ = poly * polyZStep;
-					polyFirst[poly] = (ushort)counter;
-					previouscounter = counter;
-					if ((ovpSettings.enableFilledPolys) && (!ovpSettings.drawnPoly[poly]))
+					polyFirst[poly] = (ushort)polyList.Count;
+					if (1 == 0) //((ovpSettings.enableFilledPolys) && (!ovpSettings.drawnPoly[poly]))
 					{
 						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[0].X, ovpSettings.polyList[poly].poly[0].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
 						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[1].X, ovpSettings.polyList[poly].poly[1].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
 						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[2].X, ovpSettings.polyList[poly].poly[2].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
-						counter += 3;
-						polyIndices[poly] = 3;
+						// counter += 3;
+						polyVertexCount[poly] = 3;
 					}
 					else
 					{
 						for (int pt = 0; pt < ovpSettings.polyList[poly].poly.Length; pt++)
 						{
 							polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[pt].X, ovpSettings.polyList[poly].poly[pt].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
-							polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[pt + 1].X, ovpSettings.polyList[poly].poly[pt + 1].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
-							counter++;
 						}
-						polyIndices[poly] = (ushort)(counter - previouscounter); // set our vertex count for the polygon.
+						polyVertexCount[poly] = (ushort)ovpSettings.polyList[poly].poly.Length; // set our vertex count for the polygon.
 					}
 				}
 
@@ -598,7 +589,7 @@ namespace PlaceholderName
 		{
 			try
 			{
-				List<VertexPositionColor> polyList = new List<VertexPositionColor>();
+				List<VertexPositionColor> lineList = new List<VertexPositionColor>();
 
 				// Carve our Z-space up to stack polygons
 				float polyZStep = 1.0f / ovpSettings.lineList.Count();
@@ -608,19 +599,19 @@ namespace PlaceholderName
 				lineFirst = new ushort[tmp];
 				lineVertexCount = new ushort[tmp];
 
-				for (int poly = 0; poly < ovpSettings.lineList.Count(); poly++)
+				for (int poly = 0; poly < tmp; poly++)
 				{
 					float alpha = ovpSettings.lineList[poly].alpha;
 					float polyZ = poly * polyZStep;
-					lineFirst[poly] = (ushort)polyList.Count;
+					lineFirst[poly] = (ushort)lineList.Count;
 					for (int pt = 0; pt < ovpSettings.lineList[poly].poly.Length; pt++)
 					{
-						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.lineList[poly].poly[pt].X, ovpSettings.lineList[poly].poly[pt].Y, polyZ), new RgbaFloat(ovpSettings.lineList[poly].color.R, ovpSettings.lineList[poly].color.G, ovpSettings.lineList[poly].color.B, alpha)));
+						lineList.Add(new VertexPositionColor(new Vector3(ovpSettings.lineList[poly].poly[pt].X, ovpSettings.lineList[poly].poly[pt].Y, polyZ), new RgbaFloat(ovpSettings.lineList[poly].color.R, ovpSettings.lineList[poly].color.G, ovpSettings.lineList[poly].color.B, alpha)));
 					}
 					lineVertexCount[poly] = (ushort)ovpSettings.lineList[poly].poly.Length; // set our vertex count for the polygon.
 				}
 
-				lineArray = polyList.ToArray();
+				lineArray = lineList.ToArray();
 
 				LinesVertexBuffer?.Dispose();
 
@@ -873,20 +864,16 @@ namespace PlaceholderName
 				CommandList.Draw(lineVertexCount[l], 1, lineFirst[l], 0);
 			}
 
-			/*
 			CommandList.SetVertexBuffer(0, PolysVertexBuffer);
-			CommandList.SetIndexBuffer(PolysIndexBuffer, IndexFormat.UInt16);
 			CommandList.SetPipeline(FilledPipeline);
 			CommandList.SetGraphicsResourceSet(0, ViewMatrixSet);
 			CommandList.SetGraphicsResourceSet(1, ModelMatrixSet);
 
-			CommandList.DrawIndexed(
-				indexCount: (uint)polyIndices.Length,
-				instanceCount: 1,
-				indexStart: 0,
-				vertexOffset: 0,
-				instanceStart: 0);
-				*/
+			for (int l = 0; l < polyVertexCount.Length; l++)
+			{
+				CommandList.Draw(polyVertexCount[l], 1, polyFirst[l], 0);
+			}
+
 			CommandList.End();
 
 			Surface.GraphicsDevice.SubmitCommands(CommandList);
@@ -931,25 +918,6 @@ namespace PlaceholderName
 				modelMatrixLayout, ModelBuffer));
 
 			drawGrid();
-
-
-			/*
-			VertexPositionColor[] quad2Vertices =
-{
-				new VertexPositionColor(new Vector3(-.85f, -.85f, 0.1f), RgbaFloat.Yellow),
-				new VertexPositionColor(new Vector3(.85f, -.85f, 0.1f), RgbaFloat.Blue),
-				new VertexPositionColor(new Vector3(-.85f, .85f, 0.1f), RgbaFloat.Green),
-				new VertexPositionColor(new Vector3(.85f, .85f, 0.1f), RgbaFloat.Red)
-			};
-
-			ushort[] quad2Indices = { 0, 1, 2, 3 };
-
-			Vertex2Buffer = factory.CreateBuffer(new BufferDescription(4 * VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer));
-			Index2Buffer = factory.CreateBuffer(new BufferDescription(4 * sizeof(ushort), BufferUsage.IndexBuffer));
-
-			Surface.GraphicsDevice.UpdateBuffer(Vertex2Buffer, 0, quad2Vertices);
-			Surface.GraphicsDevice.UpdateBuffer(Index2Buffer, 0, quad2Indices);
-			*/
 
 			// Veldrid.SPIRV, when cross-compiling to HLSL, will always produce
 			// TEXCOORD semantics; VertexElementSemantic.TextureCoordinate thus
@@ -1063,7 +1031,7 @@ namespace PlaceholderName
 					depthClipEnabled: true,
 					scissorTestEnabled: false),
 				PrimitiveTopology = PrimitiveTopology.TriangleStrip,
-				ResourceLayouts = new[] { modelMatrixLayout },
+				ResourceLayouts = new[] { viewMatrixLayout, modelMatrixLayout },
 				ShaderSet = new ShaderSetDescription(
 					vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
 					shaders: shaders),
