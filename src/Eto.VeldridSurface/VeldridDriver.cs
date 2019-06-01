@@ -55,7 +55,7 @@ namespace PlaceholderName
 
 		VertexPositionColor[] lineArray;
 		ushort[] lineFirst;
-		ushort[] lineIndices;
+		ushort[] lineVertexCount;
 		int line_vbo_size;
 
 		VertexPositionColor[] gridArray;
@@ -75,10 +75,8 @@ namespace PlaceholderName
 		DeviceBuffer AxesIndexBuffer;
 
 		DeviceBuffer LinesVertexBuffer;
-		DeviceBuffer LinesIndexBuffer;
 
 		DeviceBuffer PolysVertexBuffer;
-		DeviceBuffer PolysIndexBuffer;
 
 		Shader VertexShader;
 		Shader FragmentShader;
@@ -569,10 +567,9 @@ namespace PlaceholderName
 					}
 					else
 					{
-						for (int pt = 0; pt < ovpSettings.polyList[poly].poly.Length - 1; pt++)
+						for (int pt = 0; pt < ovpSettings.polyList[poly].poly.Length; pt++)
 						{
 							polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[pt].X, ovpSettings.polyList[poly].poly[pt].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
-							counter++;
 							polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[pt + 1].X, ovpSettings.polyList[poly].poly[pt + 1].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
 							counter++;
 						}
@@ -583,15 +580,12 @@ namespace PlaceholderName
 				polyArray = polyList.ToArray();
 
 				PolysVertexBuffer?.Dispose();
-				PolysIndexBuffer?.Dispose();
 
 				ResourceFactory factory = Surface.GraphicsDevice.ResourceFactory;
 
 				PolysVertexBuffer = factory.CreateBuffer(new BufferDescription((uint)polyArray.Length * VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer));
-				PolysIndexBuffer = factory.CreateBuffer(new BufferDescription((uint)polyIndices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
 
 				Surface.GraphicsDevice.UpdateBuffer(PolysVertexBuffer, 0, polyArray);
-				Surface.GraphicsDevice.UpdateBuffer(PolysIndexBuffer, 0, polyIndices);
 
 			}
 			catch (Exception)
@@ -612,38 +606,29 @@ namespace PlaceholderName
 				// Create our first and count arrays for the vertex indices, to enable polygon separation when rendering.
 				int tmp = ovpSettings.lineList.Count();
 				lineFirst = new ushort[tmp];
-				lineIndices = new ushort[tmp];
-				int counter = 0; // vertex count that will be used to define 'first' index for each polygon.
-				int previouscounter = 0; // will be used to derive the number of vertices in each polygon.
+				lineVertexCount = new ushort[tmp];
 
 				for (int poly = 0; poly < ovpSettings.lineList.Count(); poly++)
 				{
 					float alpha = ovpSettings.lineList[poly].alpha;
 					float polyZ = poly * polyZStep;
-					lineFirst[poly] = (ushort)counter;
-					previouscounter = counter;
-					for (int pt = 0; pt < ovpSettings.lineList[poly].poly.Length - 1; pt++)
+					lineFirst[poly] = (ushort)polyList.Count;
+					for (int pt = 0; pt < ovpSettings.lineList[poly].poly.Length; pt++)
 					{
 						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.lineList[poly].poly[pt].X, ovpSettings.lineList[poly].poly[pt].Y, polyZ), new RgbaFloat(ovpSettings.lineList[poly].color.R, ovpSettings.lineList[poly].color.G, ovpSettings.lineList[poly].color.B, alpha)));
-						counter++;
-						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.lineList[poly].poly[pt + 1].X, ovpSettings.lineList[poly].poly[pt + 1].Y, polyZ), new RgbaFloat(ovpSettings.lineList[poly].color.R, ovpSettings.lineList[poly].color.G, ovpSettings.lineList[poly].color.B, alpha)));
-						counter++;
 					}
-					lineIndices[poly] = (ushort)(counter - previouscounter); // set our vertex count for the polygon.
+					lineVertexCount[poly] = (ushort)ovpSettings.lineList[poly].poly.Length; // set our vertex count for the polygon.
 				}
 
 				lineArray = polyList.ToArray();
 
 				LinesVertexBuffer?.Dispose();
-				LinesIndexBuffer?.Dispose();
 
 				ResourceFactory factory = Surface.GraphicsDevice.ResourceFactory;
 
 				LinesVertexBuffer = factory.CreateBuffer(new BufferDescription((uint)lineArray.Length * VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer));
-				LinesIndexBuffer = factory.CreateBuffer(new BufferDescription((uint)lineIndices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
 
 				Surface.GraphicsDevice.UpdateBuffer(LinesVertexBuffer, 0, lineArray);
-				Surface.GraphicsDevice.UpdateBuffer(LinesIndexBuffer, 0, lineIndices);
 			}
 			catch (Exception)
 			{
@@ -879,20 +864,15 @@ namespace PlaceholderName
 				instanceStart: 0);
 
 			CommandList.SetVertexBuffer(0, LinesVertexBuffer);
-			CommandList.SetIndexBuffer(LinesIndexBuffer, IndexFormat.UInt16);
 			CommandList.SetPipeline(LinesPipeline);
 			CommandList.SetGraphicsResourceSet(0, ViewMatrixSet);
 			CommandList.SetGraphicsResourceSet(1, ModelMatrixSet);
 
-			//for (int l = 0; l < lineIndices.Length; l++)
+			for (int l = 0; l < lineVertexCount.Length; l++)
 			{
-				CommandList.DrawIndexed(
-					indexCount: (uint)lineIndices.Length,
-					instanceCount: 1,
-					indexStart: (uint)lineFirst[0],
-					vertexOffset: 0,
-					instanceStart: 0);
+				CommandList.Draw(lineVertexCount[l], 1, lineFirst[l], 0);
 			}
+
 			/*
 			CommandList.SetVertexBuffer(0, PolysVertexBuffer);
 			CommandList.SetIndexBuffer(PolysIndexBuffer, IndexFormat.UInt16);
@@ -1052,14 +1032,14 @@ namespace PlaceholderName
 			{
 				BlendState = BlendStateDescription.SingleOverrideBlend,
 				DepthStencilState = new DepthStencilStateDescription(
-					depthTestEnabled: true,
-					depthWriteEnabled: true,
+					depthTestEnabled: false,
+					depthWriteEnabled: false,
 					comparisonKind: ComparisonKind.LessEqual),
 				RasterizerState = new RasterizerStateDescription(
 					cullMode: FaceCullMode.Back,
 					fillMode: PolygonFillMode.Solid,
 					frontFace: FrontFace.Clockwise,
-					depthClipEnabled: true,
+					depthClipEnabled: false,
 					scissorTestEnabled: false),
 				PrimitiveTopology = PrimitiveTopology.LineStrip,
 				ResourceLayouts = new[] { viewMatrixLayout, modelMatrixLayout },
