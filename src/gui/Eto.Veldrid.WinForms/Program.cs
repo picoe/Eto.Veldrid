@@ -38,11 +38,6 @@ namespace PlaceholderName
 		public new VeldridSurface.ICallback Callback => (VeldridSurface.ICallback)base.Callback;
 		public new VeldridSurface Widget => (VeldridSurface)base.Widget;
 
-		public WinFormsVeldridSurfaceHandler()
-		{
-			Control = new EtoPanel(this);
-		}
-
 		public void InitializeOtherApi()
 		{
 			// To embed Veldrid in an Eto control, all these platform-specific
@@ -51,7 +46,9 @@ namespace PlaceholderName
 			//   https://github.com/mellinoe/veldrid/issues/155
 			//
 			var source = SwapchainSource.CreateWin32(
-				Control.Handle, Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
+				Control.Handle,
+				Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
+
 			Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
 				new SwapchainDescription(
 					source,

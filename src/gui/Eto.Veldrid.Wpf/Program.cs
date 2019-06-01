@@ -48,10 +48,14 @@ namespace PlaceholderName
 			Child = new System.Windows.Forms.Panel()
 		};
 
-		public WpfVeldridSurfaceHandler()
-		{
-			Control = new System.Windows.Controls.Border();
-		}
+		// TODO: There's some sort of issue here; with this commented out, the
+		// application window can be resized with no flickering, but terrible
+		// performance as it enlarges. With this constructor uncommented, the
+		// performance improves, but the view flickers during any resize.
+		//public WpfVeldridSurfaceHandler()
+		//{
+		//	Control = new System.Windows.Controls.Border();
+		//}
 
 		/// <summary>
 		/// Prepare this VeldridSurface to use a graphics API other than OpenGL.
@@ -73,6 +77,7 @@ namespace PlaceholderName
 				var source = SwapchainSource.CreateWin32(
 					Host.Child.Handle,
 					Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
+
 				Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
 					new SwapchainDescription(
 						source,
