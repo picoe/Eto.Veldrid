@@ -32,7 +32,36 @@ namespace PlaceholderName
 	/// </remarks>
 	public class VeldridDriver
 	{
-		public VeldridSurface Surface;
+		private VeldridSurface _surface;
+		public VeldridSurface Surface
+		{
+			get { return _surface; }
+			set
+			{
+				_surface = value;
+
+				Surface.MouseDown += Surface_MouseDown;
+				Surface.KeyDown += Surface_KeyDown;
+			}
+		}
+
+		private void Surface_KeyDown(object sender, KeyEventArgs e)
+		{
+			if (e.Key == Keys.C)
+			{
+				Clockwise = !Clockwise;
+				e.Handled = true;
+			}
+		}
+
+		private void Surface_MouseDown(object sender, MouseEventArgs e)
+		{
+			if (e.Buttons == MouseButtons.Primary)
+			{
+				Animate = !Animate;
+				e.Handled = true;
+			}
+		}
 
 		public UITimer Clock = new UITimer();
 
@@ -46,6 +75,15 @@ namespace PlaceholderName
 		public Matrix4x4 ModelMatrix = Matrix4x4.Identity;
 		public DeviceBuffer ModelBuffer;
 		public ResourceSet ModelMatrixSet;
+
+		public bool Animate { get; set; } = true;
+
+		private int _direction = 1;
+		public bool Clockwise
+		{
+			get { return _direction == 1 ? true : false; }
+			set { _direction = value ? 1 : -1; }
+		}
 
 		private bool Ready = false;
 
@@ -73,9 +111,12 @@ namespace PlaceholderName
 			CommandList.Begin();
 
 			CurrentTime = DateTime.Now;
-			ModelMatrix *= Matrix4x4.CreateFromAxisAngle(
-				new Vector3(0, 0, 1),
-				OpenTK.MathHelper.DegreesToRadians(Convert.ToSingle((CurrentTime - PreviousTime).TotalMilliseconds / 10.0)));
+			if (Animate)
+			{
+				ModelMatrix *= Matrix4x4.CreateFromAxisAngle(
+					new Vector3(0, 0, _direction),
+					OpenTK.MathHelper.DegreesToRadians(Convert.ToSingle((CurrentTime - PreviousTime).TotalMilliseconds / 10.0)));
+			}
 			PreviousTime = CurrentTime;
 			CommandList.UpdateBuffer(ModelBuffer, 0, ModelMatrix);
 

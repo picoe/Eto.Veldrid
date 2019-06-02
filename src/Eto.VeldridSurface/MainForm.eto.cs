@@ -5,6 +5,18 @@ namespace PlaceholderName
 {
 	public partial class MainForm : Form
 	{
+		public CheckCommand CmdAnimate = new CheckCommand
+		{
+			MenuText = "Animate",
+			Checked = true
+		};
+		public CheckCommand CmdClockwise = new CheckCommand
+		{
+			MenuText = "&Clockwise",
+			Shortcut = Keys.C,
+			Checked = true
+		};
+
 		private void InitializeComponent()
 		{
 			Title = "Veldrid in Eto";
@@ -19,7 +31,11 @@ namespace PlaceholderName
 			Menu = new MenuBar
 			{
 				QuitItem = quitCommand,
-				AboutItem = aboutCommand
+				AboutItem = aboutCommand,
+				Items =
+				{
+					new ButtonMenuItem { Text = "&View", Items = { CmdAnimate, CmdClockwise } }
+				}
 			};
 		}
 	}
