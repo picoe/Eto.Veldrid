@@ -8,12 +8,13 @@ namespace PlaceholderName
 		public CheckCommand CmdAnimate = new CheckCommand
 		{
 			MenuText = "Animate",
+			ToolTip = "Click window content to toggle animation",
 			Checked = true
 		};
 		public CheckCommand CmdClockwise = new CheckCommand
 		{
 			MenuText = "&Clockwise",
-			Shortcut = Keys.C,
+			ToolTip = "Press C to toggle direction",
 			Checked = true
 		};
 
