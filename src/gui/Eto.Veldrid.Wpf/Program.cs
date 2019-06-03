@@ -4,7 +4,6 @@ using Eto.Gl.WPF_WFControl;
 using OpenTK;
 using System;
 using System.Runtime.InteropServices;
-using System.Windows.Forms.Integration;
 using Veldrid;
 
 namespace PlaceholderName
@@ -34,19 +33,27 @@ namespace PlaceholderName
 		}
 	}
 
+	public class WpfRenderTargetHandler : Eto.Wpf.Forms.WindowsFormsHostHandler<System.Windows.Forms.Panel, RenderTarget, RenderTarget.ICallback>, RenderTarget.IHandler
+	{
+		public IntPtr IntegrationHandle => WinFormsControl.Handle;
+
+		public WpfRenderTargetHandler() : base(new System.Windows.Forms.Panel())
+		{
+		}
+
+		public override void OnPreLoad(EventArgs e)
+		{
+			base.OnPreLoad(e);
+
+			WinFormsControl.Width = Widget.Width;
+			WinFormsControl.Height = Widget.Height;
+		}
+	}
+
 	public class WpfVeldridSurfaceHandler : Eto.Wpf.Forms.Controls.PanelHandler, VeldridSurface.IHandler
 	{
 		public new VeldridSurface.ICallback Callback => (VeldridSurface.ICallback)base.Callback;
 		public new VeldridSurface Widget => (VeldridSurface)base.Widget;
-
-		// Provides a WinForms child control, from which a native handle can be
-		// obtained for Veldrid integration purposes. WPF otherwise doesn't use
-		// native handles, and asking for one from Eto returns only a handle for
-		// the top level window client area.
-		private WindowsFormsHost Host { get; } = new WindowsFormsHost
-		{
-			Child = new System.Windows.Forms.Panel()
-		};
 
 		// TODO: There's some sort of issue here; with this commented out, the
 		// application window can be resized with no flickering, but terrible
@@ -64,10 +71,8 @@ namespace PlaceholderName
 		{
 			Control.Loaded += (sender, e) =>
 			{
-				Host.Child.Width = Widget.Width;
-				Host.Child.Height = Widget.Height;
-
-				Content = Host.ToEto();
+				var target = new RenderTarget { Size = Widget.Size };
+				Widget.Content = target;
 
 				// To embed Veldrid in an Eto control, all these platform-specific
 				// versions of InitializeOtherApi use the technique outlined here:
@@ -75,7 +80,7 @@ namespace PlaceholderName
 				//   https://github.com/mellinoe/veldrid/issues/155
 				//
 				var source = SwapchainSource.CreateWin32(
-					Host.Child.Handle,
+					target.Handler.IntegrationHandle,
 					Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
 
 				Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
@@ -88,22 +93,6 @@ namespace PlaceholderName
 
 				Callback.OnVeldridInitialized(Widget, EventArgs.Empty);
 			};
-		}
-
-		public override void AttachEvent(string id)
-		{
-			switch (id)
-			{
-				case VeldridSurface.DrawEvent:
-					Host.Child.Paint += (sender, e) => Callback.OnDraw(Widget, EventArgs.Empty);
-					break;
-				case VeldridSurface.ResizeEvent:
-					Host.Child.SizeChanged += (sender, e) => Callback.OnResize(Widget, new ResizeEventArgs(Widget.Size));
-					break;
-				default:
-					base.AttachEvent(id);
-					break;
-			}
 		}
 	}
 
@@ -121,6 +110,7 @@ namespace PlaceholderName
 
 			var platform = new Eto.Wpf.Platform();
 			platform.Add<GLSurface.IHandler>(() => new PuppetWPFWFGLSurfaceHandler());
+			platform.Add<RenderTarget.IHandler>(() => new WpfRenderTargetHandler());
 			platform.Add<VeldridSurface.IHandler>(() => new WpfVeldridSurfaceHandler());
 
 			new Application(platform).Run(new MainForm(backend));

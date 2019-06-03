@@ -149,6 +149,17 @@ namespace PlaceholderName
 		}
 	}
 
+	[Handler(typeof(RenderTarget.IHandler))]
+	public class RenderTarget : Control
+	{
+		public new IHandler Handler => (IHandler)base.Handler;
+
+		public new interface IHandler : Control.IHandler
+		{
+			IntPtr IntegrationHandle { get; }
+		}
+	}
+
 	/// <summary>
 	/// A simple control that allows drawing with Veldrid.
 	/// </summary>
@@ -311,6 +322,7 @@ namespace PlaceholderName
 
 			LoadComplete += (sender, e) => ControlReady = true;
 		}
+
 		public void InitializeGraphicsApi()
 		{
 			if (!ControlReady)
@@ -330,13 +342,10 @@ namespace PlaceholderName
 					break;
 			}
 
-			// TODO: Fix this comment! Or get rid of it. If I'm eliminating
-			// WpfVeldridHost, this may not apply at all anymore.
-
 			// Ideally Callback.OnVeldridInitialized would be called here, but
-			// WPF needs to delay raising that event until after WpfVeldridHost
-			// has been Loaded. Each platform's XVeldridSurfaceHandler therefore
-			// has to call OnVeldridInitialized itself.
+			// WPF needs to delay raising that event until after its control has
+			// been Loaded. Each platform's XVeldridSurfaceHandler therefore has
+			// to call OnVeldridInitialized itself.
 		}
 
 		/// <summary>
