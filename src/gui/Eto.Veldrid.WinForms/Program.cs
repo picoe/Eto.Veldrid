@@ -33,19 +33,30 @@ namespace PlaceholderName
 		}
 	}
 
-	public class WinFormsVeldridSurfaceHandler : VeldridSurfaceHandler
+	public class WinFormsRenderTargetHandler : Eto.WinForms.Forms.Controls.ControlHandler, RenderTarget.IHandler
 	{
-		protected override void InitializeOtherApi()
+		public IntPtr IntegrationHandle => Control.Handle;
+	}
+
+	public class WinFormsVeldridSurfaceHandler : Eto.WinForms.Forms.Controls.PanelHandler, VeldridSurface.IHandler
+	{
+		public new VeldridSurface.ICallback Callback => (VeldridSurface.ICallback)base.Callback;
+		public new VeldridSurface Widget => (VeldridSurface)base.Widget;
+
+		public void InitializeOtherApi()
 		{
-			base.InitializeOtherApi();
+			var target = new RenderTarget();
+			Widget.Content = target;
 
 			// To embed Veldrid in an Eto control, all these platform-specific
-			// overrides of InitializeOtherApi use the technique outlined here:
+			// versions of InitializeOtherApi use the technique outlined here:
 			//
 			//   https://github.com/mellinoe/veldrid/issues/155
 			//
 			var source = SwapchainSource.CreateWin32(
-				Control.NativeHandle, Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
+				target.Handler.IntegrationHandle,
+				Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
+
 			Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
 				new SwapchainDescription(
 					source,
@@ -73,6 +84,7 @@ namespace PlaceholderName
 			var platform = new Eto.WinForms.Platform();
 			platform.Add<GLSurface.IHandler>(() => new PuppetWinGLSurfaceHandler());
 			platform.Add<VeldridSurface.IHandler>(() => new WinFormsVeldridSurfaceHandler());
+			platform.Add<RenderTarget.IHandler>(() => new WinFormsRenderTargetHandler());
 
 			new Application(platform).Run(new MainForm(backend));
 		}

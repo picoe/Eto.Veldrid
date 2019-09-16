@@ -17,6 +17,7 @@
     <PackageReference Include="OpenTK" Version="3.0.1" />
     <PackageReference Include="Unofficial.LibTessDotNet" Version="2.0.2" />
     <PackageReference Include="Veldrid" Version="4.6.1" />
+    <PackageReference Include="Veldrid.SPIRV" Version="$(VeldridSpirvVersion)" />
   </ItemGroup>
   
   <ItemGroup>
