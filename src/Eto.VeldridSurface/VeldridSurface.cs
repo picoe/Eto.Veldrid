@@ -158,17 +158,6 @@ namespace PlaceholderName
 		{
 			IntPtr IntegrationHandle { get; }
 		}
-
-		protected override void OnKeyDown(KeyEventArgs e)
-		{
-			base.OnKeyDown(e);
-			System.Diagnostics.Debugger.Break();
-		}
-		protected override void OnMouseDown(MouseEventArgs e)
-		{
-			base.OnMouseDown(e);
-			System.Diagnostics.Debugger.Break();
-		}
 	}
 
 	/// <summary>
@@ -449,17 +438,6 @@ namespace PlaceholderName
 			base.OnSizeChanged(e);
 
 			OnResize(new ResizeEventArgs(Width, Height));
-		}
-
-		protected override void OnKeyDown(KeyEventArgs e)
-		{
-			base.OnKeyDown(e);
-			System.Diagnostics.Debugger.Break();
-		}
-		protected override void OnMouseDown(MouseEventArgs e)
-		{
-			base.OnMouseDown(e);
-			System.Diagnostics.Debugger.Break();
 		}
 	}
 }

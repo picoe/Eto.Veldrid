@@ -33,62 +33,12 @@ namespace PlaceholderName
 		}
 	}
 
-	public class WpfRenderTargetHandler : Eto.Wpf.Forms.WindowsFormsHostHandler<System.Windows.Forms.Panel, RenderTarget, RenderTarget.ICallback>, RenderTarget.IHandler
+	public class WpfRenderTargetHandler : Eto.Wpf.Forms.ManualBubbleWindowsFormsHostHandler<System.Windows.Forms.Control, RenderTarget, RenderTarget.ICallback>, RenderTarget.IHandler
 	{
 		public IntPtr IntegrationHandle => WinFormsControl.Handle;
 
-		public WpfRenderTargetHandler() : base(new System.Windows.Forms.Panel())
+		public WpfRenderTargetHandler() : base(new System.Windows.Forms.Control())
 		{
-			Control.Focusable = true;
-
-			Control.KeyDown += Control_KeyDown;
-			Control.MouseDown += Control_MouseDown;
-
-			WinFormsControl.KeyDown += WinFormsControl_KeyDown;
-			WinFormsControl.MouseDown += WinFormsControl_MouseDown;
-		}
-
-		// Simple test handlers to demonstrate the odd control flow.
-		//
-		// WinForms mouse click (works as expected):
-		//   RenderTarget.OnMouseDown
-		//   VeldridSurface.OnMouseDown
-		//
-		// WPF mouse click (almost works, but event gets swallowed somewhere):
-		//   WpfRenderTargetHandler.WinFormsControl_MouseDown
-		//   RenderTarget.OnMouseDown
-		//   ? (should bubble up to the parent VeldridSurface.OnMouseDown)
-		//
-		// WinForms key press (works as expected):
-		//   RenderTarget.OnKeyDown
-		//   VeldridSurface.OnKeyDown
-		//
-		// WPF key press (works, but never passes through RenderTarget for some reason):
-		//   WpfRenderTargetHandler.Control_KeyDown (not WinFormsControl_KeyDown)
-		//   ? (skips RenderTarget.OnKeyDown)
-		//   VeldridSurface.OnKeyDown
-		//
-		// With Control.Focusable set to false instead, the MouseDown event
-		// behaves the same way, making it to RenderTarget.OnMouseDown before
-		// vanishing without making it up to VeldridSurface.OnMouseDown; in
-		// addition, KeyDown events stop working altogether.
-
-		private void Control_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-		{
-			System.Diagnostics.Debugger.Break();
-		}
-		private void Control_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-		{
-			System.Diagnostics.Debugger.Break();
-		}
-
-		private void WinFormsControl_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
-		{
-			System.Diagnostics.Debugger.Break();
-		}
-		private void WinFormsControl_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
-		{
-			System.Diagnostics.Debugger.Break();
 		}
 
 		public override void OnPreLoad(EventArgs e)
