@@ -33,22 +33,56 @@ namespace PlaceholderName
 		}
 	}
 
-	public class WpfVeldridSurfaceHandler : VeldridSurfaceHandler
+	public class WpfRenderTargetHandler : Eto.Wpf.Forms.ManualBubbleWindowsFormsHostHandler<System.Windows.Forms.Control, RenderTarget, RenderTarget.ICallback>, RenderTarget.IHandler
 	{
-		protected override void InitializeOtherApi()
-		{
-			base.InitializeOtherApi();
+		public IntPtr IntegrationHandle => WinFormsControl.Handle;
 
-			var dummy = new WpfVeldridHost();
-			dummy.Loaded += (sender, e) =>
+		public WpfRenderTargetHandler() : base(new System.Windows.Forms.Control())
+		{
+		}
+
+		public override void OnPreLoad(EventArgs e)
+		{
+			base.OnPreLoad(e);
+
+			WinFormsControl.Width = Widget.Width;
+			WinFormsControl.Height = Widget.Height;
+		}
+	}
+
+	public class WpfVeldridSurfaceHandler : Eto.Wpf.Forms.Controls.PanelHandler, VeldridSurface.IHandler
+	{
+		public new VeldridSurface.ICallback Callback => (VeldridSurface.ICallback)base.Callback;
+		public new VeldridSurface Widget => (VeldridSurface)base.Widget;
+
+		// TODO: There's some sort of issue here; with this commented out, the
+		// application window can be resized with no flickering, but terrible
+		// performance as it enlarges. With this constructor uncommented, the
+		// performance improves, but the view flickers during any resize.
+		//public WpfVeldridSurfaceHandler()
+		//{
+		//	Control = new System.Windows.Controls.Border();
+		//}
+
+		/// <summary>
+		/// Prepare this VeldridSurface to use a graphics API other than OpenGL.
+		/// </summary>
+		public void InitializeOtherApi()
+		{
+			Control.Loaded += (sender, e) =>
 			{
+				var target = new RenderTarget { Size = Widget.Size };
+				Widget.Content = target;
+
 				// To embed Veldrid in an Eto control, all these platform-specific
-				// overrides of InitializeOtherApi use the technique outlined here:
+				// versions of InitializeOtherApi use the technique outlined here:
 				//
 				//   https://github.com/mellinoe/veldrid/issues/155
 				//
 				var source = SwapchainSource.CreateWin32(
-					dummy.Hwnd, Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
+					target.Handler.IntegrationHandle,
+					Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
+
 				Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
 					new SwapchainDescription(
 						source,
@@ -59,10 +93,6 @@ namespace PlaceholderName
 
 				Callback.OnVeldridInitialized(Widget, EventArgs.Empty);
 			};
-			dummy.WMPaint += (sender, e) => Callback.OnDraw(Widget, e);
-			dummy.WMSize += (sender, e) => Callback.OnResize(Widget, e);
-
-			RenderTarget = WpfHelpers.ToEto(dummy);
 		}
 	}
 
@@ -80,6 +110,7 @@ namespace PlaceholderName
 
 			var platform = new Eto.Wpf.Platform();
 			platform.Add<GLSurface.IHandler>(() => new PuppetWPFWFGLSurfaceHandler());
+			platform.Add<RenderTarget.IHandler>(() => new WpfRenderTargetHandler());
 			platform.Add<VeldridSurface.IHandler>(() => new WpfVeldridSurfaceHandler());
 
 			new Application(platform).Run(new MainForm(backend));

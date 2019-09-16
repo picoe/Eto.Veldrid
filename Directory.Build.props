@@ -3,19 +3,7 @@
   <PropertyGroup>
     <TopLevelDirectory>$(MSBuildThisFileDirectory)</TopLevelDirectory>
     <ShaderOutputPath>$(TopLevelDirectory)src\shaders\</ShaderOutputPath>
+    <VeldridSpirvVersion>1.0.9</VeldridSpirvVersion>
   </PropertyGroup>
-
-  <ItemGroup>
-    <!-- Not all projects actually need this, but it's necessary in order to
-    grab the version number in every GUI project. That then facilitates copying
-    the appropriate native library for each platform. -->
-    <PackageReference Include="Veldrid.SPIRV" Version="1.0.9" />
-  </ItemGroup>
-
-  <Target Name="GetVeldridSpirvVersion" BeforeTargets="Build">
-    <CreateProperty Value="%(PackageReference.Version)" Condition="%(PackageReference.Identity) == 'Veldrid.SPIRV'">
-      <Output TaskParameter="Value" PropertyName="VeldridSpirvVersion" />
-    </CreateProperty>
-  </Target>
   
 </Project>

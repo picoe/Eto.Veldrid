@@ -149,143 +149,14 @@ namespace PlaceholderName
 		}
 	}
 
-	// VeldridSurface only has a few needs that are different for each platform
-	// offered by Eto, so a "themed" handler based on Panel takes care of all
-	// the common busywork. Derived classes, e.g. WinFormsVeldridSurfaceHandler,
-	// provide the platform-specific code necessary to get up and running.
-	public class VeldridSurfaceHandler : ThemedControlHandler<Panel, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
+	[Handler(typeof(RenderTarget.IHandler))]
+	public class RenderTarget : Control
 	{
-		// A depth buffer isn't strictly necessary for this project, which uses
-		// only 2D vertex coordinates, but it's helpful to create one for the
-		// sake of demonstration.
-		//
-		// The "improved" resource binding model changes how resource slots are
-		// assigned in the Metal backend, allowing it to work like the others,
-		// so the numbers used in calls to CommandList.SetGraphicsResourceSet
-		// will make more sense to developers used to e.g. OpenGL or Direct3D.
-		public GraphicsDeviceOptions GraphicsDeviceOptions { get; } =
-			new GraphicsDeviceOptions(
-				false,
-				Veldrid.PixelFormat.R32_Float,
-				false,
-				ResourceBindingModel.Improved);
+		public new IHandler Handler => (IHandler)base.Handler;
 
-		public Control RenderTarget
+		public new interface IHandler : Control.IHandler
 		{
-			get { return Control.Content; }
-			set { Control.Content = value; }
-		}
-
-		public VeldridSurfaceHandler()
-		{
-			Control = new Panel();
-		}
-
-		public override void AttachEvent(string id)
-		{
-			switch (id)
-			{
-				case VeldridSurface.SizeChangedEvent:
-					Control.SizeChanged += (sender, e) => Callback.OnResize(Widget, new ResizeEventArgs(Control.Size));
-					break;
-				default:
-					base.AttachEvent(id);
-					break;
-			}
-		}
-
-		public virtual void InitializeGraphicsApi()
-		{
-			if (!Widget.ControlReady)
-			{
-				return;
-			}
-
-			switch (Widget.GLReady)
-			{
-				case false:
-					return;
-				case true:
-					InitializeOpenGL();
-					break;
-				case null:
-					InitializeOtherApi();
-					break;
-			}
-
-			// Ideally Callback.OnVeldridInitialized would be called here, but
-			// WPF needs to delay raising that event until after WpfVeldridHost
-			// has been Loaded. Each platform's XVeldridSurfaceHandler therefore
-			// has to call OnVeldridInitialized itself.
-		}
-
-		/// <summary>
-		/// Prepare this VeldridSurface to use OpenGL.
-		/// </summary>
-		/// <remarks>
-		/// OpenGL initialization is platform-dependent, but here it happens by
-		/// way of GLSurface, which for users of the class is cross-platform.
-		/// </remarks>
-		protected virtual void InitializeOpenGL()
-		{
-			(RenderTarget as GLSurface).MakeCurrent();
-
-			VeldridGL.Surfaces.Add(RenderTarget as GLSurface);
-
-			var platformInfo = new OpenGLPlatformInfo(
-				VeldridGL.GetGLContextHandle(),
-				VeldridGL.GetProcAddress,
-				VeldridGL.MakeCurrent,
-				VeldridGL.GetCurrentContext,
-				VeldridGL.ClearCurrentContext,
-				VeldridGL.DeleteContext,
-				VeldridGL.SwapBuffers,
-				VeldridGL.SetVSync,
-				VeldridGL.SetSwapchainFramebuffer,
-				VeldridGL.ResizeSwapchain);
-
-			Widget.GraphicsDevice = GraphicsDevice.CreateOpenGL(
-				GraphicsDeviceOptions,
-				platformInfo,
-				(uint)Widget.Width,
-				(uint)Widget.Height);
-
-			Widget.Swapchain = Widget.GraphicsDevice.MainSwapchain;
-
-			Callback.OnVeldridInitialized(Widget, EventArgs.Empty);
-		}
-
-		/// <summary>
-		/// Prepare this VeldridSurface to use a graphics API other than OpenGL.
-		/// </summary>
-		protected virtual void InitializeOtherApi()
-		{
-			if (Widget.Backend == GraphicsBackend.Metal)
-			{
-				Widget.GraphicsDevice = GraphicsDevice.CreateMetal(GraphicsDeviceOptions);
-			}
-			else if (Widget.Backend == GraphicsBackend.Vulkan)
-			{
-				Widget.GraphicsDevice = GraphicsDevice.CreateVulkan(GraphicsDeviceOptions);
-			}
-			else if (Widget.Backend == GraphicsBackend.Direct3D11)
-			{
-				Widget.GraphicsDevice = GraphicsDevice.CreateD3D11(GraphicsDeviceOptions);
-			}
-			else
-			{
-				string message;
-				if (!Enum.IsDefined(typeof(GraphicsBackend), Widget.Backend))
-				{
-					message = "Unrecognized backend!";
-				}
-				else
-				{
-					message = "Specified backend not supported on this platform!";
-				}
-
-				throw new ArgumentException(message);
-			}
+			IntPtr IntegrationHandle { get; }
 		}
 	}
 
@@ -293,12 +164,11 @@ namespace PlaceholderName
 	/// A simple control that allows drawing with Veldrid.
 	/// </summary>
 	[Handler(typeof(VeldridSurface.IHandler))]
-	public class VeldridSurface : Control
+	public class VeldridSurface : Panel
 	{
 		public new interface IHandler : Control.IHandler
 		{
-			Control RenderTarget { get; set; }
-			void InitializeGraphicsApi();
+			void InitializeOtherApi();
 		}
 
 		public new IHandler Handler => (IHandler)base.Handler;
@@ -332,6 +202,21 @@ namespace PlaceholderName
 		{
 			return new Callback();
 		}
+
+		// A depth buffer isn't strictly necessary for this project, which uses
+		// only 2D vertex coordinates, but it's helpful to create one for the
+		// sake of demonstration.
+		//
+		// The "improved" resource binding model changes how resource slots are
+		// assigned in the Metal backend, allowing it to work like the others,
+		// so the numbers used in calls to CommandList.SetGraphicsResourceSet
+		// will make more sense to developers used to e.g. OpenGL or Direct3D.
+		public GraphicsDeviceOptions GraphicsDeviceOptions { get; } =
+			new GraphicsDeviceOptions(
+				false,
+				Veldrid.PixelFormat.R32_Float,
+				false,
+				ResourceBindingModel.Improved);
 
 		public static GraphicsBackend PreferredBackend
 		{
@@ -372,7 +257,7 @@ namespace PlaceholderName
 			{
 				_glReady = value;
 
-				Handler.InitializeGraphicsApi();
+				InitializeGraphicsApi();
 			}
 		}
 
@@ -384,7 +269,7 @@ namespace PlaceholderName
 			{
 				_controlReady = value;
 
-				Handler.InitializeGraphicsApi();
+				InitializeGraphicsApi();
 			}
 		}
 
@@ -432,10 +317,105 @@ namespace PlaceholderName
 				surface.GLInitalized += (sender, e) => GLReady = true;
 				surface.Draw += (sender, e) => OnDraw(EventArgs.Empty);
 
-				Handler.RenderTarget = surface;
+				Content = surface;
 			}
 
 			LoadComplete += (sender, e) => ControlReady = true;
+		}
+
+		public void InitializeGraphicsApi()
+		{
+			if (!ControlReady)
+			{
+				return;
+			}
+
+			switch (GLReady)
+			{
+				case false:
+					return;
+				case true:
+					InitializeOpenGL();
+					break;
+				case null:
+					InitializeOtherApi();
+					break;
+			}
+
+			// Ideally Callback.OnVeldridInitialized would be called here, but
+			// WPF needs to delay raising that event until after its control has
+			// been Loaded. Each platform's XVeldridSurfaceHandler therefore has
+			// to call OnVeldridInitialized itself.
+		}
+
+		/// <summary>
+		/// Prepare this VeldridSurface to use OpenGL.
+		/// </summary>
+		/// <remarks>
+		/// OpenGL initialization is platform-dependent, but here it happens by
+		/// way of GLSurface, which for users of the class is cross-platform.
+		/// </remarks>
+		private void InitializeOpenGL()
+		{
+			var target = (GLSurface)Content;
+
+			target.MakeCurrent();
+
+			VeldridGL.Surfaces.Add(target);
+
+			var platformInfo = new OpenGLPlatformInfo(
+				VeldridGL.GetGLContextHandle(),
+				VeldridGL.GetProcAddress,
+				VeldridGL.MakeCurrent,
+				VeldridGL.GetCurrentContext,
+				VeldridGL.ClearCurrentContext,
+				VeldridGL.DeleteContext,
+				VeldridGL.SwapBuffers,
+				VeldridGL.SetVSync,
+				VeldridGL.SetSwapchainFramebuffer,
+				VeldridGL.ResizeSwapchain);
+
+			GraphicsDevice = GraphicsDevice.CreateOpenGL(
+				GraphicsDeviceOptions,
+				platformInfo,
+				(uint)Width,
+				(uint)Height);
+
+			Swapchain = GraphicsDevice.MainSwapchain;
+
+			OnVeldridInitialized(EventArgs.Empty);
+		}
+
+		private void InitializeOtherApi()
+		{
+			if (Backend == GraphicsBackend.Metal)
+			{
+				GraphicsDevice = GraphicsDevice.CreateMetal(GraphicsDeviceOptions);
+			}
+			else if (Backend == GraphicsBackend.Vulkan)
+			{
+				GraphicsDevice = GraphicsDevice.CreateVulkan(GraphicsDeviceOptions);
+			}
+			else if (Backend == GraphicsBackend.Direct3D11)
+			{
+				GraphicsDevice = GraphicsDevice.CreateD3D11(GraphicsDeviceOptions);
+			}
+			else
+			{
+				string message;
+				if (!Enum.IsDefined(typeof(GraphicsBackend), Backend))
+				{
+					message = "Unrecognized backend!";
+				}
+				else
+				{
+					message = "Specified backend not supported on this platform!";
+				}
+
+				throw new ArgumentException(message);
+			}
+
+			Handler.InitializeOtherApi();
 		}
 
 		protected virtual void OnVeldridInitialized(EventArgs e)
