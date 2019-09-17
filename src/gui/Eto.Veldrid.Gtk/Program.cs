@@ -193,6 +193,19 @@ namespace PlaceholderName
 			Control.ExposeEvent += Control_ExposeEvent;
 		}
 
+		public override void AttachEvent(string id)
+		{
+			switch (id)
+			{
+				case VeldridSurface.DrawEvent:
+					Control.ExposeEvent += (sender, e) => Callback.OnDraw(Widget, e);
+					break;
+				default:
+					base.AttachEvent(id);
+					break;
+			}
+		}
+
 		void Control_ExposeEvent(object o, ExposeEventArgs args)
 		{
 			if (Widget.Backend == GraphicsBackend.OpenGL)
