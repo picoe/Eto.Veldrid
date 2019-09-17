@@ -17,6 +17,19 @@ namespace PlaceholderName
 			WinFormsControl.HandleCreated += WinFormsControl_HandleCreated;
 		}
 
+		public override void AttachEvent(string id)
+		{
+			switch (id)
+			{
+				case VeldridSurface.DrawEvent:
+					WinFormsControl.Paint += (sender, e) => Callback.OnDraw(Widget, EventArgs.Empty);
+					break;
+				default:
+					base.AttachEvent(id);
+					break;
+			}
+		}
+
 		private void WinFormsControl_HandleCreated(object sender, EventArgs e)
 		{
 			if (Widget.Backend == GraphicsBackend.OpenGL)
