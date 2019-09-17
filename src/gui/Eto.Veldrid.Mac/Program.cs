@@ -9,8 +9,10 @@ using Veldrid.OpenGL;
 
 #if MONOMAC
 using MonoMac.AppKit;
+using MonoMac.CoreGraphics;
 #elif XAMMAC2
 using AppKit;
+using CoreGraphics;
 #endif
 
 namespace PlaceholderName
@@ -36,6 +38,7 @@ namespace PlaceholderName
 		public IWindowInfo WindowInfo { get; set; }
 		public GraphicsContext Context { get; private set; }
 
+		public event EventHandler Draw;
 		public event EventHandler OpenGLContextCreated;
 
 		public void CreateOpenGLContext()
@@ -74,6 +77,11 @@ namespace PlaceholderName
 				UpdateContext();
 			}
 		}
+
+		public override void DrawRect(CGRect dirtyRect)
+		{
+			Draw?.Invoke(this, EventArgs.Empty);
+		}
 	}
 
 	public class MacVeldridSurfaceHandler : MacView<MacVeldridView, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
@@ -90,6 +98,19 @@ namespace PlaceholderName
 			Control = new MacVeldridView();
 
 			Control.OpenGLContextCreated += Control_OpenGLContextCreated;
+		}
+
+		public override void AttachEvent(string id)
+		{
+			switch (id)
+			{
+				case VeldridSurface.DrawEvent:
+					Control.Draw += (sender, e) => Callback.OnDraw(Widget, e);
+					break;
+				default:
+					base.AttachEvent(id);
+					break;
+			}
 		}
 
 		private void Control_OpenGLContextCreated(object sender, EventArgs e)
