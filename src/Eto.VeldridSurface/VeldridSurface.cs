@@ -174,25 +174,49 @@ namespace PlaceholderName
 		{
 			get
 			{
-				GraphicsBackend backend;
-				if (GraphicsDevice.IsBackendSupported(GraphicsBackend.Metal))
+				GraphicsBackend? backend = null;
+
+				// It'd be less ugly to just loop through the GraphicsBackend
+				// enum, but the backends aren't arranged in an ideal order,
+				// either ascending or descending. The below progression is only
+				// a judgment call, and could easily get rearranged if need be.
+				foreach (GraphicsBackend b in new[] {
+					GraphicsBackend.Metal,
+					GraphicsBackend.Vulkan,
+					GraphicsBackend.Direct3D11,
+					GraphicsBackend.OpenGL,
+					GraphicsBackend.OpenGLES })
 				{
-					backend = GraphicsBackend.Metal;
-				}
-				else if (GraphicsDevice.IsBackendSupported(GraphicsBackend.Vulkan))
-				{
-					backend = GraphicsBackend.Vulkan;
-				}
-				else if (GraphicsDevice.IsBackendSupported(GraphicsBackend.Direct3D11))
-				{
-					backend = GraphicsBackend.Direct3D11;
-				}
-				else
-				{
-					backend = GraphicsBackend.OpenGL;
+					bool supported = false;
+
+					try
+					{
+						supported = GraphicsDevice.IsBackendSupported(b);
+					}
+					catch (InvalidOperationException)
+					{
+						// Veldrid, as of 4.7.0, throws this exception when
+						// trying to test for Vulkan in macOS if it's not
+						// available on the system.
+					}
+
+					if (supported)
+					{
+						backend = b;
+
+						// With backends being checked from most to least
+						// desirable, it's important to break as soon as a
+						// suitable backend is detected.
+						break;
+					}
 				}
 
-				return backend;
+				if (backend == null)
+				{
+					throw new VeldridException("VeldridSurface: No supported Veldrid backend found!");
+				}
+
+				return (GraphicsBackend)backend;
 			}
 		}
 
