@@ -1,25 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net472</TargetFramework>
+    <DefineConstants>MONOMAC</DefineConstants>
   </PropertyGroup>
-	
+
   <ItemGroup>
     <PackageReference Include="Eto.Platform.Mac64" Version="2.5.0-ci-10199" />
   </ItemGroup>
-	
+
   <ItemGroup>
     <ProjectReference Include="..\..\Eto.VeldridSurface\Eto.VeldridSurface.csproj" />
   </ItemGroup>
-	
-  <ItemGroup>
-    <Reference Include="Eto.Gl">
-      <HintPath>$(TopLevelDirectory)lib\thirdparty\Eto.Gl\Eto.Gl\$(Configuration)\Eto.Gl.dll</HintPath>
-    </Reference>
-    <Reference Include="Eto.Gl.Mac">
-      <HintPath>$(TopLevelDirectory)lib\thirdparty\Eto.Gl\Eto.Gl.Mac\$(Configuration)\Eto.Gl.Mac.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  
+
 </Project>
