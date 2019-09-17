@@ -152,12 +152,10 @@ namespace Eto.Wpf.Forms
 					WinFormsControl.MouseWheel += WinFormsControl_MouseWheel;
 					break;
 				case Eto.Forms.Control.KeyDownEvent:
-					Control.KeyDown += Control_KeyDown;
 					WinFormsControl.KeyDown += WinFormsControl_KeyDown;
 					WinFormsControl.KeyPress += WinFormsControl_KeyPress;
 					break;
 				case Eto.Forms.Control.KeyUpEvent:
-					Control.KeyUp += Control_KeyUp;
 					WinFormsControl.KeyUp += WinFormsControl_KeyUp;
 					break;
 				case TextControl.TextChangedEvent:
@@ -195,20 +193,6 @@ namespace Eto.Wpf.Forms
 			};
 
 			Control.RaiseEvent(args);
-		}
-
-		private void Control_KeyDown(object sender, swi.KeyEventArgs e)
-		{
-			Keys keys = e.Key.ToEtoWithModifier(e.KeyboardDevice.Modifiers);
-
-			Callback.OnKeyDown(Widget, new KeyEventArgs(keys, KeyEventType.KeyDown));
-		}
-
-		private void Control_KeyUp(object sender, swi.KeyEventArgs e)
-		{
-			Keys keys = e.Key.ToEtoWithModifier(e.KeyboardDevice.Modifiers);
-
-			Callback.OnKeyUp(Widget, new KeyEventArgs(keys, KeyEventType.KeyUp));
 		}
 
 		Keys key;

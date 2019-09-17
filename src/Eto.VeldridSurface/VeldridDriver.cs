@@ -42,6 +42,7 @@ namespace PlaceholderName
 
 				Surface.MouseDown += Surface_MouseDown;
 				Surface.KeyDown += Surface_KeyDown;
+				Surface.MouseWheel += Surface_MouseWheel;
 			}
 		}
 
@@ -61,6 +62,11 @@ namespace PlaceholderName
 				Animate = !Animate;
 				e.Handled = true;
 			}
+		}
+
+		private void Surface_MouseWheel(object sender, MouseEventArgs e)
+		{
+			Speed += (int)e.Delta.Height;
 		}
 
 		public UITimer Clock = new UITimer();
@@ -84,6 +90,8 @@ namespace PlaceholderName
 			get { return _direction == 1 ? true : false; }
 			set { _direction = value ? 1 : -1; }
 		}
+
+		public int Speed { get; set; } = 1;
 
 		private bool Ready = false;
 
@@ -113,9 +121,12 @@ namespace PlaceholderName
 			CurrentTime = DateTime.Now;
 			if (Animate)
 			{
+				float degrees = OpenTK.MathHelper.DegreesToRadians(Convert.ToSingle((CurrentTime - PreviousTime).TotalMilliseconds / 10.0));
+				degrees *= Speed;
+
 				ModelMatrix *= Matrix4x4.CreateFromAxisAngle(
 					new Vector3(0, 0, _direction),
-					OpenTK.MathHelper.DegreesToRadians(Convert.ToSingle((CurrentTime - PreviousTime).TotalMilliseconds / 10.0)));
+					degrees);
 			}
 			PreviousTime = CurrentTime;
 			CommandList.UpdateBuffer(ModelBuffer, 0, ModelMatrix);
@@ -241,7 +252,7 @@ namespace PlaceholderName
 				default:
 					break;
 			}
-				
+
 			var vertex = new ShaderDescription(ShaderStages.Vertex, vertexShaderSpirvBytes, "main", true);
 			var fragment = new ShaderDescription(ShaderStages.Fragment, fragmentShaderSpirvBytes, "main", true);
 			Shader[] shaders = factory.CreateFromSpirv(vertex, fragment, options);

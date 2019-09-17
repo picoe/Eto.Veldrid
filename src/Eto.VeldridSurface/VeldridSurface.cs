@@ -1,14 +1,10 @@
 ﻿using Eto;
 using Eto.Drawing;
 using Eto.Forms;
-using Eto.Gl;
-using OpenTK;
 using OpenTK.Graphics;
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using Veldrid;
-using Veldrid.OpenGL;
 
 // TODO: Come up with a suitable namespace. Eto.Veldrid will conflict with the
 // global Veldrid, and Eto.VeldridSurface makes the VeldridSurface class harder
@@ -25,10 +21,6 @@ namespace PlaceholderName
 	/// </remarks>
 	public static class VeldridGL
 	{
-		public static Dictionary<IntPtr, GLSurface> Contexts { get; } = new Dictionary<IntPtr, GLSurface>();
-
-		public static List<GLSurface> Surfaces { get; } = new List<GLSurface>();
-
 		public static IntPtr GetGLContextHandle()
 		{
 			return GetCurrentContext();
@@ -49,43 +41,6 @@ namespace PlaceholderName
 			var getAddress = (GraphicsContext.GetAddressDelegate)createGetAddress.Invoke(null, Array.Empty<string>());
 
 			return getAddress.Invoke(name);
-		}
-
-		public static void MakeCurrent(IntPtr context)
-		{
-			Type type = typeof(GraphicsContext);
-
-			var available = (Dictionary<ContextHandle, IGraphicsContext>)type
-				.GetField("available_contexts", BindingFlags.NonPublic | BindingFlags.Static)
-				.GetValue(null);
-
-			bool found = false;
-			foreach (KeyValuePair<ContextHandle, IGraphicsContext> pair in available)
-			{
-				foreach (GLSurface s in Surfaces)
-				{
-					if (pair.Key.Handle == context)
-					{
-						if (!Contexts.ContainsKey(context))
-						{
-							Contexts.Add(context, s);
-						}
-						Contexts[context].MakeCurrent();
-
-						found = true;
-					}
-
-					if (found)
-					{
-						break;
-					}
-				}
-
-				if (found)
-				{
-					break;
-				}
-			}
 		}
 
 		public static IntPtr GetCurrentContext()
@@ -149,25 +104,15 @@ namespace PlaceholderName
 		}
 	}
 
-	[Handler(typeof(RenderTarget.IHandler))]
-	public class RenderTarget : Control
-	{
-		public new IHandler Handler => (IHandler)base.Handler;
-
-		public new interface IHandler : Control.IHandler
-		{
-			IntPtr IntegrationHandle { get; }
-		}
-	}
-
 	/// <summary>
 	/// A simple control that allows drawing with Veldrid.
 	/// </summary>
 	[Handler(typeof(VeldridSurface.IHandler))]
-	public class VeldridSurface : Panel
+	public class VeldridSurface : Control
 	{
 		public new interface IHandler : Control.IHandler
 		{
+			void InitializeOpenGL();
 			void InitializeOtherApi();
 		}
 
@@ -175,6 +120,8 @@ namespace PlaceholderName
 
 		public new interface ICallback : Control.ICallback
 		{
+			void InitializeOpenGL(VeldridSurface s);
+
 			void OnDraw(VeldridSurface s, EventArgs e);
 			void OnResize(VeldridSurface s, ResizeEventArgs e);
 			void OnVeldridInitialized(VeldridSurface s, EventArgs e);
@@ -182,6 +129,11 @@ namespace PlaceholderName
 
 		protected new class Callback : Control.Callback, ICallback
 		{
+			public void InitializeOpenGL(VeldridSurface s)
+			{
+				s.GLReady = true;
+			}
+
 			public void OnDraw(VeldridSurface s, EventArgs e)
 			{
 				s.OnDraw(e);
@@ -303,21 +255,6 @@ namespace PlaceholderName
 			if (Backend == GraphicsBackend.OpenGL)
 			{
 				GLReady = false;
-
-				// Remember to match these graphics mode settings to whatever's
-				// used during pipeline creation and what's used in the instance
-				// of XVeldridSurfaceHandler for a given platform. The depth and
-				// stencil formats, for example, need to match.
-				var mode = new GraphicsMode(new ColorFormat(32), 32);
-				int major = 3;
-				int minor = 3;
-				GraphicsContextFlags flags = GraphicsContextFlags.ForwardCompatible;
-
-				var surface = new GLSurface(mode, major, minor, flags);
-				surface.GLInitalized += (sender, e) => GLReady = true;
-				surface.Draw += (sender, e) => OnDraw(EventArgs.Empty);
-
-				Content = surface;
 			}
 
 			LoadComplete += (sender, e) => ControlReady = true;
@@ -335,7 +272,7 @@ namespace PlaceholderName
 				case false:
 					return;
 				case true:
-					InitializeOpenGL();
+					Handler.InitializeOpenGL();
 					break;
 				case null:
 					InitializeOtherApi();
@@ -346,44 +283,6 @@ namespace PlaceholderName
 			// WPF needs to delay raising that event until after its control has
 			// been Loaded. Each platform's XVeldridSurfaceHandler therefore has
 			// to call OnVeldridInitialized itself.
-		}
-
-		/// <summary>
-		/// Prepare this VeldridSurface to use OpenGL.
-		/// </summary>
-		/// <remarks>
-		/// OpenGL initialization is platform-dependent, but here it happens by
-		/// way of GLSurface, which for users of the class is cross-platform.
-		/// </remarks>
-		private void InitializeOpenGL()
-		{
-			var target = (GLSurface)Content;
-
-			target.MakeCurrent();
-
-			VeldridGL.Surfaces.Add(target);
-
-			var platformInfo = new OpenGLPlatformInfo(
-				VeldridGL.GetGLContextHandle(),
-				VeldridGL.GetProcAddress,
-				VeldridGL.MakeCurrent,
-				VeldridGL.GetCurrentContext,
-				VeldridGL.ClearCurrentContext,
-				VeldridGL.DeleteContext,
-				VeldridGL.SwapBuffers,
-				VeldridGL.SetVSync,
-				VeldridGL.SetSwapchainFramebuffer,
-				VeldridGL.ResizeSwapchain);
-
-			GraphicsDevice = GraphicsDevice.CreateOpenGL(
-				GraphicsDeviceOptions,
-				platformInfo,
-				(uint)Width,
-				(uint)Height);
-
-			Swapchain = GraphicsDevice.MainSwapchain;
-
-			OnVeldridInitialized(EventArgs.Empty);
 		}
 
 		private void InitializeOtherApi()
