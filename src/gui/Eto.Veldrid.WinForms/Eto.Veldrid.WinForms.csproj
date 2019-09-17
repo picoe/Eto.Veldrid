@@ -11,16 +11,10 @@
 
   <ItemGroup>
     <PackageReference Include="Eto.Platform.Windows" Version="2.5.0-ci-10199" />
-    <PackageReference Include="OpenTK" Version="3.0.1" />
+    <PackageReference Include="OpenTK" Version="3.1.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Eto.Gl">
-      <HintPath>$(TopLevelDirectory)lib\thirdparty\Eto.Gl\Eto.Gl\$(Configuration)\Eto.Gl.dll</HintPath>
-    </Reference>
-    <Reference Include="Eto.Gl.Windows">
-      <HintPath>$(TopLevelDirectory)lib\thirdparty\Eto.Gl\Eto.Gl.WinForms\$(Configuration)\Eto.Gl.Windows.dll</HintPath>
-    </Reference>
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
 
