@@ -374,6 +374,11 @@ namespace PlaceholderName
 		{
 			base.OnSizeChanged(e);
 
+			if (!Loaded)
+			{
+				return;
+			}
+
 			OnResize(new ResizeEventArgs(RenderWidth, RenderHeight));
 		}
 	}
