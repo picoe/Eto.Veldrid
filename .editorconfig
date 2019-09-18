@@ -60,7 +60,7 @@ dotnet_style_null_propagation = true
 
 indent_style = tab
 
-[*.{csproj,props,targets}]
+[*.{csproj,props,targets,manifest}]
 
 indent_style = space
 indent_size = 2

@@ -89,6 +89,11 @@ namespace PlaceholderName
 		public new VeldridSurface.ICallback Callback => (VeldridSurface.ICallback)base.Callback;
 		public new VeldridSurface Widget => (VeldridSurface)base.Widget;
 
+		// TODO: Set up some way to test HiDPI in macOS and figure out how to
+		// get the right values here.
+		public int RenderWidth => Widget.Width;
+		public int RenderHeight => Widget.Height;
+
 		public override NSView ContainerControl => Control;
 
 		public override bool Enabled { get; set; }
@@ -135,8 +140,8 @@ namespace PlaceholderName
 			Widget.GraphicsDevice = GraphicsDevice.CreateOpenGL(
 				Widget.GraphicsDeviceOptions,
 				platformInfo,
-				(uint)Widget.Width,
-				(uint)Widget.Height);
+				(uint)RenderWidth,
+				(uint)RenderHeight);
 
 			Widget.Swapchain = Widget.GraphicsDevice.MainSwapchain;
 
@@ -155,8 +160,8 @@ namespace PlaceholderName
 			Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
 				new SwapchainDescription(
 					source,
-					(uint)Widget.Width,
-					(uint)Widget.Height,
+					(uint)RenderWidth,
+					(uint)RenderHeight,
 					PixelFormat.R32_Float,
 					false));
 

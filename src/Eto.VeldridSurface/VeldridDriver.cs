@@ -144,8 +144,8 @@ namespace PlaceholderName
 
 		Point WorldToScreen(float x, float y)
 		{
-			return new Point((int)((x - ovpSettings.cameraPosition.X / (ovpSettings.zoomFactor * ovpSettings.base_zoom)) + Surface.Width / 2),
-					(int)((y - ovpSettings.cameraPosition.Y / (ovpSettings.zoomFactor * ovpSettings.base_zoom)) + Surface.Height / 2));
+			return new Point((int)((x - ovpSettings.cameraPosition.X / (ovpSettings.zoomFactor * ovpSettings.base_zoom)) + Surface.RenderWidth / 2),
+					(int)((y - ovpSettings.cameraPosition.Y / (ovpSettings.zoomFactor * ovpSettings.base_zoom)) + Surface.RenderHeight / 2));
 		}
 
 		Point WorldToScreen(PointF pt)
@@ -162,8 +162,8 @@ namespace PlaceholderName
 
 		PointF ScreenToWorld(int x, int y)
 		{
-			return new PointF((float)(x - Surface.Width / 2) * (ovpSettings.zoomFactor * ovpSettings.base_zoom) + ovpSettings.cameraPosition.X,
-					 (float)(y - Surface.Height / 2) * (ovpSettings.zoomFactor * ovpSettings.base_zoom) + ovpSettings.cameraPosition.Y);
+			return new PointF((float)(x - Surface.RenderWidth / 2) * (ovpSettings.zoomFactor * ovpSettings.base_zoom) + ovpSettings.cameraPosition.X,
+					 (float)(y - Surface.RenderHeight / 2) * (ovpSettings.zoomFactor * ovpSettings.base_zoom) + ovpSettings.cameraPosition.Y);
 		}
 
 		PointF ScreenToWorld(Point pt)
@@ -173,8 +173,8 @@ namespace PlaceholderName
 
 		RectangleF getViewPort()
 		{
-			PointF bl = ScreenToWorld(Surface.Location.X - Surface.Width / 2, Surface.Location.Y - Surface.Height / 2);
-			PointF tr = ScreenToWorld(Surface.Location.X + Surface.Width / 2, Surface.Location.Y + Surface.Height / 2);
+			PointF bl = ScreenToWorld(Surface.Location.X - Surface.RenderWidth / 2, Surface.Location.Y - Surface.RenderHeight / 2);
+			PointF tr = ScreenToWorld(Surface.Location.X + Surface.RenderWidth / 2, Surface.Location.Y + Surface.RenderHeight / 2);
 			return new RectangleF(bl.X, bl.Y, tr.X - bl.X, tr.Y - bl.Y);
 		}
 
@@ -646,7 +646,7 @@ namespace PlaceholderName
 				if (WorldToScreen(new SizeF(spacing, 0.0f)).Width >= 4.0f)
 				{
 					int k = 0;
-					for (float i = 0; i > -(Surface.Width * (ovpSettings.zoomFactor * ovpSettings.base_zoom)) + ovpSettings.cameraPosition.X; i -= spacing)
+					for (float i = 0; i > -(Surface.RenderWidth * (ovpSettings.zoomFactor * ovpSettings.base_zoom)) + ovpSettings.cameraPosition.X; i -= spacing)
 					{
 						float r = 0.0f;
 						float g = 0.0f;
@@ -665,11 +665,11 @@ namespace PlaceholderName
 							k = 0;
 						}
 						k++;
-						grid.Add(new VertexPositionColor(new Vector3(i, ovpSettings.cameraPosition.Y + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * Surface.Height, gridZ), new RgbaFloat(r, g, b, 1.0f)));
-						grid.Add(new VertexPositionColor(new Vector3(i, ovpSettings.cameraPosition.Y + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * -Surface.Height, gridZ), new RgbaFloat(r, g, b, 1.0f)));
+						grid.Add(new VertexPositionColor(new Vector3(i, ovpSettings.cameraPosition.Y + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * Surface.RenderHeight, gridZ), new RgbaFloat(r, g, b, 1.0f)));
+						grid.Add(new VertexPositionColor(new Vector3(i, ovpSettings.cameraPosition.Y + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * -Surface.RenderHeight, gridZ), new RgbaFloat(r, g, b, 1.0f)));
 					}
 					k = 0;
-					for (float i = 0; i < (Surface.Width * (ovpSettings.zoomFactor * ovpSettings.base_zoom)) + ovpSettings.cameraPosition.X; i += spacing)
+					for (float i = 0; i < (Surface.RenderWidth * (ovpSettings.zoomFactor * ovpSettings.base_zoom)) + ovpSettings.cameraPosition.X; i += spacing)
 					{
 						float r = 0.0f;
 						float g = 0.0f;
@@ -688,11 +688,11 @@ namespace PlaceholderName
 							k = 0;
 						}
 						k++;
-						grid.Add(new VertexPositionColor(new Vector3(i, ovpSettings.cameraPosition.Y + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * Surface.Height, gridZ), new RgbaFloat(r, g, b, 1.0f)));
-						grid.Add(new VertexPositionColor(new Vector3(i, ovpSettings.cameraPosition.Y + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * -Surface.Height, gridZ), new RgbaFloat(r, g, b, 1.0f)));
+						grid.Add(new VertexPositionColor(new Vector3(i, ovpSettings.cameraPosition.Y + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * Surface.RenderHeight, gridZ), new RgbaFloat(r, g, b, 1.0f)));
+						grid.Add(new VertexPositionColor(new Vector3(i, ovpSettings.cameraPosition.Y + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * -Surface.RenderHeight, gridZ), new RgbaFloat(r, g, b, 1.0f)));
 					}
 					k = 0;
-					for (float i = 0; i > -(Surface.Height * (ovpSettings.zoomFactor * ovpSettings.base_zoom)) + ovpSettings.cameraPosition.Y; i -= spacing)
+					for (float i = 0; i > -(Surface.RenderHeight * (ovpSettings.zoomFactor * ovpSettings.base_zoom)) + ovpSettings.cameraPosition.Y; i -= spacing)
 					{
 						float r = 0.0f;
 						float g = 0.0f;
@@ -711,11 +711,11 @@ namespace PlaceholderName
 							k = 0;
 						}
 						k++;
-						grid.Add(new VertexPositionColor(new Vector3(ovpSettings.cameraPosition.X + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * Surface.Width, i, gridZ), new RgbaFloat(r, g, b, 1.0f)));
-						grid.Add(new VertexPositionColor(new Vector3(ovpSettings.cameraPosition.X + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * -Surface.Width, i, gridZ), new RgbaFloat(r, g, b, 1.0f)));
+						grid.Add(new VertexPositionColor(new Vector3(ovpSettings.cameraPosition.X + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * Surface.RenderWidth, i, gridZ), new RgbaFloat(r, g, b, 1.0f)));
+						grid.Add(new VertexPositionColor(new Vector3(ovpSettings.cameraPosition.X + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * -Surface.RenderWidth, i, gridZ), new RgbaFloat(r, g, b, 1.0f)));
 					}
 					k = 0;
-					for (float i = 0; i < (Surface.Height * (ovpSettings.zoomFactor * ovpSettings.base_zoom)) + ovpSettings.cameraPosition.Y; i += spacing)
+					for (float i = 0; i < (Surface.RenderHeight * (ovpSettings.zoomFactor * ovpSettings.base_zoom)) + ovpSettings.cameraPosition.Y; i += spacing)
 					{
 						float r = 0.0f;
 						float g = 0.0f;
@@ -734,8 +734,8 @@ namespace PlaceholderName
 							k = 0;
 						}
 						k++;
-						grid.Add(new VertexPositionColor(new Vector3(ovpSettings.cameraPosition.X + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * Surface.Width, i, gridZ), new RgbaFloat(r, g, b, 1.0f)));
-						grid.Add(new VertexPositionColor(new Vector3(ovpSettings.cameraPosition.X + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * -Surface.Width, i, gridZ), new RgbaFloat(r, g, b, 1.0f)));
+						grid.Add(new VertexPositionColor(new Vector3(ovpSettings.cameraPosition.X + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * Surface.RenderWidth, i, gridZ), new RgbaFloat(r, g, b, 1.0f)));
+						grid.Add(new VertexPositionColor(new Vector3(ovpSettings.cameraPosition.X + (ovpSettings.zoomFactor * ovpSettings.base_zoom) * -Surface.RenderWidth, i, gridZ), new RgbaFloat(r, g, b, 1.0f)));
 					}
 					gridArray = grid.ToArray();
 					gridIndices = new ushort[gridArray.Length];
@@ -763,10 +763,10 @@ namespace PlaceholderName
 			if (ovpSettings.showAxes)
 			{
 				axesArray = new VertexPositionColor[4];
-				axesArray[0] = new VertexPositionColor(new Vector3(0.0f, ovpSettings.cameraPosition.Y + Surface.Height * (ovpSettings.zoomFactor * ovpSettings.base_zoom), axisZ), new RgbaFloat(ovpSettings.axisColor.R, ovpSettings.axisColor.G, ovpSettings.axisColor.B, 1.0f));
-				axesArray[1] = new VertexPositionColor(new Vector3(0.0f, ovpSettings.cameraPosition.Y - Surface.Height * (ovpSettings.zoomFactor * ovpSettings.base_zoom), axisZ), new RgbaFloat(ovpSettings.axisColor.R, ovpSettings.axisColor.G, ovpSettings.axisColor.B, 1.0f));
-				axesArray[2] = new VertexPositionColor(new Vector3(ovpSettings.cameraPosition.X + Surface.Width * (ovpSettings.zoomFactor * ovpSettings.base_zoom), 0.0f, axisZ), new RgbaFloat(ovpSettings.axisColor.R, ovpSettings.axisColor.G, ovpSettings.axisColor.B, 1.0f));
-				axesArray[3] = new VertexPositionColor(new Vector3(ovpSettings.cameraPosition.X - Surface.Width * (ovpSettings.zoomFactor * ovpSettings.base_zoom), 0.0f, axisZ), new RgbaFloat(ovpSettings.axisColor.R, ovpSettings.axisColor.G, ovpSettings.axisColor.B, 1.0f));
+				axesArray[0] = new VertexPositionColor(new Vector3(0.0f, ovpSettings.cameraPosition.Y + Surface.RenderHeight * (ovpSettings.zoomFactor * ovpSettings.base_zoom), axisZ), new RgbaFloat(ovpSettings.axisColor.R, ovpSettings.axisColor.G, ovpSettings.axisColor.B, 1.0f));
+				axesArray[1] = new VertexPositionColor(new Vector3(0.0f, ovpSettings.cameraPosition.Y - Surface.RenderHeight * (ovpSettings.zoomFactor * ovpSettings.base_zoom), axisZ), new RgbaFloat(ovpSettings.axisColor.R, ovpSettings.axisColor.G, ovpSettings.axisColor.B, 1.0f));
+				axesArray[2] = new VertexPositionColor(new Vector3(ovpSettings.cameraPosition.X + Surface.RenderWidth * (ovpSettings.zoomFactor * ovpSettings.base_zoom), 0.0f, axisZ), new RgbaFloat(ovpSettings.axisColor.R, ovpSettings.axisColor.G, ovpSettings.axisColor.B, 1.0f));
+				axesArray[3] = new VertexPositionColor(new Vector3(ovpSettings.cameraPosition.X - Surface.RenderWidth * (ovpSettings.zoomFactor * ovpSettings.base_zoom), 0.0f, axisZ), new RgbaFloat(ovpSettings.axisColor.R, ovpSettings.axisColor.G, ovpSettings.axisColor.B, 1.0f));
 
 				axesIndices = new ushort[4] { 0, 1, 2, 3 };
 
@@ -808,10 +808,10 @@ namespace PlaceholderName
 
 			float zoom = ovpSettings.zoomFactor * ovpSettings.base_zoom;
 
-			float left = ovpSettings.cameraPosition.X - (Surface.Width / 2) * zoom;
-			float right = ovpSettings.cameraPosition.X + (Surface.Width / 2) * zoom;
-			float bottom = ovpSettings.cameraPosition.Y + (Surface.Height / 2) * zoom;
-			float top = ovpSettings.cameraPosition.Y - (Surface.Height / 2) * zoom;
+			float left = ovpSettings.cameraPosition.X - (Surface.RenderWidth / 2) * zoom;
+			float right = ovpSettings.cameraPosition.X + (Surface.RenderWidth / 2) * zoom;
+			float bottom = ovpSettings.cameraPosition.Y + (Surface.RenderHeight / 2) * zoom;
+			float top = ovpSettings.cameraPosition.Y - (Surface.RenderHeight / 2) * zoom;
 
 			ViewMatrix = Matrix4x4.CreateOrthographicOffCenter(left, right, bottom, top, 0.0f, 1.0f);
 			CommandList.UpdateBuffer(ViewBuffer, 0, ViewMatrix);
