@@ -112,6 +112,9 @@ namespace PlaceholderName
 	{
 		public new interface IHandler : Control.IHandler
 		{
+			int RenderWidth { get; }
+			int RenderHeight { get; }
+
 			void InitializeOpenGL();
 			void InitializeOtherApi();
 		}
@@ -154,6 +157,17 @@ namespace PlaceholderName
 		{
 			return new Callback();
 		}
+
+		/// <summary>
+		/// The render area's width, which may differ from the control's width
+		/// (e.g. with high DPI displays).
+		/// </summary>
+		public int RenderWidth => Handler.RenderWidth;
+		/// <summary>
+		/// The render area's height, which may differ from the control's height
+		/// (e.g. with high DPI displays).
+		/// </summary>
+		public int RenderHeight => Handler.RenderHeight;
 
 		// A depth buffer isn't strictly necessary for this project, which uses
 		// only 2D vertex coordinates, but it's helpful to create one for the
@@ -360,7 +374,7 @@ namespace PlaceholderName
 		{
 			base.OnSizeChanged(e);
 
-			OnResize(new ResizeEventArgs(Width, Height));
+			OnResize(new ResizeEventArgs(RenderWidth, RenderHeight));
 		}
 	}
 }

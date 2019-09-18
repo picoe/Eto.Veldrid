@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+      <!-- WPF applications are automatically DPI-aware, but only on the system
+      level (the equivalent of setting dpiAwareness to 'system' or dpiAware to
+      'true'). One of these dpiX tags is necessary to enable other modes. Up to
+      date documentation is nowhere to be found, but here's an older article:
+      https://docs.microsoft.com/en-us/previous-versions/windows/desktop/legacy/mt846517(v%3Dvs.85) -->
+
+      <!-- dpiAwareness was introduced in Windows 10, version 1607, and allows a
+      list of modes to fall through in descending order of preference. -->
+      <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2,PerMonitor</dpiAwareness>
+
+      <!-- dpiAware was introduced in Windows Vista, and only allows one mode to
+      be defined. true/PM is a per-monitor mode, while true is system aware. -->
+      <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true/PM</dpiAware>
+    </windowsSettings>
+  </application>
+</assembly>

@@ -12,6 +12,9 @@ namespace PlaceholderName
 		public new VeldridSurface.ICallback Callback => (VeldridSurface.ICallback)base.Callback;
 		public new VeldridSurface Widget => (VeldridSurface)base.Widget;
 
+		public int RenderWidth => WinFormsControl.Width;
+		public int RenderHeight => WinFormsControl.Height;
+
 		public WpfVeldridSurfaceHandler() : base(new WinVeldridUserControl())
 		{
 			WinFormsControl.HandleCreated += WinFormsControl_HandleCreated;
@@ -60,8 +63,8 @@ namespace PlaceholderName
 			Widget.GraphicsDevice = GraphicsDevice.CreateOpenGL(
 				Widget.GraphicsDeviceOptions,
 				platformInfo,
-				(uint)Widget.Width,
-				(uint)Widget.Height);
+				(uint)RenderWidth,
+				(uint)RenderHeight);
 
 			Widget.Swapchain = Widget.GraphicsDevice.MainSwapchain;
 
@@ -87,8 +90,8 @@ namespace PlaceholderName
 				Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
 					new SwapchainDescription(
 						source,
-						(uint)Widget.Width,
-						(uint)Widget.Height,
+						(uint)RenderWidth,
+						(uint)RenderHeight,
 						PixelFormat.R32_Float,
 						false));
 
