@@ -64,6 +64,11 @@ namespace PlaceholderName
 		{
 			base.DidChangeBackingProperties();
 
+			UpdateContext();
+		}
+
+		public override void DrawRect(CGRect dirtyRect)
+		{
 			if (Context == null)
 			{
 				CreateOpenGLContext();
@@ -72,14 +77,7 @@ namespace PlaceholderName
 
 				OpenGLContextCreated?.Invoke(this, EventArgs.Empty);
 			}
-			else
-			{
-				UpdateContext();
-			}
-		}
 
-		public override void DrawRect(CGRect dirtyRect)
-		{
 			Draw?.Invoke(this, EventArgs.Empty);
 		}
 	}
