@@ -46,6 +46,8 @@ namespace PlaceholderName
 			WindowInfo = Utilities.CreateMacOSWindowInfo(Window.Handle, Handle);
 
 			Context = new GraphicsContext(Mode, WindowInfo, 3, 3, GraphicsContextFlags.ForwardCompatible);
+
+			Context.MakeCurrent(WindowInfo);
 		}
 
 		public void MakeCurrent(IntPtr context)
@@ -69,15 +71,6 @@ namespace PlaceholderName
 
 		public override void DrawRect(CGRect dirtyRect)
 		{
-			if (Context == null)
-			{
-				CreateOpenGLContext();
-
-				Context.MakeCurrent(WindowInfo);
-
-				OpenGLContextCreated?.Invoke(this, EventArgs.Empty);
-			}
-
 			Draw?.Invoke(this, EventArgs.Empty);
 		}
 	}
@@ -100,7 +93,7 @@ namespace PlaceholderName
 		{
 			Control = new MacVeldridView();
 
-			Control.OpenGLContextCreated += Control_OpenGLContextCreated;
+			Control.Draw += Control_Draw;
 		}
 
 		public override void AttachEvent(string id)
@@ -116,9 +109,18 @@ namespace PlaceholderName
 			}
 		}
 
-		private void Control_OpenGLContextCreated(object sender, EventArgs e)
+		private void Control_Draw(object sender, EventArgs e)
 		{
-			Callback.InitializeOpenGL(Widget);
+			if (Widget.Backend == GraphicsBackend.OpenGL)
+			{
+				Control.CreateOpenGLContext();
+
+				Callback.OnOpenGLReady(Widget, EventArgs.Empty);
+			}
+
+			Control.Draw -= Control_Draw;
+
+			Callback.OnControlReady(Widget, EventArgs.Empty);
 		}
 
 		public void InitializeOpenGL()

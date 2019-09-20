@@ -42,7 +42,6 @@ namespace PlaceholderName
 
 			Surface = new VeldridSurface(backend);
 			Surface.VeldridInitialized += (sender, e) => VeldridReady = true;
-			Surface.Draw += (sender, e) => Driver.Draw();
 
 			Content = Surface;
 
@@ -61,6 +60,9 @@ namespace PlaceholderName
 			}
 
 			Driver.SetUpVeldrid();
+
+			Title = $"Veldrid backend: {Surface.Backend.ToString()}";
+
 			Driver.Clock.Start();
 		}
 	}
