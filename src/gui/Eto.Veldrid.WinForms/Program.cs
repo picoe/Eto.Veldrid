@@ -95,8 +95,10 @@ namespace PlaceholderName
 			{
 				Control.CreateOpenGLContext();
 
-				Callback.InitializeOpenGL(Widget);
+				Callback.OnOpenGLReady(Widget, EventArgs.Empty);
 			}
+
+			Callback.OnControlReady(Widget, EventArgs.Empty);
 		}
 
 		/// <summary>
