@@ -570,13 +570,7 @@ namespace PlaceholderName
 
 				polyArray = polyList.ToArray();
 
-				PolysVertexBuffer?.Dispose();
-
-				ResourceFactory factory = Surface.GraphicsDevice.ResourceFactory;
-
-				PolysVertexBuffer = factory.CreateBuffer(new BufferDescription((uint)polyArray.Length * VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer));
-
-				Surface.GraphicsDevice.UpdateBuffer(PolysVertexBuffer, 0, polyArray);
+				updateBuffer(ref PolysVertexBuffer, polyArray, VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer);
 
 			}
 			catch (Exception)
@@ -613,13 +607,7 @@ namespace PlaceholderName
 
 				lineArray = lineList.ToArray();
 
-				LinesVertexBuffer?.Dispose();
-
-				ResourceFactory factory = Surface.GraphicsDevice.ResourceFactory;
-
-				LinesVertexBuffer = factory.CreateBuffer(new BufferDescription((uint)lineArray.Length * VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer));
-
-				Surface.GraphicsDevice.UpdateBuffer(LinesVertexBuffer, 0, lineArray);
+				updateBuffer(ref LinesVertexBuffer, lineArray, VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer);
 			}
 			catch (Exception)
 			{
@@ -745,16 +733,8 @@ namespace PlaceholderName
 					}
 				}
 
-				GridVertexBuffer?.Dispose();
-				GridIndexBuffer?.Dispose();
-
-				ResourceFactory factory = Surface.GraphicsDevice.ResourceFactory;
-
-				GridVertexBuffer = factory.CreateBuffer(new BufferDescription((uint)gridArray.Length * VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer));
-				GridIndexBuffer = factory.CreateBuffer(new BufferDescription((uint)gridIndices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
-
-				Surface.GraphicsDevice.UpdateBuffer(GridVertexBuffer, 0, gridArray);
-				Surface.GraphicsDevice.UpdateBuffer(GridIndexBuffer, 0, gridIndices);
+				updateBuffer(ref GridVertexBuffer, gridArray, VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer);
+				updateBuffer(ref GridIndexBuffer, gridIndices, sizeof(ushort), BufferUsage.IndexBuffer);
 			}
 		}
 
@@ -770,27 +750,43 @@ namespace PlaceholderName
 
 				axesIndices = new ushort[4] { 0, 1, 2, 3 };
 
-				AxesVertexBuffer?.Dispose();
-				AxesIndexBuffer?.Dispose();
-
-				ResourceFactory factory = Surface.GraphicsDevice.ResourceFactory;
-
-				AxesVertexBuffer = factory.CreateBuffer(new BufferDescription((uint)axesArray.Length * VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer));
-				AxesIndexBuffer = factory.CreateBuffer(new BufferDescription((uint)axesIndices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
-
-				Surface.GraphicsDevice.UpdateBuffer(AxesVertexBuffer, 0, axesArray);
-				Surface.GraphicsDevice.UpdateBuffer(AxesIndexBuffer, 0, axesIndices);
+				updateBuffer(ref AxesVertexBuffer, axesArray, VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer);
+				updateBuffer(ref AxesIndexBuffer, axesIndices, sizeof(ushort), BufferUsage.IndexBuffer);
 			}
 
 		}
 
+		/// <summary>
+		/// Fills the given buffer with the contents of 'data', creating or
+		/// resizing it as necessary.
+		/// </summary>
+		/// <param name="buffer">The Veldrid.DeviceBuffer to fill.</param>
+		/// <param name="data">The array of elements to put in the buffer.</param>
+		/// <param name="elementSize">The size in bytes of each element.</param>
+		/// <param name="usage">The Veldrid.BufferUsage type of 'buffer'.</param>
+		public void updateBuffer<T>(ref DeviceBuffer buffer, T[] data, uint elementSize, BufferUsage usage)
+			where T : struct
+		{
+			buffer?.Dispose();
+
+			ResourceFactory factory = Surface.GraphicsDevice.ResourceFactory;
+
+			buffer = factory.CreateBuffer(new BufferDescription(elementSize * (uint)data.Length, usage));
+
+			Surface.GraphicsDevice.UpdateBuffer(buffer, 0, data);
+		}
+
 		public void updateViewport()
 		{
+			if (!Surface.ControlReady)
+			{
+				return;
+			}
+
 			drawAxes();
 			drawGrid();
 			drawLines();
 			drawPolygons();
-			Draw();
 		}
 
 		public void Draw()
@@ -799,6 +795,8 @@ namespace PlaceholderName
 			{
 				return;
 			}
+
+			updateViewport();
 
 			CommandList.Begin();
 

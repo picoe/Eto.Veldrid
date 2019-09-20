@@ -172,6 +172,7 @@ namespace PlaceholderName
 			X11Interop.XFree(visualInfo);
 
 			Context = new GraphicsContext(Mode, WindowInfo, 3, 3, GraphicsContextFlags.ForwardCompatible);
+
 			Context.MakeCurrent(WindowInfo);
 		}
 
@@ -217,10 +218,12 @@ namespace PlaceholderName
 			{
 				Control.CreateOpenGLContext();
 
-				Callback.InitializeOpenGL(Widget);
-
-				Control.ExposeEvent -= Control_ExposeEvent;
+				Callback.OnOpenGLReady(Widget, EventArgs.Empty);
 			}
+
+			Control.ExposeEvent -= Control_ExposeEvent;
+
+			Callback.OnControlReady(Widget, EventArgs.Empty);
 		}
 
 		/// <summary>
@@ -259,8 +262,8 @@ namespace PlaceholderName
 			//   https://github.com/mellinoe/veldrid/issues/155
 			//
 			var source = SwapchainSource.CreateXlib(
-				Control.Display.Handle,
-				Control.GdkWindow.Handle);
+				X11Interop.gdk_x11_display_get_xdisplay(Control.Display.Handle),
+				X11Interop.gdk_x11_drawable_get_xid(Control.GdkWindow.Handle));
 
 			Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
 				new SwapchainDescription(

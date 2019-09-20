@@ -123,23 +123,28 @@ namespace PlaceholderName
 
 		public new interface ICallback : Control.ICallback
 		{
-			void InitializeOpenGL(VeldridSurface s);
-
+			void OnControlReady(VeldridSurface s, EventArgs e);
 			void OnDraw(VeldridSurface s, EventArgs e);
+			void OnOpenGLReady(VeldridSurface s, EventArgs e);
 			void OnResize(VeldridSurface s, ResizeEventArgs e);
 			void OnVeldridInitialized(VeldridSurface s, EventArgs e);
 		}
 
 		protected new class Callback : Control.Callback, ICallback
 		{
-			public void InitializeOpenGL(VeldridSurface s)
+			public void OnControlReady(VeldridSurface s, EventArgs e)
 			{
-				s.GLReady = true;
+				s.ControlReady = true;
 			}
 
 			public void OnDraw(VeldridSurface s, EventArgs e)
 			{
 				s.OnDraw(e);
+			}
+
+			public void OnOpenGLReady(VeldridSurface s, EventArgs e)
+			{
+				s.OpenGLReady = true;
 			}
 
 			public void OnResize(VeldridSurface s, ResizeEventArgs e)
@@ -239,18 +244,6 @@ namespace PlaceholderName
 		public GraphicsDevice GraphicsDevice { get; set; }
 		public Swapchain Swapchain { get; set; }
 
-		private bool? _glReady = null;
-		public bool? GLReady
-		{
-			get { return _glReady; }
-			private set
-			{
-				_glReady = value;
-
-				InitializeGraphicsApi();
-			}
-		}
-
 		private bool _controlReady = false;
 		public bool ControlReady
 		{
@@ -258,6 +251,18 @@ namespace PlaceholderName
 			private set
 			{
 				_controlReady = value;
+
+				InitializeGraphicsApi();
+			}
+		}
+
+		private bool? _openGLReady = null;
+		public bool? OpenGLReady
+		{
+			get { return _openGLReady; }
+			private set
+			{
+				_openGLReady = value;
 
 				InitializeGraphicsApi();
 			}
@@ -292,10 +297,8 @@ namespace PlaceholderName
 
 			if (Backend == GraphicsBackend.OpenGL)
 			{
-				GLReady = false;
+				OpenGLReady = false;
 			}
-
-			LoadComplete += (sender, e) => ControlReady = true;
 		}
 
 		public void InitializeGraphicsApi()
@@ -305,7 +308,7 @@ namespace PlaceholderName
 				return;
 			}
 
-			switch (GLReady)
+			switch (OpenGLReady)
 			{
 				case false:
 					return;
