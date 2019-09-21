@@ -55,6 +55,9 @@ namespace PlaceholderName
 		ushort[] lineFirst;
 		ushort[] lineVertexCount;
 
+		VertexPositionColor[] pointsArray;
+		ushort[] pointsFirst;
+
 		VertexPositionColor[] gridArray;
 		ushort[] gridIndices;
 
@@ -89,6 +92,7 @@ namespace PlaceholderName
 		ResourceSet ViewMatrixSet;
 
 		private bool Ready = false;
+		float pointWidth = 0.50f;
 
 		public VeldridDriver(ref OVPSettings svpSettings, ref VeldridSurface surface)
 		{
@@ -552,21 +556,13 @@ namespace PlaceholderName
 					float alpha = ovpSettings.polyList[poly].alpha;
 					float polyZ = poly * polyZStep;
 					polyFirst[poly] = (ushort)polyList.Count;
-					if (1 == 0) //((ovpSettings.enableFilledPolys) && (!ovpSettings.drawnPoly[poly]))
+					if ((ovpSettings.enableFilledPolys) && (!ovpSettings.drawnPoly[poly]))
 					{
 						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[0].X, ovpSettings.polyList[poly].poly[0].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
 						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[1].X, ovpSettings.polyList[poly].poly[1].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
 						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[2].X, ovpSettings.polyList[poly].poly[2].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
 						// counter += 3;
 						polyVertexCount[poly] = 3;
-					}
-					else
-					{
-						for (int pt = 0; pt < ovpSettings.polyList[poly].poly.Length; pt++)
-						{
-							polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[pt].X, ovpSettings.polyList[poly].poly[pt].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
-						}
-						polyVertexCount[poly] = (ushort)ovpSettings.polyList[poly].poly.Length; // set our vertex count for the polygon.
 					}
 				}
 
@@ -586,6 +582,7 @@ namespace PlaceholderName
 			try
 			{
 				List<VertexPositionColor> lineList = new List<VertexPositionColor>();
+				List<VertexPositionColor> pointsList = new List<VertexPositionColor>();
 
 				// Carve our Z-space up to stack polygons
 				float polyZStep = 1.0f / ovpSettings.lineList.Count();
@@ -595,6 +592,10 @@ namespace PlaceholderName
 				lineFirst = new ushort[tmp];
 				lineVertexCount = new ushort[tmp];
 
+				List<ushort> tFirst = new List<ushort>();
+
+				ushort tCounter = 0;
+
 				for (int poly = 0; poly < tmp; poly++)
 				{
 					float alpha = ovpSettings.lineList[poly].alpha;
@@ -603,6 +604,25 @@ namespace PlaceholderName
 					for (int pt = 0; pt < ovpSettings.lineList[poly].poly.Length; pt++)
 					{
 						lineList.Add(new VertexPositionColor(new Vector3(ovpSettings.lineList[poly].poly[pt].X, ovpSettings.lineList[poly].poly[pt].Y, polyZ), new RgbaFloat(ovpSettings.lineList[poly].color.R, ovpSettings.lineList[poly].color.G, ovpSettings.lineList[poly].color.B, alpha)));
+
+						if (ovpSettings.drawPoints)
+						{
+							tFirst.Add(tCounter);
+							pointsList.Add(new VertexPositionColor(new Vector3(ovpSettings.lineList[poly].poly[pt].X - (pointWidth / 2.0f), ovpSettings.lineList[poly].poly[pt].Y - (pointWidth / 2.0f), 1.0f), new RgbaFloat(ovpSettings.lineList[poly].color.R, ovpSettings.lineList[poly].color.G, ovpSettings.lineList[poly].color.B, alpha)));
+							tCounter++;
+							pointsList.Add(new VertexPositionColor(new Vector3(ovpSettings.lineList[poly].poly[pt].X - (pointWidth / 2.0f), ovpSettings.lineList[poly].poly[pt].Y + (pointWidth / 2.0f), 1.0f), new RgbaFloat(ovpSettings.lineList[poly].color.R, ovpSettings.lineList[poly].color.G, ovpSettings.lineList[poly].color.B, alpha)));
+							tCounter++;
+							pointsList.Add(new VertexPositionColor(new Vector3(ovpSettings.lineList[poly].poly[pt].X + (pointWidth / 2.0f), ovpSettings.lineList[poly].poly[pt].Y - (pointWidth / 2.0f), 1.0f), new RgbaFloat(ovpSettings.lineList[poly].color.R, ovpSettings.lineList[poly].color.G, ovpSettings.lineList[poly].color.B, alpha)));
+							tCounter++;
+
+							tFirst.Add(tCounter);
+							pointsList.Add(new VertexPositionColor(new Vector3(ovpSettings.lineList[poly].poly[pt].X + (pointWidth / 2.0f), ovpSettings.lineList[poly].poly[pt].Y - (pointWidth / 2.0f), 1.0f), new RgbaFloat(ovpSettings.lineList[poly].color.R, ovpSettings.lineList[poly].color.G, ovpSettings.lineList[poly].color.B, alpha)));
+							tCounter++;
+							pointsList.Add(new VertexPositionColor(new Vector3(ovpSettings.lineList[poly].poly[pt].X - (pointWidth / 2.0f), ovpSettings.lineList[poly].poly[pt].Y + (pointWidth / 2.0f), 1.0f), new RgbaFloat(ovpSettings.lineList[poly].color.R, ovpSettings.lineList[poly].color.G, ovpSettings.lineList[poly].color.B, alpha)));
+							tCounter++;
+							pointsList.Add(new VertexPositionColor(new Vector3(ovpSettings.lineList[poly].poly[pt].X + (pointWidth / 2.0f), ovpSettings.lineList[poly].poly[pt].Y + (pointWidth / 2.0f), 1.0f), new RgbaFloat(ovpSettings.lineList[poly].color.R, ovpSettings.lineList[poly].color.G, ovpSettings.lineList[poly].color.B, alpha)));
+							tCounter++;
+						}
 					}
 					lineVertexCount[poly] = (ushort)ovpSettings.lineList[poly].poly.Length; // set our vertex count for the polygon.
 				}
@@ -610,7 +630,13 @@ namespace PlaceholderName
 				lineArray = lineList.ToArray();
 
 				updateBuffer(ref LinesVertexBuffer, lineArray, VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer);
-				updateBuffer(ref PointsVertexBuffer, lineArray, VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer);
+
+				if (ovpSettings.drawPoints)
+				{
+					pointsFirst = tFirst.ToArray();
+					pointsArray = pointsList.ToArray();
+					updateBuffer(ref PointsVertexBuffer, pointsArray, VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer);
+				}
 			}
 			catch (Exception)
 			{
@@ -878,13 +904,13 @@ namespace PlaceholderName
 			if (ovpSettings.drawPoints)
 			{
 				CommandList.SetVertexBuffer(0, PointsVertexBuffer);
-				CommandList.SetPipeline(PointsPipeline);
+				CommandList.SetPipeline(FilledPipeline);
 				CommandList.SetGraphicsResourceSet(0, ViewMatrixSet);
 				CommandList.SetGraphicsResourceSet(1, ModelMatrixSet);
 
-				for (int l = 0; l < lineVertexCount.Length; l++)
+				for (int l = 0; l < pointsFirst.Length; l++)
 				{
-					CommandList.Draw(lineVertexCount[l], 1, lineFirst[l], 0);
+					CommandList.Draw(3, 1, pointsFirst[l], 0);
 				}
 			}
 			CommandList.End();
@@ -997,11 +1023,11 @@ namespace PlaceholderName
 					comparisonKind: ComparisonKind.LessEqual),
 				RasterizerState = new RasterizerStateDescription(
 					cullMode: FaceCullMode.None,
-					fillMode: PolygonFillMode.Wireframe,
+					fillMode: PolygonFillMode.Solid,
 					frontFace: FrontFace.Clockwise,
 					depthClipEnabled: false,
 					scissorTestEnabled: false),
-				PrimitiveTopology = PrimitiveTopology.PointList,
+				PrimitiveTopology = PrimitiveTopology.LineStrip,
 				ResourceLayouts = new[] { viewMatrixLayout, modelMatrixLayout },
 				ShaderSet = new ShaderSetDescription(
 					vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
@@ -1055,14 +1081,14 @@ namespace PlaceholderName
 			{
 				BlendState = BlendStateDescription.SingleOverrideBlend,
 				DepthStencilState = new DepthStencilStateDescription(
-					depthTestEnabled: true,
-					depthWriteEnabled: true,
+					depthTestEnabled: false,
+					depthWriteEnabled: false,
 					comparisonKind: ComparisonKind.LessEqual),
 				RasterizerState = new RasterizerStateDescription(
-					cullMode: FaceCullMode.Back,
+					cullMode: FaceCullMode.None,
 					fillMode: PolygonFillMode.Solid,
 					frontFace: FrontFace.Clockwise,
-					depthClipEnabled: true,
+					depthClipEnabled: false,
 					scissorTestEnabled: false),
 				PrimitiveTopology = PrimitiveTopology.TriangleStrip,
 				ResourceLayouts = new[] { viewMatrixLayout, modelMatrixLayout },
