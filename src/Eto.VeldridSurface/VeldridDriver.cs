@@ -76,6 +76,7 @@ namespace PlaceholderName
 		Shader VertexShader;
 		Shader FragmentShader;
 		Pipeline LinePipeline;
+		Pipeline PointsPipeline;
 		Pipeline LinesPipeline;
 		Pipeline FilledPipeline;
 
@@ -609,6 +610,7 @@ namespace PlaceholderName
 				lineArray = lineList.ToArray();
 
 				updateBuffer(ref LinesVertexBuffer, lineArray, VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer);
+				updateBuffer(ref PointsVertexBuffer, lineArray, VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer);
 			}
 			catch (Exception)
 			{
@@ -802,7 +804,7 @@ namespace PlaceholderName
 			CommandList.Begin();
 
 			ModelMatrix *= Matrix4x4.CreateFromAxisAngle(
-				new Vector3(0, 0, 1),0);
+				new Vector3(0, 0, 1), 0);
 			CommandList.UpdateBuffer(ModelBuffer, 0, ModelMatrix);
 
 			float zoom = ovpSettings.zoomFactor * ovpSettings.base_zoom;
@@ -873,6 +875,18 @@ namespace PlaceholderName
 				CommandList.Draw(polyVertexCount[l], 1, polyFirst[l], 0);
 			}
 
+			if (ovpSettings.drawPoints)
+			{
+				CommandList.SetVertexBuffer(0, PointsVertexBuffer);
+				CommandList.SetPipeline(PointsPipeline);
+				CommandList.SetGraphicsResourceSet(0, ViewMatrixSet);
+				CommandList.SetGraphicsResourceSet(1, ModelMatrixSet);
+
+				for (int l = 0; l < lineVertexCount.Length; l++)
+				{
+					CommandList.Draw(lineVertexCount[l], 1, lineFirst[l], 0);
+				}
+			}
 			CommandList.End();
 
 			Surface.GraphicsDevice.SubmitCommands(CommandList);
@@ -973,6 +987,27 @@ namespace PlaceholderName
 			var vertex = new ShaderDescription(ShaderStages.Vertex, vertexShaderSpirvBytes, "main", true);
 			var fragment = new ShaderDescription(ShaderStages.Fragment, fragmentShaderSpirvBytes, "main", true);
 			Shader[] shaders = factory.CreateFromSpirv(vertex, fragment, options);
+
+			PointsPipeline = factory.CreateGraphicsPipeline(new GraphicsPipelineDescription
+			{
+				BlendState = BlendStateDescription.SingleOverrideBlend,
+				DepthStencilState = new DepthStencilStateDescription(
+					depthTestEnabled: false,
+					depthWriteEnabled: false,
+					comparisonKind: ComparisonKind.LessEqual),
+				RasterizerState = new RasterizerStateDescription(
+					cullMode: FaceCullMode.None,
+					fillMode: PolygonFillMode.Wireframe,
+					frontFace: FrontFace.Clockwise,
+					depthClipEnabled: false,
+					scissorTestEnabled: false),
+				PrimitiveTopology = PrimitiveTopology.PointList,
+				ResourceLayouts = new[] { viewMatrixLayout, modelMatrixLayout },
+				ShaderSet = new ShaderSetDescription(
+					vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
+					shaders: shaders),
+				Outputs = Surface.Swapchain.Framebuffer.OutputDescription
+			});
 
 			LinePipeline = factory.CreateGraphicsPipeline(new GraphicsPipelineDescription
 			{
