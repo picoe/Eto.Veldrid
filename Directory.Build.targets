@@ -35,10 +35,16 @@
     <VeldridSpirvNativeName>libveldrid-spirv.dylib</VeldridSpirvNativeName>
   </PropertyGroup>
 
-  <Target Name="SetNeatenizePath" AfterTargets="Build" BeforeTargets="CopyVeldridSpirvNative">
+  <Target Name="SetPaths" AfterTargets="Build" BeforeTargets="CopyVeldridSpirvNative">
     <PropertyGroup>
-      <NeatenizePath Condition="$(IsMacProject) AND $(OutputAppPath) != ''">$(OutputAppPath)\Contents\MonoBundle\</NeatenizePath>
-      <NeatenizePath Condition="!$(IsMacProject) OR $(OutputAppPath) == ''">$(OutputPath)</NeatenizePath>
+      <UsingMacAppBundle>false</UsingMacAppBundle>
+      <UsingMacAppBundle Condition="$(IsMacProject) AND $(OutputAppPath) != ''">true</UsingMacAppBundle>
+
+      <VeldridSpirvNativePath>$(OutputPath)</VeldridSpirvNativePath>
+      <VeldridSpirvNativePath Condition="$(UsingMacAppBundle)">$(OutputAppPath)\Contents\Libraries</VeldridSpirvNativePath>
+
+      <NeatenizePath>$(OutputPath)</NeatenizePath>
+      <NeatenizePath Condition="$(UsingMacAppBundle) AND !$(MacBundleMono)">$(OutputAppPath)\Contents\MonoBundle\</NeatenizePath>
     </PropertyGroup>
   </Target>
 
@@ -46,10 +52,10 @@
     <NoCopyVeldridSpirvNative>Eto.VeldridSurface</NoCopyVeldridSpirvNative>
   </PropertyGroup>
 
-  <Target Name="CopyVeldridSpirvNative" AfterTargets="SetNeatenizePath" BeforeTargets="NeatenizeLibraries" Condition="!$(NoCopyVeldridSpirvNative.Contains($(MSBuildProjectName)))">
+  <Target Name="CopyVeldridSpirvNative" AfterTargets="SetPaths" BeforeTargets="NeatenizeLibraries" Condition="!$(NoCopyVeldridSpirvNative.Contains($(MSBuildProjectName)))">
     <Copy
       SourceFiles="$([MSBuild]::EnsureTrailingSlash('$(NuGetPackageRoot)'))veldrid.spirv\$(VeldridSpirvVersion)\runtimes\$(RuntimeID)\native\$(VeldridSpirvNativeName)"
-      DestinationFolder="$(NeatenizePath)" />
+      DestinationFolder="$(VeldridSpirvNativePath)" />
   </Target>
 
   <PropertyGroup>
@@ -75,7 +81,7 @@
     <ItemGroup>
       <Shaders Include="$(TopLevelDirectory)src\shaders\**\*" />
     </ItemGroup>
-    <Copy Condition="$(OutputAppPath) != ''" SourceFiles="@(Shaders)" DestinationFolder="$(OutputAppPath)\Contents\MonoBundle\shaders\%(Shaders.RecursiveDir)" />
+    <Copy Condition="$(OutputAppPath) != ''" SourceFiles="@(Shaders)" DestinationFolder="$(OutputAppPath)\Contents\Resources\shaders\%(Shaders.RecursiveDir)" />
     <Copy Condition="$(OutputAppPath) == ''" SourceFiles="@(Shaders)" DestinationFolder="$(OutputPath)\shaders\%(Shaders.RecursiveDir)" />
   </Target>
 

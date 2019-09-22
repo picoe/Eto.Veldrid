@@ -34,7 +34,10 @@ namespace PlaceholderName
 			}
 		}
 
-		public MainForm(GraphicsBackend backend)
+		public MainForm(GraphicsBackend backend) : this(backend, "shaders")
+		{
+		}
+		public MainForm(GraphicsBackend backend, string shaderSubdirectory)
 		{
 			InitializeComponent();
 
@@ -45,7 +48,7 @@ namespace PlaceholderName
 
 			Content = Surface;
 
-			Driver = new VeldridDriver { Surface = Surface };
+			Driver = new VeldridDriver { Surface = Surface, ShaderSubdirectory = shaderSubdirectory };
 
 			// TODO: Make this binding actually work both ways.
 			CmdAnimate.Bind<bool>("Checked", Driver, "Animate");

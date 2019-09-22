@@ -6,6 +6,7 @@ using OpenTK.Platform;
 using System;
 using Veldrid;
 using Veldrid.OpenGL;
+using System.IO;
 
 #if MONOMAC
 using MonoMac.AppKit;
@@ -184,7 +185,8 @@ namespace PlaceholderName
 			var platform = new Eto.Mac.Platform();
 			platform.Add<VeldridSurface.IHandler>(() => new MacVeldridSurfaceHandler());
 
-			new Application(platform).Run(new MainForm(backend));
+			new Application(platform).Run(new MainForm(backend,
+				Path.Combine("..", "Resources", "shaders")));
 		}
 	}
 }
