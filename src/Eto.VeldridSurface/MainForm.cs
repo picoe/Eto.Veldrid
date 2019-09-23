@@ -103,7 +103,6 @@ namespace PlaceholderName
             vp_menu = new ContextMenu();
 
             int itemIndex = 0;
-            int svgIndex = 1;
             vp_menu.Items.Add(new ButtonMenuItem { Text = "Reset" });
             vp_menu.Items[itemIndex].Click += delegate
             {

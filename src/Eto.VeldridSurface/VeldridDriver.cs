@@ -295,6 +295,13 @@ namespace PlaceholderName
 
 		void upHandler(object sender, MouseEventArgs e)
 		{
+			if (e.Buttons == MouseButtons.Alternate)
+			{
+				if (menu != null)
+				{
+					menu.Show(Surface);
+				}
+			}
 			if (ovpSettings.lockedViewport)
 			{
 				return;
@@ -302,13 +309,6 @@ namespace PlaceholderName
 			if (e.Buttons == MouseButtons.Primary)
 			{
 				dragging = false;
-			}
-			if (e.Buttons == MouseButtons.Alternate)
-			{
-				if (menu != null)
-				{
-					menu.Show(Surface);
-				}
 			}
 			//e.Handled = true
 		}
