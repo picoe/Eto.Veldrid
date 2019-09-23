@@ -899,14 +899,17 @@ namespace PlaceholderName
 				CommandList.Draw(lineVertexCount[l], 1, lineFirst[l], 0);
 			}
 
-			CommandList.SetVertexBuffer(0, PolysVertexBuffer);
-			CommandList.SetPipeline(FilledPipeline);
-			CommandList.SetGraphicsResourceSet(0, ViewMatrixSet);
-			CommandList.SetGraphicsResourceSet(1, ModelMatrixSet);
-
-			for (int l = 0; l < polyVertexCount.Length; l++)
+			if (ovpSettings.enableFilledPolys)
 			{
-				CommandList.Draw(polyVertexCount[l], 1, polyFirst[l], 0);
+				CommandList.SetVertexBuffer(0, PolysVertexBuffer);
+				CommandList.SetPipeline(FilledPipeline);
+				CommandList.SetGraphicsResourceSet(0, ViewMatrixSet);
+				CommandList.SetGraphicsResourceSet(1, ModelMatrixSet);
+
+				for (int l = 0; l < polyVertexCount.Length; l++)
+				{
+					CommandList.Draw(polyVertexCount[l], 1, polyFirst[l], 0);
+				}
 			}
 
 			if (ovpSettings.drawPoints)
