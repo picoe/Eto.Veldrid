@@ -35,6 +35,9 @@ namespace PlaceholderName
 	/// </remarks>
 	public class VeldridDriver
 	{
+		public string ExecutableDirectory { get; set; }
+		public string ShaderSubdirectory { get; set; }
+
 		public VeldridSurface Surface;
 
 		public UITimer Clock = new UITimer();
@@ -1020,7 +1023,7 @@ namespace PlaceholderName
 				default:
 					break;
 			}
-				
+
 			var vertex = new ShaderDescription(ShaderStages.Vertex, vertexShaderSpirvBytes, "main", true);
 			var fragment = new ShaderDescription(ShaderStages.Fragment, fragmentShaderSpirvBytes, "main", true);
 			Shader[] shaders = factory.CreateFromSpirv(vertex, fragment, options);
@@ -1116,9 +1119,8 @@ namespace PlaceholderName
 		{
 			byte[] bytes;
 
-			string shaderDir = Path.Combine(AppContext.BaseDirectory, "shaders");
 			string name = $"VertexColor-{stage.ToString().ToLower()}.450.glsl";
-			string full = Path.Combine(shaderDir, name);
+			string full = Path.Combine(ExecutableDirectory, ShaderSubdirectory, name);
 
 			// Precompiled SPIR-V bytecode can speed up program start by saving
 			// the need to load text files and compile them before converting
