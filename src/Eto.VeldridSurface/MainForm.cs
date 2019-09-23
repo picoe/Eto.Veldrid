@@ -1,6 +1,7 @@
 ﻿using Eto.Drawing;
 using Eto.Forms;
 using System;
+using System.Threading;
 using Veldrid;
 
 namespace PlaceholderName
@@ -107,7 +108,7 @@ namespace PlaceholderName
             vp_menu.Items[itemIndex].Click += delegate
             {
 				Driver.reset();
-				Driver.updateViewport();
+				updateViewport();
             };
             itemIndex++;
 
@@ -118,21 +119,21 @@ namespace PlaceholderName
             VPMenuDisplayOptionsMenu.Items[displayOptionsSubItemIndex].Click += delegate
             {
 				Driver.ovpSettings.antiAlias = !Driver.ovpSettings.antiAlias;
-				Driver.updateViewport();
+				updateViewport();
             };
             displayOptionsSubItemIndex++;
             VPMenuDisplayOptionsMenu.Items.Add(new ButtonMenuItem { Text = "Toggle Fill" });
             VPMenuDisplayOptionsMenu.Items[displayOptionsSubItemIndex].Click += delegate
             {
 				Driver.ovpSettings.enableFilledPolys = !Driver.ovpSettings.enableFilledPolys;
-				Driver.updateViewport();
+				updateViewport();
             };
             displayOptionsSubItemIndex++;
             VPMenuDisplayOptionsMenu.Items.Add(new ButtonMenuItem { Text = "Toggle Points" });
             VPMenuDisplayOptionsMenu.Items[displayOptionsSubItemIndex].Click += delegate
             {
 				Driver.ovpSettings.drawPoints = !Driver.ovpSettings.drawPoints;
-				Driver.updateViewport();
+				updateViewport();
             };
             displayOptionsSubItemIndex++;
 
@@ -148,6 +149,7 @@ namespace PlaceholderName
                 vp_menu.Items[itemIndex].Click += delegate
                 {
 					Driver.freeze_thaw();
+					updateViewport();
                 };
                 itemIndex++;
                 vp_menu.Items.AddSeparator();
@@ -183,7 +185,7 @@ namespace PlaceholderName
             vp_menu.Items[itemIndex].Click += delegate
             {
 				Driver.zoomIn(-1);
-				Driver.updateViewport();
+				updateViewport();
             };
             itemIndex++;
 
@@ -194,28 +196,28 @@ namespace PlaceholderName
             VPMenuZoomInMenu.Items[zoomInSubItemIndex].Click += delegate
             {
 				Driver.zoomIn(-50);
-				Driver.updateViewport();
+				updateViewport();
             };
             zoomInSubItemIndex++;
             VPMenuZoomInMenu.Items.Add(new ButtonMenuItem { Text = "Zoom In (x10)" });
             VPMenuZoomInMenu.Items[zoomInSubItemIndex].Click += delegate
             {
 				Driver.zoomIn(-100);
-				Driver.updateViewport();
+				updateViewport();
             };
             zoomInSubItemIndex++;
             VPMenuZoomInMenu.Items.Add(new ButtonMenuItem { Text = "Zoom In (x50)" });
             VPMenuZoomInMenu.Items[zoomInSubItemIndex].Click += delegate
             {
 				Driver.zoomIn(-500);
-				Driver.updateViewport();
+				updateViewport();
             };
             zoomInSubItemIndex++;
             VPMenuZoomInMenu.Items.Add(new ButtonMenuItem { Text = "Zoom In (x100)" });
             VPMenuZoomInMenu.Items[zoomInSubItemIndex].Click += delegate
             {
 				Driver.zoomIn(-1000);
-				Driver.updateViewport();
+				updateViewport();
             };
             zoomInSubItemIndex++;
 
@@ -226,7 +228,7 @@ namespace PlaceholderName
             vp_menu.Items[itemIndex].Click += delegate
             {
 				Driver.zoomOut(-1);
-				Driver.updateViewport();
+				updateViewport();
             };
             itemIndex++;
 
@@ -237,32 +239,53 @@ namespace PlaceholderName
             VPMenuZoomOutMenu.Items[zoomOutSubItemIndex].Click += delegate
             {
 				Driver.zoomOut(-50);
-				Driver.updateViewport();
+				updateViewport();
             };
             zoomOutSubItemIndex++;
             VPMenuZoomOutMenu.Items.Add(new ButtonMenuItem { Text = "Zoom Out (x10)" });
             VPMenuZoomOutMenu.Items[zoomOutSubItemIndex].Click += delegate
             {
 				Driver.zoomOut(-100);
-				Driver.updateViewport();
+				updateViewport();
             };
             zoomOutSubItemIndex++;
             VPMenuZoomOutMenu.Items.Add(new ButtonMenuItem { Text = "Zoom Out (x50)" });
             VPMenuZoomOutMenu.Items[zoomOutSubItemIndex].Click += delegate
             {
 				Driver.zoomOut(-500);
-				Driver.updateViewport();
+				updateViewport();
             };
             zoomOutSubItemIndex++;
             VPMenuZoomOutMenu.Items.Add(new ButtonMenuItem { Text = "Zoom Out (x100)" });
             VPMenuZoomOutMenu.Items[zoomOutSubItemIndex].Click += delegate
             {
                 Driver.zoomOut(-1000);
-				Driver.updateViewport();
+				updateViewport();
             };
             zoomOutSubItemIndex++;
 
             Driver.setContextMenu(ref vp_menu);
         }
+
+		void updateViewport()
+		{
+			Application.Instance.Invoke(() =>
+			{
+				Monitor.Enter(ovpSettings);
+				try
+				{
+					createVPContextMenu();
+					Driver.updateViewport();
+					// viewPort.Invalidate();
+				}
+				catch (Exception)
+				{
+				}
+				finally
+				{
+					Monitor.Exit(ovpSettings);
+				}
+			});
+		}
 	}
 }
