@@ -201,14 +201,19 @@ namespace PlaceholderName
 		{
 			if (e.Buttons == MouseButtons.Primary)
 			{
-				if (!dragging && !ovpSettings.lockedViewport) // might not be needed, but seemed like a safe approach to avoid re-setting these in a drag event.
-				{
-					x_orig = e.Location.X;
-					y_orig = e.Location.Y;
-					dragging = true;
-				}
+				setDown(e.Location.X, e.Location.Y);
 			}
 			//e.Handled = true;
+		}
+
+		void setDown(float x, float y)
+		{
+			if (!dragging && !ovpSettings.lockedViewport) // might not be needed, but seemed like a safe approach to avoid re-setting these in a drag event.
+			{
+				x_orig = x;
+				y_orig = y;
+				dragging = true;
+			}
 		}
 
 		public void saveLocation()
@@ -274,6 +279,10 @@ namespace PlaceholderName
 			}
 			if (e.Buttons == MouseButtons.Primary)
 			{
+				if (!dragging)
+				{
+					setDown(e.Location.X, e.Location.Y);
+				}
 				object locking = new object();
 				lock (locking)
 				{
