@@ -4,6 +4,8 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Platform;
 using System;
+using System.Diagnostics;
+using System.IO;
 using Veldrid;
 using Veldrid.OpenGL;
 
@@ -184,7 +186,16 @@ namespace PlaceholderName
 			var platform = new Eto.Mac.Platform();
 			platform.Add<VeldridSurface.IHandler>(() => new MacVeldridSurfaceHandler());
 
-			new Application(platform).Run(new MainForm(backend));
+			// AppContext.BaseDirectory is too simple for the case of the Mac
+			// projects. When building an app bundle that depends on the Mono
+			// framework being installed, it properly returns the path of the
+			// executable in Eto.Veldrid.app/Contents/MacOS. When building an
+			// app bundle that instead bundles Mono by way of mkbundle, on the
+			// other hand, it returns the directory containing the .app.
+			new Application(platform).Run(new MainForm(
+				backend,
+				Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName),
+				Path.Combine("..", "Resources", "shaders")));
 		}
 	}
 }

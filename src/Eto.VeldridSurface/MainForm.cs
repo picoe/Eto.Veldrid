@@ -38,7 +38,10 @@ namespace PlaceholderName
 			}
 		}
 
-		public MainForm(GraphicsBackend backend)
+		public MainForm(GraphicsBackend backend) : this(backend, AppContext.BaseDirectory, "shaders")
+		{
+		}
+		public MainForm(GraphicsBackend backend, string executableDirectory, string shaderSubdirectory)
 		{
 			InitializeComponent();
 
@@ -79,7 +82,12 @@ namespace PlaceholderName
 			ovpSettings.addPolygon(testPoly, Color.FromArgb(255, 0, 0), 1.0f, false);
 
 
-			Driver = new VeldridDriver(ref ovpSettings, ref Surface);
+			Driver = new VeldridDriver(ref ovpSettings, ref Surface)
+			{
+				Surface = Surface,
+				ExecutableDirectory = executableDirectory,
+				ShaderSubdirectory = shaderSubdirectory
+			};
 		}
 
 		ContextMenu vp_menu;
