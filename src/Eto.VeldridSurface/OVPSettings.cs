@@ -48,6 +48,7 @@ namespace PlaceholderName
 		public List<ovp_Poly> lineList; // purely for lines.
 		public List<bool> drawnPoly; // tracks whether the polygon corresponds to an enabled configuration or not.
 		public List<bool> bgPoly; // background polygon
+		public bool lockedViewport;
 
 		public float zoom()
 		{

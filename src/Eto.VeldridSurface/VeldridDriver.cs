@@ -43,7 +43,6 @@ namespace PlaceholderName
 		public updateHost updateHostFunc { get; set; }
 
 		public bool ok;
-		public bool lockedViewport;
 		public bool savedLocation_valid;
 		PointF savedLocation;
 
@@ -202,7 +201,7 @@ namespace PlaceholderName
 		{
 			if (e.Buttons == MouseButtons.Primary)
 			{
-				if (!dragging && !lockedViewport) // might not be needed, but seemed like a safe approach to avoid re-setting these in a drag event.
+				if (!dragging && !ovpSettings.lockedViewport) // might not be needed, but seemed like a safe approach to avoid re-setting these in a drag event.
 				{
 					x_orig = e.Location.X;
 					y_orig = e.Location.Y;
@@ -269,7 +268,7 @@ namespace PlaceholderName
 
 		void dragHandler(object sender, MouseEventArgs e)
 		{
-			if (lockedViewport)
+			if (ovpSettings.lockedViewport)
 			{
 				return;
 			}
@@ -291,12 +290,12 @@ namespace PlaceholderName
 
 		public void freeze_thaw()
 		{
-			lockedViewport = !lockedViewport;
+			ovpSettings.lockedViewport = !ovpSettings.lockedViewport;
 		}
 
 		void upHandler(object sender, MouseEventArgs e)
 		{
-			if (lockedViewport)
+			if (ovpSettings.lockedViewport)
 			{
 				return;
 			}
@@ -316,7 +315,7 @@ namespace PlaceholderName
 
 		public void zoomIn(float delta)
 		{
-			if (lockedViewport)
+			if (ovpSettings.lockedViewport)
 			{
 				return;
 			}
@@ -325,7 +324,7 @@ namespace PlaceholderName
 
 		public void zoomOut(float delta)
 		{
-			if (lockedViewport)
+			if (ovpSettings.lockedViewport)
 			{
 				return;
 			}
@@ -338,7 +337,7 @@ namespace PlaceholderName
 
 		void panVertical(float delta)
 		{
-			if (lockedViewport)
+			if (ovpSettings.lockedViewport)
 			{
 				return;
 			}
@@ -347,7 +346,7 @@ namespace PlaceholderName
 
 		void panHorizontal(float delta)
 		{
-			if (lockedViewport)
+			if (ovpSettings.lockedViewport)
 			{
 				return;
 			}
@@ -366,7 +365,7 @@ namespace PlaceholderName
 
 		public void reset()
 		{
-			if (lockedViewport)
+			if (ovpSettings.lockedViewport)
 			{
 				return;
 			}
@@ -376,19 +375,19 @@ namespace PlaceholderName
 
 		void keyHandler(object sender, KeyEventArgs e)
 		{
-			if (lockedViewport)
+			if (ovpSettings.lockedViewport)
 			{
 				if (e.Key != Keys.F)
 				{
 					return;
 				}
-				lockedViewport = false;
+				ovpSettings.lockedViewport = false;
 				return;
 			}
 
 			if (e.Key == Keys.F)
 			{
-				lockedViewport = true;
+				ovpSettings.lockedViewport = true;
 				return;
 			}
 
@@ -440,7 +439,7 @@ namespace PlaceholderName
 
 		void zoomHandler(object sender, MouseEventArgs e)
 		{
-			if (lockedViewport)
+			if (ovpSettings.lockedViewport)
 			{
 				return;
 			}
