@@ -33,7 +33,8 @@ namespace PlaceholderName
 	/// </remarks>
 	public class VeldridDriver
 	{
-		public string ShaderSubdirectory;
+		public string ExecutableDirectory { get; set; }
+		public string ShaderSubdirectory { get; set; }
 
 		private VeldridSurface _surface;
 		public VeldridSurface Surface
@@ -288,18 +289,8 @@ namespace PlaceholderName
 		{
 			byte[] bytes;
 
-			// AppContext.BaseDirectory is too simple for the case of the Mac
-			// projects. When building an app bundle that depends on the Mono
-			// framework being installed, it properly returns the path of the
-			// executable in Eto.Veldrid.app/Contents/MacOS. When building an
-			// app bundle that instead bundles Mono by way of mkbundle, on the
-			// other hand, it returns the directory containing the .app. This
-			// use of Process is a seemingly reliable way to get the correct
-			// answer in all cases, across platforms and operating systems.
-			string executableDir = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
-
 			string name = $"VertexColor-{stage.ToString().ToLower()}.450.glsl";
-			string full = Path.Combine(executableDir, ShaderSubdirectory, name);
+			string full = Path.Combine(ExecutableDirectory, ShaderSubdirectory, name);
 
 			// Precompiled SPIR-V bytecode can speed up program start by saving
 			// the need to load text files and compile them before converting
