@@ -46,9 +46,28 @@ namespace PlaceholderName
 			InitializeComponent();
 
 			Shown += (sender, e) => FormReady = true;
+			/*
+			PixelLayout mpl = new PixelLayout();
+			Content = mpl;
 
+			TabControl tc = new TabControl();
+			TabPage tp = new TabPage();
+			tc.Pages.Add(tp);
+			TabPage tp2 = new TabPage();
+			tc.Pages.Add(tp2);
+			PixelLayout pl = new PixelLayout();
+			tp.Content = pl;
+
+			Panel p = new Panel();
+			p.Size = new Size(100, 100);
+			pl.Add(p, 1, 1);
+
+			mpl.Add(tc, 1, 1);
+			*/
 			Surface = new VeldridSurface(backend);
 			Surface.VeldridInitialized += (sender, e) => VeldridReady = true;
+
+			//p.Content = Surface;
 
 			Content = Surface;
 
@@ -73,13 +92,13 @@ namespace PlaceholderName
 			testPoly2[4] = new PointF(13.0f, 2.0f);
 			testPoly2[5] = new PointF(12.0f, 2.0f);
 
-			ovpSettings.addPolygon(testPoly2, Color.FromArgb(0, 255, 255), 1.0f, true);
+			ovpSettings.addPolygon(testPoly2, Color.FromArgb(0, 255, 255), 1.0f, true, 1);
 
-			ovpSettings.addPolygon(testPoly, Color.FromArgb(255, 0, 0), 1.0f, true);
+			ovpSettings.addPolygon(testPoly, Color.FromArgb(255, 0, 0), 1.0f, true, 2);
 
-			ovpSettings.addPolygon(testPoly2, Color.FromArgb(0, 255, 255), 1.0f, false);
+			ovpSettings.addPolygon(testPoly2, Color.FromArgb(0, 255, 255), 1.0f, false, 3);
 
-			ovpSettings.addPolygon(testPoly, Color.FromArgb(255, 0, 0), 1.0f, false);
+			ovpSettings.addPolygon(testPoly, Color.FromArgb(255, 0, 0), 1.0f, false, 4);
 
 
 			Driver = new VeldridDriver(ref ovpSettings, ref Surface)

@@ -53,6 +53,10 @@ namespace PlaceholderName
 		ushort[] polyFirst;
 		ushort[] polyVertexCount;
 
+		VertexPositionColor[] tessArray;
+		ushort[] tessFirst;
+		ushort[] tessVertexCount;
+
 		VertexPositionColor[] lineArray;
 		ushort[] lineFirst;
 		ushort[] lineVertexCount;
@@ -77,6 +81,7 @@ namespace PlaceholderName
 		DeviceBuffer LinesVertexBuffer;
 		DeviceBuffer PointsVertexBuffer;
 		DeviceBuffer PolysVertexBuffer;
+		DeviceBuffer TessVertexBuffer;
 
 		Shader VertexShader;
 		Shader FragmentShader;
@@ -554,38 +559,107 @@ namespace PlaceholderName
 			{
 				List<VertexPositionColor> polyList = new List<VertexPositionColor>();
 
+				List<VertexPositionColor> tessPolyList = new List<VertexPositionColor>();
+
+				int polyListCount = ovpSettings.polyList.Count();
+				int bgPolyListCount = ovpSettings.bgPolyList.Count();
+				int tessPolyListCount = ovpSettings.tessPolyList.Count();
+
 				// Carve our Z-space up to stack polygons
-				float polyZStep = 1.0f / ovpSettings.polyList.Count();
+				int numPolys = 1;
 
+				numPolys = polyListCount + bgPolyListCount;
 				// Create our first and count arrays for the vertex indices, to enable polygon separation when rendering.
-				int tmp = ovpSettings.polyList.Count();
-				polyFirst = new ushort[tmp];
-				polyVertexCount = new ushort[tmp];
+				polyFirst = new ushort[numPolys];
+				polyVertexCount = new ushort[numPolys];
 
-				for (int poly = 0; poly < tmp; poly++)
+				tessFirst = new ushort[tessPolyListCount];
+				tessVertexCount = new ushort[tessPolyListCount];
+
+				if (ovpSettings.enableFilledPolys)
+				{
+					numPolys += tessPolyListCount;
+				}
+
+				float polyZStep = 1.0f / Math.Max(1, numPolys + 1); // avoid a div by zero risk; pad the poly number also to reduce risk of adding a poly beyond the clipping range
+
+				int counter = 0; // vertex count that will be used to define 'first' index for each polygon.
+				int previouscounter = 0; // will be used to derive the number of vertices in each polygon.
+
+				float polyZ = 0;
+
+				if (ovpSettings.enableFilledPolys)
+				{
+					for (int i = 0; i < tessPolyListCount; i++)
+					{
+						tessFirst[i] = (ushort)(i * 3);
+						float alpha = ovpSettings.tessPolyList[i].alpha;
+						polyZ += polyZStep;
+						for (int j = 0; j < 3; j++)
+						{
+							tessPolyList.Add(new VertexPositionColor(new Vector3(ovpSettings.tessPolyList[i].poly[j].X, ovpSettings.tessPolyList[i].poly[j].Y, polyZ),
+												new RgbaFloat(ovpSettings.tessPolyList[i].color.R, ovpSettings.tessPolyList[i].color.G, ovpSettings.tessPolyList[i].color.B, alpha)));
+						}
+						tessVertexCount[i] = 3;
+					}
+				}
+
+				// Pondering options here - this would make a nice border construct around the filled geometry, amongst other things.
+				for (int poly = 0; poly < polyListCount; poly++)
 				{
 					float alpha = ovpSettings.polyList[poly].alpha;
-					float polyZ = poly * polyZStep;
-					polyFirst[poly] = (ushort)polyList.Count;
-					if ((ovpSettings.enableFilledPolys) && (!ovpSettings.drawnPoly[poly]))
+					if (ovpSettings.enableFilledPolys)
 					{
-						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[0].X, ovpSettings.polyList[poly].poly[0].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
-						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[1].X, ovpSettings.polyList[poly].poly[1].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
-						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[2].X, ovpSettings.polyList[poly].poly[2].Y, polyZ), new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
-						// counter += 3;
-						polyVertexCount[poly] = 3;
+						alpha = 1.0f;
 					}
+					polyZ += polyZStep;
+					polyFirst[poly] = (ushort)counter;
+					previouscounter = counter;
+					int polyLength = ovpSettings.polyList[poly].poly.Length - 1;
+					for (int pt = 0; pt < polyLength; pt++)
+					{
+						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[pt].X, ovpSettings.polyList[poly].poly[pt].Y, polyZ),
+										new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
+						counter++;
+						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.polyList[poly].poly[pt + 1].X, ovpSettings.polyList[poly].poly[pt + 1].Y, polyZ),
+										new RgbaFloat(ovpSettings.polyList[poly].color.R, ovpSettings.polyList[poly].color.G, ovpSettings.polyList[poly].color.B, alpha)));
+						counter++;
+					}
+					polyVertexCount[poly] = (ushort)(counter - previouscounter); // set our vertex count for the polygon.
+				}
+
+				polyZ = 0;
+				for (int poly = 0; poly < bgPolyListCount; poly++)
+				{
+					float alpha = ovpSettings.bgPolyList[poly].alpha;
+					polyZ += polyZStep;
+					polyFirst[poly] = (ushort)counter;
+					previouscounter = counter;
+
+					int bgPolyLength = ovpSettings.bgPolyList[poly].poly.Length - 1;
+					for (int pt = 0; pt < bgPolyLength; pt++)
+					{
+						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.bgPolyList[poly].poly[pt].X, ovpSettings.bgPolyList[poly].poly[pt].Y, polyZ),
+										new RgbaFloat(ovpSettings.bgPolyList[poly].color.R, ovpSettings.bgPolyList[poly].color.G, ovpSettings.bgPolyList[poly].color.B, alpha)));
+						counter++;
+						polyList.Add(new VertexPositionColor(new Vector3(ovpSettings.bgPolyList[poly].poly[pt + 1].X, ovpSettings.bgPolyList[poly].poly[pt + 1].Y, polyZ),
+										new RgbaFloat(ovpSettings.bgPolyList[poly].color.R, ovpSettings.bgPolyList[poly].color.G, ovpSettings.bgPolyList[poly].color.B, alpha)));
+						counter++;
+					}
+					polyVertexCount[poly + polyListCount] = (ushort)(counter - previouscounter); // set our vertex count for the polygon.
 				}
 
 				polyArray = polyList.ToArray();
 
-				updateBuffer(ref PolysVertexBuffer, polyArray, VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer);
-
+				tessArray = tessPolyList.ToArray();
 			}
 			catch (Exception)
 			{
 				// Can ignore - not critical.
 			}
+
+			updateBuffer(ref PolysVertexBuffer, polyArray, VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer);
+			updateBuffer(ref TessVertexBuffer, tessArray, VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer);
 		}
 
 		void drawLines()
@@ -904,16 +978,27 @@ namespace PlaceholderName
 
 			if (ovpSettings.enableFilledPolys)
 			{
-				CommandList.SetVertexBuffer(0, PolysVertexBuffer);
+				CommandList.SetVertexBuffer(0, TessVertexBuffer);
 				CommandList.SetPipeline(FilledPipeline);
 				CommandList.SetGraphicsResourceSet(0, ViewMatrixSet);
 				CommandList.SetGraphicsResourceSet(1, ModelMatrixSet);
 
-				for (int l = 0; l < polyVertexCount.Length; l++)
+				for (int l = 0; l < tessVertexCount.Length; l++)
 				{
-					CommandList.Draw(polyVertexCount[l], 1, polyFirst[l], 0);
+					CommandList.Draw(tessVertexCount[l], 1, tessFirst[l], 0);
 				}
 			}
+
+			CommandList.SetVertexBuffer(0, PolysVertexBuffer);
+			CommandList.SetPipeline(LinesPipeline);
+			CommandList.SetGraphicsResourceSet(0, ViewMatrixSet);
+			CommandList.SetGraphicsResourceSet(1, ModelMatrixSet);
+
+			for (int l = 0; l < polyVertexCount.Length; l++)
+			{
+				CommandList.Draw(polyVertexCount[l], 1, polyFirst[l], 0);
+			}
+
 
 			if (ovpSettings.drawPoints)
 			{
@@ -1101,7 +1186,7 @@ namespace PlaceholderName
 				RasterizerState = new RasterizerStateDescription(
 					cullMode: FaceCullMode.None,
 					fillMode: PolygonFillMode.Solid,
-					frontFace: FrontFace.Clockwise,
+					frontFace: FrontFace.CounterClockwise,
 					depthClipEnabled: false,
 					scissorTestEnabled: false),
 				PrimitiveTopology = PrimitiveTopology.TriangleStrip,

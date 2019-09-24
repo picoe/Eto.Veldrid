@@ -76,29 +76,33 @@ namespace PlaceholderName
 		/// <summary>
 		/// Prepare this VeldridSurface to use a graphics API other than OpenGL.
 		/// </summary>
+
 		public void InitializeOtherApi()
 		{
-			Control.Loaded += (sender, e) =>
-			{
-				// To embed Veldrid in an Eto control, all these platform-specific
-				// versions of InitializeOtherApi use the technique outlined here:
-				//
-				//   https://github.com/mellinoe/veldrid/issues/155
-				//
-				var source = SwapchainSource.CreateWin32(
-					WinFormsControl.Handle,
-					Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
+			Control.Loaded += OneTimeControlInit;
+		}
 
-				Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
-					new SwapchainDescription(
-						source,
-						(uint)RenderWidth,
-						(uint)RenderHeight,
-						PixelFormat.R32_Float,
-						false));
+		private void OneTimeControlInit(object sender, System.Windows.RoutedEventArgs e)
+		{
+			// To embed Veldrid in an Eto control, all these platform-specific
+			// versions of InitializeOtherApi use the technique outlined here:
+			//
+			//   https://github.com/mellinoe/veldrid/issues/155
+			//
+			var source = SwapchainSource.CreateWin32(
+				WinFormsControl.Handle,
+				Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
+			Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
+			new SwapchainDescription(
+				source,
+				(uint)RenderWidth,
+				(uint)RenderHeight,
+				PixelFormat.R32_Float,
+				false));
 
-				Callback.OnVeldridInitialized(Widget, EventArgs.Empty);
-			};
+			Control.Loaded -= OneTimeControlInit;
+
+			Callback.OnVeldridInitialized(Widget, EventArgs.Empty);
 		}
 	}
 

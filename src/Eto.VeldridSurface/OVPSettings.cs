@@ -34,6 +34,7 @@ namespace PlaceholderName
 		public bool selecting;
 		public bool showGrid;
 		public bool showAxes;
+		public bool showDrawn;
 		public int gridSpacing;
 		public Color minorGridColor;
 		public Color majorGridColor;
@@ -45,9 +46,16 @@ namespace PlaceholderName
 		public PointF default_cameraPosition;
 		public bool antiAlias;
 		public List<ovp_Poly> polyList;
+		public List<int> polyListPtCount;
+		public List<int> polySourceIndex; // will eventually track source of polygon, allowing for layer generating, etc. in output.
+		public List<ovp_Poly> bgPolyList;
+		public List<int> bgPolyListPtCount;
+		public List<int> bgPolySourceIndex; // will eventually track source of polygon, allowing for layer generating, etc. in output.
 		public List<ovp_Poly> lineList; // purely for lines.
+		public List<int> lineListPtCount;
+		public List<int> lineSourceIndex; // will eventually track source of polygon, allowing for layer generating, etc. in output.
+		public List<ovp_Poly> tessPolyList; // triangles, but also need to track color. This is decoupled to allow boundary extraction without triangles getting in the way.
 		public List<bool> drawnPoly; // tracks whether the polygon corresponds to an enabled configuration or not.
-		public List<bool> bgPoly; // background polygon
 		public bool lockedViewport;
 
 		public float zoom()
@@ -57,91 +65,126 @@ namespace PlaceholderName
 
 		public void updateColors(Color newColor)
 		{
+			pUpdateColors(newColor);
+		}
+
+		void pUpdateColors(Color newColor)
+		{
 			for (int poly = 0; poly < polyList.Count(); poly++)
 			{
 				polyList[poly].color = newColor;
 			}
+			for (int poly = 0; poly < tessPolyList.Count(); poly++)
+			{
+				tessPolyList[poly].color = newColor;
+			}
 		}
 
-		public void reset()
+		public void reset(bool clearBG = true)
+		{
+			pReset(clearBG);
+		}
+
+		void pReset(bool clearBG)
 		{
 			minX = 0;
 			maxX = 0;
 			minY = 0;
 			maxY = 0;
-			clear();
+			clear(clearBG);
 			drawnPoly.Clear();
-			bgPoly.Clear();
 		}
 
-		public void clear()
+		public void clear(bool clearBG = true)
+		{
+			pClear(clearBG);
+		}
+
+		void pClear(bool clearBG)
 		{
 			polyList.Clear();
+			polySourceIndex.Clear();
+			polyListPtCount.Clear();
+			if (clearBG)
+			{
+				bgPolyList.Clear();
+				bgPolySourceIndex.Clear();
+				bgPolyListPtCount.Clear();
+			}
 			lineList.Clear();
+			lineSourceIndex.Clear();
+			lineListPtCount.Clear();
+			tessPolyList.Clear();
 		}
 
-		public void addLine(PointF[] line, Color lineColor, float alpha)
+		public void addLine(PointF[] line, Color lineColor, float alpha, int layerIndex)
 		{
-			pAddLine(line, lineColor, alpha);
+			pAddLine(line, lineColor, alpha, layerIndex);
 		}
 
-		void pAddLine(PointF[] line, Color lineColor, float alpha)
+		void pAddLine(PointF[] line, Color lineColor, float alpha, int layerIndex)
 		{
 			lineList.Add(new ovp_Poly(line, lineColor, alpha));
+			lineSourceIndex.Add(layerIndex);
+			lineListPtCount.Add((line.Length - 1) * 2);
 		}
 
-		public void addPolygon(PointF[] poly, Color polyColor, float alpha, bool drawn)
+		public void addPolygon(PointF[] poly, Color polyColor, float alpha, bool drawn, int layerIndex)
 		{
-            if (drawn)
-            {
-                // Drawn polygons are to be treated as lines : they don't get filled.
-                addLine(poly, polyColor, alpha);
-            }
-            else
-            {
-                pAddPolygon(poly, polyColor, alpha, drawn);
-            }
-		}
-
-		void pAddPolygon(PointF[] poly, Color polyColor, float alpha, bool drawn)
-		{
-			List<PointF[]> polys = checkPoly(poly);
-			for (int p = 0; p < polys.Count; p++)
+			if (drawn)
 			{
-				pAddPolygon_2(polys[p], polyColor, alpha, drawn);
+				// Drawn polygons are to be treated as lines : they don't get filled.
+				addLine(poly, polyColor, alpha, layerIndex);
+			}
+			else
+			{
+				pAddPolygon(poly, polyColor, alpha, drawn, layerIndex);
 			}
 		}
 
-		void pAddPolygon_2(PointF[] poly, Color polyColor, float alpha, bool drawn)
+		void pAddPolygon(PointF[] poly, Color polyColor, float alpha, bool drawn, int layerIndex)
 		{
+			if (!drawn && enableFilledPolys) // avoid tessellation unless really necessary.
+			{
+				try
+				{
+					tessPoly(poly, polyColor, alpha);
+				}
+				catch (Exception e)
+				{
+
+				}
+			}
+
+			PointF[] polys = checkPoly(poly);
+
 			polyList.Add(new ovp_Poly(poly, polyColor, alpha));
+			polySourceIndex.Add(layerIndex);
+			polyListPtCount.Add(poly.Length);
 			drawnPoly.Add(drawn);
-			bgPoly.Add(false);
 		}
 
-		public void addBGPolygon(PointF[] poly, Color polyColor, float alpha)
+		public void addBGPolygon(PointF[] poly, Color polyColor, float alpha, int layerIndex)
 		{
-			pAddBGPolygon(poly, polyColor, alpha);
+			pAddBGPolygon(poly, polyColor, alpha, layerIndex);
 		}
 
-		void pAddBGPolygon(PointF[] poly, Color polyColor, float alpha)
+		void pAddBGPolygon(PointF[] poly, Color polyColor, float alpha, int layerIndex)
 		{
-			List<PointF[]> polys = checkPoly(poly);
+			PointF[] polys = checkPoly(poly);
 
-			for (int p = 0; p < polys.Count; p++)
-			{
-				pAddBGPolygon_2(polys[p], polyColor, alpha);
-			}
-		}
-
-		void pAddBGPolygon_2(PointF[] poly, Color polyColor, float alpha)
-		{
-			polyList.Add(new ovp_Poly(poly, polyColor, alpha));
-			bgPoly.Add(true);
+			bgPolyList.Add(new ovp_Poly(poly, polyColor, alpha));
+			bgPolyListPtCount.Add(poly.Length);
+			bgPolySourceIndex.Add(layerIndex);
 			drawnPoly.Add(false);
 		}
 
 		public OVPSettings(float defX = 0.0f, float defY = 0.0f)
+		{
+			init(defX, defY);
+		}
+
+		void init(float defX, float defY)
 		{
 			base_zoom = 1.0f;
 			minorGridColor = new Color(1.0f, 0.8f, 0.3f);
@@ -151,8 +194,8 @@ namespace PlaceholderName
 			selectionColor = SystemColors.Highlight;
 			inverSelectionColor = SystemColors.Highlight;
 			allowZoomAndPan = true;
-			enableFilledPolys = true;
-			drawPoints = false;
+			enableFilledPolys = false;
+			drawPoints = true;
 			dynamicGrid = true;
 			panning = false;
 			selecting = false;
@@ -168,10 +211,17 @@ namespace PlaceholderName
 		public void fullReset(float defX = 0.0f, float defY = 0.0f)
 		{
 			default_cameraPosition = new PointF(defX, defY);
+			bgPolyList = new List<ovp_Poly>();
+			bgPolySourceIndex = new List<int>();
+			bgPolyListPtCount = new List<int>();
 			polyList = new List<ovp_Poly>();
+			polySourceIndex = new List<int>();
+			polyListPtCount = new List<int>();
 			lineList = new List<ovp_Poly>();
+			lineSourceIndex = new List<int>();
+			lineListPtCount = new List<int>();
+			tessPolyList = new List<ovp_Poly>();
 			drawnPoly = new List<bool>();
-			bgPoly = new List<bool>();
 			zoomFactor = 1.0f;
 			cameraPosition = new PointF(default_cameraPosition.X, default_cameraPosition.Y);
 		}
@@ -214,10 +264,8 @@ namespace PlaceholderName
 			return iPoints;
 		}
 
-		List<PointF[]> checkPoly(PointF[] poly)
+		PointF[] checkPoly(PointF[] poly)
 		{
-			List<PointF[]> output = new List<PointF[]>();
-
 			PointF[] source = poly.ToArray();
 
 			if ((poly[0].X != poly[poly.Length - 1].X) && (poly[0].Y != poly[poly.Length - 1].Y))
@@ -231,8 +279,13 @@ namespace PlaceholderName
 				source = tempPoly.ToArray();
 			}
 
+			return source;
+		}
+
+		void tessPoly(PointF[] source, Color polyColor, float alpha)
+		{
 			// Now we need to check for polyfill, and triangulate the polygon if needed.
-			if (enableFilledPolys)
+			//if (enableFilledPolys)
 			{
 				var tess = new Tess();
 
@@ -254,15 +307,9 @@ namespace PlaceholderName
 					tempPoly[1] = new PointF((float)tess.Vertices[tess.Elements[(i * 3) + 1]].Position.X, (float)tess.Vertices[tess.Elements[(i * 3) + 1]].Position.Y);
 					tempPoly[2] = new PointF((float)tess.Vertices[tess.Elements[(i * 3) + 2]].Position.X, (float)tess.Vertices[tess.Elements[(i * 3) + 2]].Position.Y);
 
-					output.Add(clockwiseOrder(tempPoly).ToArray());
+					tessPolyList.Add(new ovp_Poly(clockwiseOrder(tempPoly).ToArray(), polyColor, alpha));
 				}
 			}
-			else
-			{
-				output.Add(source.ToArray());
-			}
-
-			return output;
 		}
 	}
 }
