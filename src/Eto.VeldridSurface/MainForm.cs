@@ -75,31 +75,7 @@ namespace PlaceholderName
 			ovpSettings.enableFilledPolys = true;
 			ovpSettings.drawPoints = true;
 
-			PointF[] testPoly = new PointF[6];
-			testPoly[0] = new PointF(2.0f, 2.0f);
-			testPoly[1] = new PointF(15.0f, 12.0f);
-			testPoly[2] = new PointF(8.0f, 24.0f);
-			testPoly[3] = new PointF(8.0f, 15.0f);
-			testPoly[4] = new PointF(3.0f, 2.0f);
-			testPoly[5] = new PointF(2.0f, 2.0f);
-
-
-			PointF[] testPoly2 = new PointF[6];
-			testPoly2[0] = new PointF(12.0f, 2.0f);
-			testPoly2[1] = new PointF(25.0f, 12.0f);
-			testPoly2[2] = new PointF(18.0f, 24.0f);
-			testPoly2[3] = new PointF(18.0f, 15.0f);
-			testPoly2[4] = new PointF(13.0f, 2.0f);
-			testPoly2[5] = new PointF(12.0f, 2.0f);
-
-			ovpSettings.addPolygon(testPoly2, Color.FromArgb(0, 255, 255), 1.0f, true, 1);
-
-			ovpSettings.addPolygon(testPoly, Color.FromArgb(255, 0, 0), 1.0f, true, 2);
-
-			ovpSettings.addPolygon(testPoly2, Color.FromArgb(0, 255, 255), 1.0f, false, 3);
-
-			ovpSettings.addPolygon(testPoly, Color.FromArgb(255, 0, 0), 1.0f, false, 4);
-
+			addPolys();
 
 			Driver = new VeldridDriver(ref ovpSettings, ref Surface)
 			{
@@ -107,6 +83,80 @@ namespace PlaceholderName
 				ExecutableDirectory = executableDirectory,
 				ShaderSubdirectory = shaderSubdirectory
 			};
+		}
+
+		void addPolys()
+		{
+			ovpSettings.clear();
+
+			float r = 0.0f;
+
+			PointF[] testPoly = new PointF[6];
+			testPoly[0] = new PointF(2.0f + r, 2.0f + r);
+			testPoly[1] = new PointF(15.0f + r, 12.0f + r);
+			testPoly[2] = new PointF(8.0f + r, 24.0f + r);
+			testPoly[3] = new PointF(8.0f + r, 15.0f + r);
+			testPoly[4] = new PointF(3.0f + r, 2.0f + r);
+			testPoly[5] = new PointF(2.0f + r, 2.0f + r);
+
+
+			PointF[] testPoly2 = new PointF[6];
+			testPoly2[0] = new PointF(12.0f + r, 2.0f + r);
+			testPoly2[1] = new PointF(25.0f + r, 12.0f + r);
+			testPoly2[2] = new PointF(18.0f + r, 24.0f + r);
+			testPoly2[3] = new PointF(18.0f + r, 15.0f + r);
+			testPoly2[4] = new PointF(13.0f + r, 2.0f + r);
+			testPoly2[5] = new PointF(12.0f + r, 2.0f + r);
+
+			ovpSettings.addPolygon(testPoly2, Color.FromArgb(0, 255, 255), 1.0f, true, 1);
+
+			ovpSettings.addPolygon(testPoly, Color.FromArgb(255, 0, 0), 1.0f, true, 2);
+
+			r = -30.0f;
+
+			PointF[] testPolyF1 = new PointF[6];
+			testPolyF1[0] = new PointF(2.0f + r, 2.0f + r);
+			testPolyF1[1] = new PointF(15.0f + r, 12.0f + r);
+			testPolyF1[2] = new PointF(8.0f + r, 24.0f + r);
+			testPolyF1[3] = new PointF(8.0f + r, 15.0f + r);
+			testPolyF1[4] = new PointF(3.0f + r, 2.0f + r);
+			testPolyF1[5] = new PointF(2.0f + r, 2.0f + r);
+
+			PointF[] testPolyF2 = new PointF[6];
+			testPolyF2[0] = new PointF(12.0f + r, 2.0f + r);
+			testPolyF2[1] = new PointF(25.0f + r, 12.0f + r);
+			testPolyF2[2] = new PointF(18.0f + r, 24.0f + r);
+			testPolyF2[3] = new PointF(18.0f + r, 15.0f + r);
+			testPolyF2[4] = new PointF(13.0f + r, 2.0f + r);
+			testPolyF2[5] = new PointF(12.0f + r, 2.0f + r);
+
+
+			ovpSettings.addPolygon(testPolyF2, Color.FromArgb(0, 255, 255), 1.0f, false, 3);
+
+			ovpSettings.addPolygon(testPolyF1, Color.FromArgb(255, 0, 0), 1.0f, false, 4);
+
+			r = 30.0f;
+
+			PointF[] testPolyBG1 = new PointF[6];
+			testPolyBG1[0] = new PointF(2.0f + r, 2.0f + r);
+			testPolyBG1[1] = new PointF(15.0f + r, 12.0f + r);
+			testPolyBG1[2] = new PointF(8.0f + r, 24.0f + r);
+			testPolyBG1[3] = new PointF(8.0f + r, 15.0f + r);
+			testPolyBG1[4] = new PointF(3.0f + r, 2.0f + r);
+			testPolyBG1[5] = new PointF(2.0f + r, 2.0f + r);
+
+			PointF[] testPolyBG2 = new PointF[6];
+			testPolyBG2[0] = new PointF(12.0f + r, 2.0f + r);
+			testPolyBG2[1] = new PointF(25.0f + r, 12.0f + r);
+			testPolyBG2[2] = new PointF(18.0f + r, 24.0f + r);
+			testPolyBG2[3] = new PointF(18.0f + r, 15.0f + r);
+			testPolyBG2[4] = new PointF(13.0f + r, 2.0f + r);
+			testPolyBG2[5] = new PointF(12.0f + r, 2.0f + r);
+
+
+			ovpSettings.addBGPolygon(testPolyBG2, Color.FromArgb(0, 255, 255), 1.0f, 3);
+
+			ovpSettings.addBGPolygon(testPolyBG1, Color.FromArgb(255, 0, 0), 1.0f, 4);
 		}
 
 		ContextMenu vp_menu;
@@ -299,6 +349,9 @@ namespace PlaceholderName
 			Application.Instance.Invoke(() =>
 			{
 				Monitor.Enter(ovpSettings);
+				// Force a geometry re-add here, just to test the fill system. Wouldn't be necessary in real world cases.
+				addPolys();
+
 				try
 				{
 					createVPContextMenu();
