@@ -9,8 +9,8 @@ namespace PlaceholderName
 {
 	public class WpfVeldridSurfaceHandler : Eto.Wpf.Forms.ManualBubbleWindowsFormsHostHandler<WinVeldridUserControl, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
-		public new VeldridSurface.ICallback Callback => (VeldridSurface.ICallback)base.Callback;
-		public new VeldridSurface Widget => (VeldridSurface)base.Widget;
+		public new VeldridSurface.ICallback Callback => base.Callback;
+		public new VeldridSurface Widget => base.Widget;
 
 		public int RenderWidth => WinFormsControl.Width;
 		public int RenderHeight => WinFormsControl.Height;
@@ -111,7 +111,7 @@ namespace PlaceholderName
 		[STAThread]
 		public static void Main(string[] args)
 		{
-			GraphicsBackend backend = VeldridSurface.PreferredBackend;
+			GraphicsBackend backend = GraphicsBackend.Direct3D11;// VeldridSurface.PreferredBackend;
 
 			if (backend == GraphicsBackend.OpenGL)
 			{

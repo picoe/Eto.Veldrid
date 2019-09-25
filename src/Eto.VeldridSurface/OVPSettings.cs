@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Eto.Drawing;
+﻿using Eto.Drawing;
 using Eto.Forms;
 using LibTessDotNet.Double;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace PlaceholderName
 {
@@ -150,7 +150,7 @@ namespace PlaceholderName
 				{
 					tessPoly(poly, polyColor, alpha);
 				}
-				catch (Exception e)
+				catch (Exception)
 				{
 
 				}

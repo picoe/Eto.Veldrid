@@ -174,8 +174,8 @@ namespace PlaceholderName
 
 		PointF ScreenToWorld(int x, int y)
 		{
-			return new PointF((float)(x - Surface.RenderWidth / 2) * (ovpSettings.zoomFactor * ovpSettings.base_zoom) + ovpSettings.cameraPosition.X,
-					 (float)(y - Surface.RenderHeight / 2) * (ovpSettings.zoomFactor * ovpSettings.base_zoom) + ovpSettings.cameraPosition.Y);
+			return new PointF((x - Surface.RenderWidth / 2) * (ovpSettings.zoomFactor * ovpSettings.base_zoom) + ovpSettings.cameraPosition.X,
+					 (y - Surface.RenderHeight / 2) * (ovpSettings.zoomFactor * ovpSettings.base_zoom) + ovpSettings.cameraPosition.Y);
 		}
 
 		PointF ScreenToWorld(Point pt)
@@ -197,7 +197,7 @@ namespace PlaceholderName
 			ovpSettings.cameraPosition = new PointF((x1 + x2) / 2, (y1 + y2) / 2);
 			if ((Surface.Height != 0) && (Surface.Width != 0))
 			{
-				ovpSettings.zoomFactor = Math.Max(h / (float)(Surface.Height), w / (float)(Surface.Width));
+				ovpSettings.zoomFactor = Math.Max(h / Surface.Height, w / Surface.Width);
 			}
 			else
 			{
@@ -294,8 +294,8 @@ namespace PlaceholderName
 				object locking = new object();
 				lock (locking)
 				{
-					float new_X = (ovpSettings.cameraPosition.X - (((float)e.Location.X - x_orig) * ovpSettings.zoomFactor));
-					float new_Y = (ovpSettings.cameraPosition.Y + (((float)e.Location.Y - y_orig) * ovpSettings.zoomFactor));
+					float new_X = (ovpSettings.cameraPosition.X - ((e.Location.X - x_orig) * ovpSettings.zoomFactor));
+					float new_Y = (ovpSettings.cameraPosition.Y + ((e.Location.Y - y_orig) * ovpSettings.zoomFactor));
 					ovpSettings.cameraPosition = new PointF(new_X, new_Y);
 					x_orig = e.Location.X;
 					y_orig = e.Location.Y;
@@ -590,17 +590,17 @@ namespace PlaceholderName
 
 				if (ovpSettings.enableFilledPolys)
 				{
-					for (int i = 0; i < tessPolyListCount; i++)
+					for (int poly = 0; poly < tessPolyListCount; poly++)
 					{
-						tessFirst[i] = (ushort)(i * 3);
-						float alpha = ovpSettings.tessPolyList[i].alpha;
+						tessFirst[poly] = (ushort)(poly * 3);
+						float alpha = ovpSettings.tessPolyList[poly].alpha;
 						polyZ += polyZStep;
-						for (int j = 0; j < 3; j++)
+						for (int pt = 0; pt < 3; pt++)
 						{
-							tessPolyList.Add(new VertexPositionColor(new Vector3(ovpSettings.tessPolyList[i].poly[j].X, ovpSettings.tessPolyList[i].poly[j].Y, polyZ),
-												new RgbaFloat(ovpSettings.tessPolyList[i].color.R, ovpSettings.tessPolyList[i].color.G, ovpSettings.tessPolyList[i].color.B, alpha)));
+							tessPolyList.Add(new VertexPositionColor(new Vector3(ovpSettings.tessPolyList[poly].poly[pt].X, ovpSettings.tessPolyList[poly].poly[pt].Y, polyZ),
+												new RgbaFloat(ovpSettings.tessPolyList[poly].color.R, ovpSettings.tessPolyList[poly].color.G, ovpSettings.tessPolyList[poly].color.B, alpha)));
 						}
-						tessVertexCount[i] = 3;
+						tessVertexCount[poly] = 3;
 					}
 				}
 
@@ -633,7 +633,7 @@ namespace PlaceholderName
 				{
 					float alpha = ovpSettings.bgPolyList[poly].alpha;
 					polyZ += polyZStep;
-					polyFirst[poly] = (ushort)counter;
+					polyFirst[poly + polyListCount] = (ushort)counter;
 					previouscounter = counter;
 
 					int bgPolyLength = ovpSettings.bgPolyList[poly].poly.Length - 1;
@@ -659,7 +659,10 @@ namespace PlaceholderName
 			}
 
 			updateBuffer(ref PolysVertexBuffer, polyArray, VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer);
-			updateBuffer(ref TessVertexBuffer, tessArray, VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer);
+			if (tessArray.Length > 0)
+			{
+				updateBuffer(ref TessVertexBuffer, tessArray, VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer);
+			}
 		}
 
 		void drawLines()

@@ -1,7 +1,5 @@
 ﻿using Eto.Forms;
 using Eto.GtkSharp.Forms;
-using Gdk;
-using Gtk;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Platform;
@@ -107,7 +105,7 @@ namespace PlaceholderName
 					GLX_NONE
 				});
 			}
-			catch(DllNotFoundException e)
+			catch (DllNotFoundException e)
 			{
 				throw new DllNotFoundException("OpenGL library not found!", e);
 			}
@@ -184,8 +182,8 @@ namespace PlaceholderName
 
 	public class GtkVeldridSurfaceHandler : GtkControl<GtkVeldridDrawingArea, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
-		public new VeldridSurface.ICallback Callback => (VeldridSurface.ICallback)base.Callback;
-		public new VeldridSurface Widget => (VeldridSurface)base.Widget;
+		public new VeldridSurface.ICallback Callback => base.Callback;
+		public new VeldridSurface Widget => base.Widget;
 
 		// TODO: Find out if Gtk2 even supports different DPI settings, and if
 		// so test it out and get this to return the correct values.

@@ -63,8 +63,8 @@ namespace PlaceholderName
 
 	public class WinFormsVeldridSurfaceHandler : WindowsControl<WinVeldridUserControl, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
-		public new VeldridSurface.ICallback Callback => (VeldridSurface.ICallback)base.Callback;
-		public new VeldridSurface Widget => (VeldridSurface)base.Widget;
+		public new VeldridSurface.ICallback Callback => base.Callback;
+		public new VeldridSurface Widget => base.Widget;
 
 		public int RenderWidth => Control.Width;
 		public int RenderHeight => Control.Height;

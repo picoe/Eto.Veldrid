@@ -79,8 +79,8 @@ namespace PlaceholderName
 
 	public class MacVeldridSurfaceHandler : MacView<MacVeldridView, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
-		public new VeldridSurface.ICallback Callback => (VeldridSurface.ICallback)base.Callback;
-		public new VeldridSurface Widget => (VeldridSurface)base.Widget;
+		public new VeldridSurface.ICallback Callback => base.Callback;
+		public new VeldridSurface Widget => base.Widget;
 
 		// TODO: Set up some way to test HiDPI in macOS and figure out how to
 		// get the right values here.
