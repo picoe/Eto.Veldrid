@@ -27,7 +27,7 @@ csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = false
 
 csharp_style_expression_bodied_accessors = false:suggestion
-csharp_style_expression_bodied_methods = false:suggestion
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
 csharp_style_expression_bodied_properties = when_on_single_line:suggestion
 
 csharp_style_inlined_variable_declaration = true:suggestion

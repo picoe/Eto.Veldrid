@@ -21,54 +21,47 @@ namespace PlaceholderName
 	/// </remarks>
 	public static class VeldridGL
 	{
-		public static IntPtr GetGLContextHandle()
-		{
-			return GetCurrentContext();
-		}
+		static readonly GraphicsContext.GetAddressDelegate _getProcAddress;
 
-		// It should be noted that both GetProcAddress and MakeCurrent aren't
-		// exactly following best practices here; they depend on a private
-		// method and field, respectively, to grant Veldrid access to OpenTK's
-		// internals. It's not pretty, but since this Eto integration was
-		// designed specifically with OpenTK 3.0.1 in mind, sticking with that
-		// version will guarantee that anything private will stay where it is.
-
-		public static IntPtr GetProcAddress(string name)
+		static VeldridGL()
 		{
+			// Depending on a private method like CreateGetAddress is hardly in
+			// line with best practices, but it's the only way to grant Veldrid
+			// access to OpenTK's internals. It's not pretty, but this Eto
+			// integration was designed specifically for OpenTK 3.x, so sticking
+			// to that branch should ensure private things stay where they are.
 			Type type = typeof(OpenTK.Platform.Utilities);
-
 			MethodInfo createGetAddress = type.GetMethod("CreateGetAddress", BindingFlags.NonPublic | BindingFlags.Static);
-			var getAddress = (GraphicsContext.GetAddressDelegate)createGetAddress.Invoke(null, Array.Empty<string>());
-
-			return getAddress.Invoke(name);
+			_getProcAddress = (GraphicsContext.GetAddressDelegate)createGetAddress.Invoke(null, Array.Empty<string>());
 		}
 
-		public static IntPtr GetCurrentContext()
-		{
-			return GraphicsContext.CurrentContextHandle.Handle;
-		}
+		// TODO: Find out if this is correct! The docs just say that the
+		// 'openGLContextHandle' parameter of an OpenGLPlatformInfo is, and I
+		// quote, "The OpenGL context handle", which isn't terribly helpful. Doing
+		// this seems to work, but then if all Veldrid needs is the current
+		// context, it could use the method I specify for GetCurrentContext,
+		// couldn't it? There must be more to this.
+		public static IntPtr GetGLContextHandle() => GetCurrentContext();
 
-		public static void ClearCurrentContext()
-		{
-			GraphicsContext.CurrentContext.MakeCurrent(null);
-		}
+		public static IntPtr GetProcAddress(string name) => _getProcAddress.Invoke(name);
+
+		public static IntPtr GetCurrentContext() => GraphicsContext.CurrentContextHandle.Handle;
+
+		public static void ClearCurrentContext() => GraphicsContext.CurrentContext.MakeCurrent(null);
 
 		public static void DeleteContext(IntPtr context)
 		{
+			// TODO: Update this! Eto.Gl/Eto.OpenTK is no longer in use, so I'll need
+			// to dispose the specified context manually. I think.
+
 			// Do nothing! With this Eto.Gl-based approach, Veldrid should never
 			// need to destroy an OpenGL context on its own; let the GLSurface
 			// take care of context deletion upon its own disposal.
 		}
 
-		public static void SwapBuffers()
-		{
-			GraphicsContext.CurrentContext.SwapBuffers();
-		}
+		public static void SwapBuffers() => GraphicsContext.CurrentContext.SwapBuffers();
 
-		public static void SetVSync(bool on)
-		{
-			GraphicsContext.CurrentContext.SwapInterval = on ? 1 : 0;
-		}
+		public static void SetVSync(bool on) => GraphicsContext.CurrentContext.SwapInterval = on ? 1 : 0;
 
 		// It's perfectly acceptable to create an instance of OpenGLPlatformInfo
 		// without providing these last two methods, if indeed you don't need

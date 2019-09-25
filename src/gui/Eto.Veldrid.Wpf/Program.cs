@@ -9,9 +9,6 @@ namespace PlaceholderName
 {
 	public class WpfVeldridSurfaceHandler : Eto.Wpf.Forms.ManualBubbleWindowsFormsHostHandler<WinVeldridUserControl, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
-		public new VeldridSurface.ICallback Callback => (VeldridSurface.ICallback)base.Callback;
-		public new VeldridSurface Widget => (VeldridSurface)base.Widget;
-
 		public int RenderWidth => WinFormsControl.Width;
 		public int RenderHeight => WinFormsControl.Height;
 

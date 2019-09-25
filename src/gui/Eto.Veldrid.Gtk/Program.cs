@@ -17,8 +17,8 @@ namespace PlaceholderName
 		const string
 			libX11_name = "libX11",
 			linux_libgdk_x11_name = "libgdk-x11-2.0.so.0",
-			linux_libgl_name = "libGL.so.1",
-			linux_libx11_name = "libX11.so.6";
+			linux_libGL_name = "libGL.so.1",
+			linux_libX11_name = "libX11.so.6";
 
 		public enum XVisualClass
 		{
@@ -44,10 +44,7 @@ namespace PlaceholderName
 			public int ColormapSize;
 			public int BitsPerRgb;
 
-			public override string ToString()
-			{
-				return $"VisualID {VisualID}, Screen {Screen}, Depth {Depth}, Class {Class}";
-			}
+			public override string ToString() => $"VisualID {VisualID}, Screen {Screen}, Depth {Depth}, Class {Class}";
 		}
 
 		[Flags]
@@ -107,7 +104,7 @@ namespace PlaceholderName
 					GLX_NONE
 				});
 			}
-			catch(DllNotFoundException e)
+			catch (DllNotFoundException e)
 			{
 				throw new DllNotFoundException("OpenGL library not found!", e);
 			}
@@ -117,20 +114,20 @@ namespace PlaceholderName
 			}
 		}
 
-		[DllImport(libX11_name, EntryPoint = ("XGetVisualInfo"))]
-		static public extern IntPtr XGetVisualInfo(IntPtr display, IntPtr vinfo_mask, ref XVisualInfo vinfo_template, out int nitems_return);
-
 		[DllImport(linux_libgdk_x11_name)]
 		static public extern IntPtr gdk_x11_display_get_xdisplay(IntPtr gdkDisplay);
 
 		[DllImport(linux_libgdk_x11_name)]
 		static public extern IntPtr gdk_x11_drawable_get_xid(IntPtr gdkDisplay);
 
-		[DllImport(linux_libgl_name)]
+		[DllImport(linux_libGL_name)]
 		static public extern IntPtr glXChooseVisual(IntPtr display, int screen, int[] attr);
 
-		[DllImport(linux_libx11_name)]
+		[DllImport(linux_libX11_name)]
 		static public extern void XFree(IntPtr handle);
+
+		[DllImport(libX11_name, EntryPoint = "XGetVisualInfo")]
+		static public extern IntPtr XGetVisualInfo(IntPtr display, IntPtr vinfo_mask, ref XVisualInfo vinfo_template, out int nitems_return);
 	}
 
 	public class GtkVeldridDrawingArea : DrawingArea
@@ -184,9 +181,6 @@ namespace PlaceholderName
 
 	public class GtkVeldridSurfaceHandler : GtkControl<GtkVeldridDrawingArea, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
-		public new VeldridSurface.ICallback Callback => (VeldridSurface.ICallback)base.Callback;
-		public new VeldridSurface Widget => (VeldridSurface)base.Widget;
-
 		// TODO: Find out if Gtk2 even supports different DPI settings, and if
 		// so test it out and get this to return the correct values.
 		public int RenderWidth => Widget.Width;

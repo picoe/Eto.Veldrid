@@ -4,10 +4,10 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Platform;
 using System;
+using System.Diagnostics;
+using System.IO;
 using Veldrid;
 using Veldrid.OpenGL;
-using System.IO;
-using System.Diagnostics;
 
 #if MONOMAC
 using MonoMac.AppKit;
@@ -21,15 +21,9 @@ namespace PlaceholderName
 {
 	public class MacVeldridView : NSView, IMacControl
 	{
-		public override bool AcceptsFirstMouse(NSEvent theEvent)
-		{
-			return CanFocus;
-		}
+		public override bool AcceptsFirstMouse(NSEvent theEvent) => CanFocus;
 
-		public override bool AcceptsFirstResponder()
-		{
-			return CanFocus;
-		}
+		public override bool AcceptsFirstResponder() => CanFocus;
 
 		public bool CanFocus { get; set; } = true;
 
@@ -79,9 +73,6 @@ namespace PlaceholderName
 
 	public class MacVeldridSurfaceHandler : MacView<MacVeldridView, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
-		public new VeldridSurface.ICallback Callback => (VeldridSurface.ICallback)base.Callback;
-		public new VeldridSurface Widget => (VeldridSurface)base.Widget;
-
 		// TODO: Set up some way to test HiDPI in macOS and figure out how to
 		// get the right values here.
 		public int RenderWidth => Widget.Width;
