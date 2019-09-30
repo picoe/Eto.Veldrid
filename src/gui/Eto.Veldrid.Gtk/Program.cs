@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using Veldrid;
 using Veldrid.OpenGL;
 
-namespace PlaceholderName
+namespace VeldridEto
 {
 	internal static class X11Interop
 	{

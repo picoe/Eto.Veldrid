@@ -17,7 +17,7 @@ using AppKit;
 using CoreGraphics;
 #endif
 
-namespace PlaceholderName
+namespace VeldridEto
 {
 	public class MacVeldridView : NSView, IMacControl
 	{

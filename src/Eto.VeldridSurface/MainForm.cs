@@ -4,7 +4,7 @@ using System;
 using System.Threading;
 using Veldrid;
 
-namespace PlaceholderName
+namespace VeldridEto
 {
 	public partial class MainForm : Form
 	{

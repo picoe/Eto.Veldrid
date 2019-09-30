@@ -9,7 +9,7 @@ using Veldrid;
 // TODO: Come up with a suitable namespace. Eto.Veldrid will conflict with the
 // global Veldrid, and Eto.VeldridSurface makes the VeldridSurface class harder
 // to use. Suggestions welcome!
-namespace PlaceholderName
+namespace VeldridEto
 {
 	/// <summary>
 	/// A collection of helper methods to grant Veldrid access to an OpenGL context.

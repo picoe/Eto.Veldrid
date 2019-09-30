@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace PlaceholderName
+namespace VeldridEto
 {
 	public static class errorReporter
 	{

@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using Veldrid;
 using Veldrid.SPIRV;
 
-namespace PlaceholderName
+namespace VeldridEto
 {
 	public struct VertexPositionColor
 	{

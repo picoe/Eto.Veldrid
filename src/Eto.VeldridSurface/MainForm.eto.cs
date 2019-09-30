@@ -1,7 +1,7 @@
 using Eto.Drawing;
 using Eto.Forms;
 
-namespace PlaceholderName
+namespace VeldridEto
 {
 	public partial class MainForm : Form
 	{

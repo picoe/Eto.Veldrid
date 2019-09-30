@@ -8,7 +8,7 @@ using System.Windows.Forms;
 using Veldrid;
 using Veldrid.OpenGL;
 
-namespace PlaceholderName
+namespace VeldridEto
 {
 	public class WinVeldridUserControl : UserControl
 	{

@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using Veldrid;
 using Veldrid.OpenGL;
 
-namespace PlaceholderName
+namespace VeldridEto
 {
 	public class WpfVeldridSurfaceHandler : Eto.Wpf.Forms.ManualBubbleWindowsFormsHostHandler<WinVeldridUserControl, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
