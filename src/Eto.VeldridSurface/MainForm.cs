@@ -131,7 +131,7 @@ namespace VeldridEto
 			testPolyF2[5] = new PointF(12.0f + r, 2.0f + r);
 
 
-			ovpSettings.addPolygon(testPolyF2, Color.FromArgb(0, 255, 255), 1.0f, false, 3);
+			ovpSettings.addPolygon(testPolyF2, Color.FromArgb(0, 255, 255), 0.5f, false, 3);
 
 			ovpSettings.addPolygon(testPolyF1, Color.FromArgb(255, 0, 0), 1.0f, false, 4);
 

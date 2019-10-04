@@ -1181,7 +1181,7 @@ namespace VeldridEto
 
 			FilledPipeline = factory.CreateGraphicsPipeline(new GraphicsPipelineDescription
 			{
-				BlendState = BlendStateDescription.SingleOverrideBlend,
+				BlendState = BlendStateDescription.SingleAlphaBlend,
 				DepthStencilState = new DepthStencilStateDescription(
 					depthTestEnabled: false,
 					depthWriteEnabled: false,
