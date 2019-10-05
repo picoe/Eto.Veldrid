@@ -1032,10 +1032,13 @@ namespace VeldridEto
 		{
 			ResourceFactory factory = Surface.GraphicsDevice.ResourceFactory;
 
+			// Veldrid.SPIRV as of 1.0.12 uses "vdspv_X_Y" as the naming scheme
+			// for uniform blocks, where X is the set and Y is the binding, as
+			// defined in your GLSL shader code.
 			ResourceLayout viewMatrixLayout = factory.CreateResourceLayout(
 				new ResourceLayoutDescription(
 					new ResourceLayoutElementDescription(
-						"ViewMatrix",
+						"vdspv_0_0",
 						ResourceKind.UniformBuffer,
 						ShaderStages.Vertex)));
 
@@ -1045,10 +1048,13 @@ namespace VeldridEto
 			ViewMatrixSet = factory.CreateResourceSet(new ResourceSetDescription(
 				viewMatrixLayout, ViewBuffer));
 
+			// Veldrid.SPIRV as of 1.0.12 uses "vdspv_X_Y" as the naming scheme
+			// for uniform blocks, where X is the set and Y is the binding, as
+			// defined in your GLSL shader code.
 			ResourceLayout modelMatrixLayout = factory.CreateResourceLayout(
 				new ResourceLayoutDescription(
 					new ResourceLayoutElementDescription(
-						"ModelMatrix",
+						"vdspv_1_0",
 						ResourceKind.UniformBuffer,
 						ShaderStages.Vertex)));
 

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TopLevelDirectory>$(MSBuildThisFileDirectory)</TopLevelDirectory>
     <ShaderOutputPath>$(TopLevelDirectory)src\shaders\</ShaderOutputPath>
-    <VeldridSpirvVersion>1.0.9</VeldridSpirvVersion>
+    <VeldridSpirvVersion>1.0.12</VeldridSpirvVersion>
   </PropertyGroup>
   
 </Project>
