@@ -174,47 +174,6 @@ namespace PlaceholderName
 
 		private void CreateResources()
 		{
-			ResourceFactory factory = Surface.GraphicsDevice.ResourceFactory;
-
-			ResourceLayout modelMatrixLayout = factory.CreateResourceLayout(
-				new ResourceLayoutDescription(
-					new ResourceLayoutElementDescription(
-						"ModelMatrix",
-						ResourceKind.UniformBuffer,
-						ShaderStages.Vertex)));
-
-			ModelBuffer = factory.CreateBuffer(
-				new BufferDescription(64, BufferUsage.UniformBuffer));
-
-			ModelMatrixSet = factory.CreateResourceSet(new ResourceSetDescription(
-				modelMatrixLayout, ModelBuffer));
-
-			VertexPositionColor[] quadVertices =
-			{
-				new VertexPositionColor(new Vector2(-.75f, -.75f), RgbaFloat.Red),
-				new VertexPositionColor(new Vector2(.75f, -.75f), RgbaFloat.Green),
-				new VertexPositionColor(new Vector2(-.75f, .75f), RgbaFloat.Blue),
-				new VertexPositionColor(new Vector2(.75f, .75f), RgbaFloat.Yellow)
-			};
-
-			ushort[] quadIndices = { 0, 1, 2, 3 };
-
-			VertexBuffer = factory.CreateBuffer(new BufferDescription(4 * VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer));
-			IndexBuffer = factory.CreateBuffer(new BufferDescription(4 * sizeof(ushort), BufferUsage.IndexBuffer));
-
-			Surface.GraphicsDevice.UpdateBuffer(VertexBuffer, 0, quadVertices);
-			Surface.GraphicsDevice.UpdateBuffer(IndexBuffer, 0, quadIndices);
-
-			// Veldrid.SPIRV, when cross-compiling to HLSL, will always produce
-			// TEXCOORD semantics; VertexElementSemantic.TextureCoordinate thus
-			// becomes necessary to let D3D11 work alongside Vulkan and OpenGL.
-			//
-			//   https://github.com/mellinoe/veldrid/issues/121
-			//
-			var vertexLayout = new VertexLayoutDescription(
-				new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2),
-				new VertexElementDescription("Color", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4));
-
 			// Veldrid.SPIRV is an additional library that complements Veldrid
 			// by simplifying the development of cross-backend shaders, and is
 			// currently the recommended approach to doing so:
@@ -257,9 +216,53 @@ namespace PlaceholderName
 					break;
 			}
 
+			ResourceFactory factory = Surface.GraphicsDevice.ResourceFactory;
+
 			var vertex = new ShaderDescription(ShaderStages.Vertex, vertexShaderSpirvBytes, "main", true);
 			var fragment = new ShaderDescription(ShaderStages.Fragment, fragmentShaderSpirvBytes, "main", true);
 			Shader[] shaders = factory.CreateFromSpirv(vertex, fragment, options);
+
+			// Veldrid.SPIRV as of 1.0.12 uses "vdspv_X_Y" as the naming scheme
+			// for uniform blocks, where X is the set and Y is the binding, as
+			// defined in your GLSL shader code.
+			ResourceLayout modelMatrixLayout = factory.CreateResourceLayout(
+				new ResourceLayoutDescription(
+					new ResourceLayoutElementDescription(
+						"vdspv_0_0",
+						ResourceKind.UniformBuffer,
+						ShaderStages.Vertex)));
+
+			ModelBuffer = factory.CreateBuffer(
+				new BufferDescription(64, BufferUsage.UniformBuffer));
+
+			ModelMatrixSet = factory.CreateResourceSet(new ResourceSetDescription(
+				modelMatrixLayout, ModelBuffer));
+
+			VertexPositionColor[] quadVertices =
+			{
+				new VertexPositionColor(new Vector2(-.75f, -.75f), RgbaFloat.Red),
+				new VertexPositionColor(new Vector2(.75f, -.75f), RgbaFloat.Green),
+				new VertexPositionColor(new Vector2(-.75f, .75f), RgbaFloat.Blue),
+				new VertexPositionColor(new Vector2(.75f, .75f), RgbaFloat.Yellow)
+			};
+
+			ushort[] quadIndices = { 0, 1, 2, 3 };
+
+			VertexBuffer = factory.CreateBuffer(new BufferDescription(4 * VertexPositionColor.SizeInBytes, BufferUsage.VertexBuffer));
+			IndexBuffer = factory.CreateBuffer(new BufferDescription(4 * sizeof(ushort), BufferUsage.IndexBuffer));
+
+			Surface.GraphicsDevice.UpdateBuffer(VertexBuffer, 0, quadVertices);
+			Surface.GraphicsDevice.UpdateBuffer(IndexBuffer, 0, quadIndices);
+
+			// Veldrid.SPIRV, when cross-compiling to HLSL, will always produce
+			// TEXCOORD semantics; VertexElementSemantic.TextureCoordinate thus
+			// becomes necessary to let D3D11 work alongside Vulkan and OpenGL.
+			//
+			//   https://github.com/mellinoe/veldrid/issues/121
+			//
+			var vertexLayout = new VertexLayoutDescription(
+				new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2),
+				new VertexElementDescription("Color", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4));
 
 			Pipeline = factory.CreateGraphicsPipeline(new GraphicsPipelineDescription
 			{
