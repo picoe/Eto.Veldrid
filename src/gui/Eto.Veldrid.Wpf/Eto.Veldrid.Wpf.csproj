@@ -7,8 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\Eto.Veldrid.WinForms\WinFormsVeldrid.cs" Link="WinFormsVeldrid.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\Eto.VeldridSurface\Eto.VeldridSurface.csproj" />
-    <ProjectReference Include="..\Eto.Veldrid.WinForms\Eto.Veldrid.WinForms.csproj" />
   </ItemGroup>
 
   <ItemGroup>

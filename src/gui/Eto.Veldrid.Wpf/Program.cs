@@ -4,6 +4,7 @@ using System;
 using System.Runtime.InteropServices;
 using Veldrid;
 using Veldrid.OpenGL;
+using VeldridEtoWinForms;
 
 namespace VeldridEto
 {
