@@ -88,6 +88,8 @@ namespace VeldridEto
 		void addPolys()
 		{
 			ovpSettings.clear();
+			ovpSettings.showDrawn = true;
+			ovpSettings.drawPoints = true;
 
 			float r = 0.0f;
 
