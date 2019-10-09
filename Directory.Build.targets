@@ -9,15 +9,17 @@
   run on, so a set of booleans ensures the right files get copied. -->
   <PropertyGroup>
     <IsWindowsProject>false</IsWindowsProject>
-    <IsWindowsProject Condition="$(MSBuildProjectName) == 'Eto.Veldrid.WinForms'">true</IsWindowsProject>
-    <IsWindowsProject Condition="$(MSBuildProjectName) == 'Eto.Veldrid.Wpf'">true</IsWindowsProject>
+    <IsWindowsProject Condition="$(MSBuildProjectName.Contains('Wpf'))">true</IsWindowsProject>
+    <IsWindowsProject Condition="$(MSBuildProjectName.Contains('WinForms'))">true</IsWindowsProject>
 
     <IsLinuxProject>false</IsLinuxProject>
-    <IsLinuxProject Condition="$(MSBuildProjectName) == 'Eto.Veldrid.Gtk'">true</IsLinuxProject>
+    <IsLinuxProject Condition="$(MSBuildProjectName.Contains('Gtk'))">true</IsLinuxProject>
 
     <IsMacProject>false</IsMacProject>
-    <IsMacProject Condition="$(MSBuildProjectName) == 'Eto.Veldrid.Mac'">true</IsMacProject>
-    <IsMacProject Condition="$(MSBuildProjectName) == 'Eto.Veldrid.XamMac'">true</IsMacProject>
+    <IsMacProject Condition="$(MSBuildProjectName.Contains('Mac'))">true</IsMacProject>
+
+    <IsExe>false</IsExe>
+    <IsExe Condition="$(IsWindowsProject) or $(IsLinuxProject) or $(IsMacProject)">true</IsExe>
   </PropertyGroup>
 
   <PropertyGroup Condition="$(IsWindowsProject)">
@@ -48,21 +50,13 @@
     </PropertyGroup>
   </Target>
 
-  <PropertyGroup>
-    <NoCopyVeldridSpirvNative>Eto.VeldridSurface</NoCopyVeldridSpirvNative>
-  </PropertyGroup>
-
-  <Target Name="CopyVeldridSpirvNative" AfterTargets="SetPaths" BeforeTargets="NeatenizeLibraries" Condition="!$(NoCopyVeldridSpirvNative.Contains($(MSBuildProjectName)))">
+  <Target Name="CopyVeldridSpirvNative" AfterTargets="SetPaths" BeforeTargets="NeatenizeLibraries" Condition="$(IsExe)">
     <Copy
       SourceFiles="$([MSBuild]::EnsureTrailingSlash('$(NuGetPackageRoot)'))veldrid.spirv\$(VeldridSpirvVersion)\runtimes\$(RuntimeID)\native\$(VeldridSpirvNativeName)"
       DestinationFolder="$(VeldridSpirvNativePath)" />
   </Target>
 
-  <PropertyGroup>
-    <NoNeatenize>Eto.VeldridSurface</NoNeatenize>
-  </PropertyGroup>
-
-  <Target Name="NeatenizeLibraries" AfterTargets="CopyVeldridSpirvNative" Condition="!$(NoNeatenize.Contains($(MSBuildProjectName)))">
+  <Target Name="NeatenizeLibraries" AfterTargets="CopyVeldridSpirvNative" Condition= "$(IsExe)">
     <ItemGroup>
       <Uglies Include="$(NeatenizePath)*" />
       <Uglies Remove="$(NeatenizePath)$(AssemblyName).exe" />
@@ -73,11 +67,7 @@
     <Move SourceFiles="@(Uglies)" DestinationFolder="$(NeatenizePath)lib" />
   </Target>
 
-  <PropertyGroup>
-    <NoCopyShaders>Eto.VeldridSurface</NoCopyShaders>
-  </PropertyGroup>
-
-  <Target Name="CopyShaders" AfterTargets="NeatenizeLibraries" Condition="!$(NoCopyShaders.Contains($(MSBuildProjectName)))">
+  <Target Name="CopyShaders" AfterTargets="NeatenizeLibraries" Condition= "$(IsExe)">
     <ItemGroup>
       <Shaders Include="$(TopLevelDirectory)src\shaders\**\*" />
     </ItemGroup>
