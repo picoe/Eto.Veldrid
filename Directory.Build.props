@@ -6,4 +6,25 @@
     <VeldridSpirvVersion>1.0.12</VeldridSpirvVersion>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <BuildOS Condition="$([MSBuild]::IsOsPlatform(`Windows`)) == true">Windows</BuildOS>
+    <BuildOS Condition="$([MSBuild]::IsOsPlatform(`Linux`)) == true">Linux</BuildOS>
+    <BuildOS Condition="$([MSBuild]::IsOsPlatform(`OSX`)) == true">macOS</BuildOS>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(BuildOS) == 'Windows'">
+    <RuntimeID>win-x64</RuntimeID>
+    <VeldridSpirvNativeName>libveldrid-spirv.dll</VeldridSpirvNativeName>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(BuildOS) == 'Linux'">
+    <RuntimeID>linux-x64</RuntimeID>
+    <VeldridSpirvNativeName>libveldrid-spirv.so</VeldridSpirvNativeName>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(BuildOS) == 'macOS'">
+    <RuntimeID>osx-x64</RuntimeID>
+    <VeldridSpirvNativeName>libveldrid-spirv.dylib</VeldridSpirvNativeName>
+  </PropertyGroup>
+
 </Project>

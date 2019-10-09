@@ -35,7 +35,6 @@ namespace PlaceholderName
 		public GraphicsContext Context { get; private set; }
 
 		public event EventHandler Draw;
-		public event EventHandler OpenGLContextCreated;
 
 		public void CreateOpenGLContext()
 		{

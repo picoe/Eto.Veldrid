@@ -14,4 +14,13 @@
     <ProjectReference Include="..\..\Eto.VeldridSurface\Eto.VeldridSurface.csproj" />
   </ItemGroup>
 
+  <!--Eto's MacTemplate.targets file doesn't automatically pack native .dylib
+  libraries into the monolithic executable produced by mkbundle. Luckily, it
+  respects existing values of MkBundleArgs by appending instead of replacing.-->
+  <Target Name="SetMkBundleArgs" BeforeTargets="MacBundleMono" Condition="$(MacBundleMono) == true">
+    <PropertyGroup>
+      <MkBundleArgs>--simple --library "$(OutputPath)$(VeldridSpirvNativeName)"</MkBundleArgs>
+    </PropertyGroup>
+  </Target>
+
 </Project>
