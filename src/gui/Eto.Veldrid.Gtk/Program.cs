@@ -152,7 +152,7 @@ namespace PlaceholderName
 			{
 				var info = new X11Interop.XVisualInfo { VisualID = Mode.Index.Value };
 
-				visualInfo = X11Interop.XGetVisualInfo(display, (IntPtr)(int)X11Interop.XVisualInfoMask.ID, ref info, out int dummy);
+				visualInfo = X11Interop.XGetVisualInfo(display, (IntPtr)(int)X11Interop.XVisualInfoMask.ID, ref info, out _);
 			}
 			else
 			{

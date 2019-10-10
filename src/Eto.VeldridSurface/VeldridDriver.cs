@@ -73,18 +73,18 @@ namespace PlaceholderName
 			Speed += (int)e.Delta.Height;
 		}
 
-		public UITimer Clock = new UITimer();
+		public UITimer Clock { get; } = new UITimer();
 
-		public CommandList CommandList;
-		public DeviceBuffer VertexBuffer;
-		public DeviceBuffer IndexBuffer;
-		public Shader VertexShader;
-		public Shader FragmentShader;
-		public Pipeline Pipeline;
+		public CommandList CommandList { get; private set; }
+		public DeviceBuffer VertexBuffer { get; private set; }
+		public DeviceBuffer IndexBuffer { get; private set; }
+		public Shader VertexShader { get; private set; }
+		public Shader FragmentShader { get; private set; }
+		public Pipeline Pipeline { get; private set; }
 
-		public Matrix4x4 ModelMatrix = Matrix4x4.Identity;
-		public DeviceBuffer ModelBuffer;
-		public ResourceSet ModelMatrixSet;
+		public Matrix4x4 ModelMatrix { get; private set; } = Matrix4x4.Identity;
+		public DeviceBuffer ModelBuffer { get; private set; }
+		public ResourceSet ModelMatrixSet { get; private set; }
 
 		public bool Animate { get; set; } = true;
 

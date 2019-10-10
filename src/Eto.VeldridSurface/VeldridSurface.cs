@@ -21,19 +21,14 @@ namespace PlaceholderName
 	/// </remarks>
 	public static class VeldridGL
 	{
-		static readonly GraphicsContext.GetAddressDelegate _getProcAddress;
-
-		static VeldridGL()
-		{
-			// Depending on a private method like CreateGetAddress is hardly in
-			// line with best practices, but it's the only way to grant Veldrid
-			// access to OpenTK's internals. It's not pretty, but this Eto
-			// integration was designed specifically for OpenTK 3.x, so sticking
-			// to that branch should ensure private things stay where they are.
-			Type type = typeof(OpenTK.Platform.Utilities);
-			MethodInfo createGetAddress = type.GetMethod("CreateGetAddress", BindingFlags.NonPublic | BindingFlags.Static);
-			_getProcAddress = (GraphicsContext.GetAddressDelegate)createGetAddress.Invoke(null, Array.Empty<string>());
-		}
+		// Depending on a private method like CreateGetAddress is hardly in
+		// line with best practices, but it's the only way to grant Veldrid
+		// access to OpenTK's internals. It's not pretty, but this Eto
+		// integration was designed specifically for OpenTK 3.x, so sticking
+		// to that branch should ensure private things stay where they are.
+		static readonly Type _utilitiesType = typeof(OpenTK.Platform.Utilities);
+		static readonly MethodInfo _createGetAddress = _utilitiesType.GetMethod("CreateGetAddress", BindingFlags.NonPublic | BindingFlags.Static);
+		static readonly GraphicsContext.GetAddressDelegate _getProcAddress = (GraphicsContext.GetAddressDelegate)_createGetAddress.Invoke(null, Array.Empty<string>());
 
 		// TODO: Find out if this is correct! The docs just say that the
 		// 'openGLContextHandle' parameter of an OpenGLPlatformInfo is, and I
@@ -125,14 +120,28 @@ namespace PlaceholderName
 
 		protected new class Callback : Control.Callback, ICallback
 		{
-			public void OnControlReady(VeldridSurface s, EventArgs e) => s.ControlReady = true;
-			public void OnDraw(VeldridSurface s, EventArgs e) => s.OnDraw(e);
-			public void OnOpenGLReady(VeldridSurface s, EventArgs e) => s.OpenGLReady = true;
-			public void OnResize(VeldridSurface s, ResizeEventArgs e) => s.OnResize(e);
-			public void OnVeldridInitialized(VeldridSurface s, EventArgs e) => s.OnVeldridInitialized(e);
+			public void OnControlReady(VeldridSurface s, EventArgs e)
+			{
+				if (s != null)
+				{
+					s.ControlReady = true;
+				}
+			}
+			public void OnDraw(VeldridSurface s, EventArgs e) => s?.OnDraw(e);
+			public void OnOpenGLReady(VeldridSurface s, EventArgs e)
+			{
+				if (s != null)
+				{
+					s.OpenGLReady = true;
+				}
+			}
+			public void OnResize(VeldridSurface s, ResizeEventArgs e) => s?.OnResize(e);
+			public void OnVeldridInitialized(VeldridSurface s, EventArgs e) => s?.OnVeldridInitialized(e);
 		}
 
 		protected override object GetCallback() => new Callback();
+
+		public static GraphicsBackend PreferredBackend { get; } = GetPreferredBackend();
 
 		/// <summary>
 		/// The render area's width, which may differ from the control's width
@@ -159,56 +168,6 @@ namespace PlaceholderName
 				Veldrid.PixelFormat.R32_Float,
 				false,
 				ResourceBindingModel.Improved);
-
-		public static GraphicsBackend PreferredBackend
-		{
-			get
-			{
-				GraphicsBackend? backend = null;
-
-				// It'd be less ugly to just loop through the GraphicsBackend
-				// enum, but the backends aren't arranged in an ideal order,
-				// either ascending or descending. The below progression is only
-				// a judgment call, and could easily get rearranged if need be.
-				foreach (GraphicsBackend b in new[] {
-					GraphicsBackend.Metal,
-					GraphicsBackend.Vulkan,
-					GraphicsBackend.Direct3D11,
-					GraphicsBackend.OpenGL,
-					GraphicsBackend.OpenGLES })
-				{
-					bool supported = false;
-
-					try
-					{
-						supported = GraphicsDevice.IsBackendSupported(b);
-					}
-					catch (InvalidOperationException)
-					{
-						// Veldrid, as of 4.7.0, throws this exception when
-						// trying to test for Vulkan in macOS if it's not
-						// available on the system.
-					}
-
-					if (supported)
-					{
-						backend = b;
-
-						// With backends being checked from most to least
-						// desirable, it's important to break as soon as a
-						// suitable backend is detected.
-						break;
-					}
-				}
-
-				if (backend == null)
-				{
-					throw new VeldridException("VeldridSurface: No supported Veldrid backend found!");
-				}
-
-				return (GraphicsBackend)backend;
-			}
-		}
 
 		public GraphicsBackend Backend { get; set; }
 
@@ -297,6 +256,53 @@ namespace PlaceholderName
 			// to call OnVeldridInitialized itself.
 		}
 
+		private static GraphicsBackend GetPreferredBackend()
+		{
+			GraphicsBackend? backend = null;
+
+			// It'd be less ugly to just loop through the GraphicsBackend
+			// enum, but the backends aren't arranged in an ideal order,
+			// either ascending or descending. The below progression is only
+			// a judgment call, and could easily get rearranged if need be.
+			foreach (GraphicsBackend b in new[] {
+				GraphicsBackend.Metal,
+				GraphicsBackend.Vulkan,
+				GraphicsBackend.Direct3D11,
+				GraphicsBackend.OpenGL,
+				GraphicsBackend.OpenGLES })
+			{
+				bool supported = false;
+
+				try
+				{
+					supported = GraphicsDevice.IsBackendSupported(b);
+				}
+				catch (InvalidOperationException)
+				{
+					// Veldrid, as of 4.7.0, throws this exception when
+					// trying to test for Vulkan in macOS if it's not
+					// available on the system.
+				}
+
+				if (supported)
+				{
+					backend = b;
+
+					// With backends being checked from most to least
+					// desirable, it's important to break as soon as a
+					// suitable backend is detected.
+					break;
+				}
+			}
+
+			if (backend == null)
+			{
+				throw new VeldridException("VeldridSurface: No supported Veldrid backend found!");
+			}
+
+			return (GraphicsBackend)backend;
+		}
+
 		private void InitializeOtherApi()
 		{
 			switch (Backend)
@@ -331,7 +337,10 @@ namespace PlaceholderName
 
 		protected virtual void OnResize(ResizeEventArgs e)
 		{
-			Swapchain?.Resize((uint)e.Width, (uint)e.Height);
+			if (Swapchain != null && e != null)
+			{
+				Swapchain.Resize((uint)e.Width, (uint)e.Height);
+			}
 
 			Properties.TriggerEvent(ResizeEvent, this, e);
 		}

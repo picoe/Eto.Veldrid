@@ -5,13 +5,13 @@ namespace PlaceholderName
 {
 	public partial class MainForm : Form
 	{
-		public CheckCommand CmdAnimate = new CheckCommand
+		public CheckCommand CmdAnimate { get; } = new CheckCommand
 		{
 			MenuText = "Animate",
 			ToolTip = "Click window content to toggle animation",
 			Checked = true
 		};
-		public CheckCommand CmdClockwise = new CheckCommand
+		public CheckCommand CmdClockwise { get; } = new CheckCommand
 		{
 			MenuText = "&Clockwise",
 			ToolTip = "Press C to toggle direction",
