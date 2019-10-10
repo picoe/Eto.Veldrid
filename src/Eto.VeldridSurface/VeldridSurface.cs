@@ -125,36 +125,14 @@ namespace PlaceholderName
 
 		protected new class Callback : Control.Callback, ICallback
 		{
-			public void OnControlReady(VeldridSurface s, EventArgs e)
-			{
-				s.ControlReady = true;
-			}
-
-			public void OnDraw(VeldridSurface s, EventArgs e)
-			{
-				s.OnDraw(e);
-			}
-
-			public void OnOpenGLReady(VeldridSurface s, EventArgs e)
-			{
-				s.OpenGLReady = true;
-			}
-
-			public void OnResize(VeldridSurface s, ResizeEventArgs e)
-			{
-				s.OnResize(e);
-			}
-
-			public void OnVeldridInitialized(VeldridSurface s, EventArgs e)
-			{
-				s.OnVeldridInitialized(e);
-			}
+			public void OnControlReady(VeldridSurface s, EventArgs e) => s.ControlReady = true;
+			public void OnDraw(VeldridSurface s, EventArgs e) => s.OnDraw(e);
+			public void OnOpenGLReady(VeldridSurface s, EventArgs e) => s.OpenGLReady = true;
+			public void OnResize(VeldridSurface s, ResizeEventArgs e) => s.OnResize(e);
+			public void OnVeldridInitialized(VeldridSurface s, EventArgs e) => s.OnVeldridInitialized(e);
 		}
 
-		protected override object GetCallback()
-		{
-			return new Callback();
-		}
+		protected override object GetCallback() => new Callback();
 
 		/// <summary>
 		/// The render area's width, which may differ from the control's width
@@ -321,50 +299,44 @@ namespace PlaceholderName
 
 		private void InitializeOtherApi()
 		{
-			if (Backend == GraphicsBackend.Metal)
+			switch (Backend)
 			{
-				GraphicsDevice = GraphicsDevice.CreateMetal(GraphicsDeviceOptions);
-			}
-			else if (Backend == GraphicsBackend.Vulkan)
-			{
-				GraphicsDevice = GraphicsDevice.CreateVulkan(GraphicsDeviceOptions);
-			}
-			else if (Backend == GraphicsBackend.Direct3D11)
-			{
-				GraphicsDevice = GraphicsDevice.CreateD3D11(GraphicsDeviceOptions);
-			}
-			else
-			{
-				string message;
-				if (!Enum.IsDefined(typeof(GraphicsBackend), Backend))
-				{
-					message = "Unrecognized backend!";
-				}
-				else
-				{
-					message = "Specified backend not supported on this platform!";
-				}
+				case GraphicsBackend.Metal:
+					GraphicsDevice = GraphicsDevice.CreateMetal(GraphicsDeviceOptions);
+					break;
+				case GraphicsBackend.Vulkan:
+					GraphicsDevice = GraphicsDevice.CreateVulkan(GraphicsDeviceOptions);
+					break;
+				case GraphicsBackend.Direct3D11:
+					GraphicsDevice = GraphicsDevice.CreateD3D11(GraphicsDeviceOptions);
+					break;
+				default:
+					string message;
+					if (!Enum.IsDefined(typeof(GraphicsBackend), Backend))
+					{
+						message = "Unrecognized backend!";
+					}
+					else
+					{
+						message = "Specified backend not supported on this platform!";
+					}
 
-				throw new ArgumentException(message);
+					throw new ArgumentException(message);
 			}
 
 			Handler.InitializeOtherApi();
 		}
 
-		protected virtual void OnVeldridInitialized(EventArgs e)
-		{
-			Properties.TriggerEvent(VeldridInitializedEvent, this, e);
-		}
-		protected virtual void OnDraw(EventArgs e)
-		{
-			Properties.TriggerEvent(DrawEvent, this, e);
-		}
+		protected virtual void OnDraw(EventArgs e) => Properties.TriggerEvent(DrawEvent, this, e);
+
 		protected virtual void OnResize(ResizeEventArgs e)
 		{
 			Swapchain?.Resize((uint)e.Width, (uint)e.Height);
 
 			Properties.TriggerEvent(ResizeEvent, this, e);
 		}
+
+		protected virtual void OnVeldridInitialized(EventArgs e) => Properties.TriggerEvent(VeldridInitializedEvent, this, e);
 
 		protected override void OnSizeChanged(EventArgs e)
 		{
