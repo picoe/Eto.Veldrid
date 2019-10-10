@@ -6,11 +6,6 @@
     <RootNamespace>Eto.Veldrid</RootNamespace>
     <Title>Eto.Veldrid</Title>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="..\shaders\**\*" Link="shaders\%(Filename)%(Extension)" />
-    <None Remove="..\shaders\**\*.spv" />
-  </ItemGroup>
   
   <!--Adapted from Veldrid.SPIRV.targets, included with the Veldrid.SPIRV NuGet
   package. That file isn't always auto-imported, and although that could be done

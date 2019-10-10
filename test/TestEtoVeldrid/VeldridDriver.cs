@@ -1,6 +1,5 @@
 ﻿using Eto.Forms;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;

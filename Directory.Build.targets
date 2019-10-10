@@ -15,11 +15,7 @@
     </PropertyGroup>
   </Target>
 
-  <PropertyGroup>
-    <NoNeatenize>Eto.VeldridSurface</NoNeatenize>
-  </PropertyGroup>
-
-  <Target Name="NeatenizeLibraries" AfterTargets="SetPaths" Condition="!$(NoNeatenize.Contains($(MSBuildProjectName)))">
+  <Target Name="NeatenizeLibraries" AfterTargets="SetPaths" Condition="$(OutputType) != 'library'">
     <ItemGroup>
       <Uglies Include="$(NeatenizePath)*" />
       <Uglies Remove="$(NeatenizePath)$(AssemblyName).exe" />
@@ -30,13 +26,9 @@
     <Move SourceFiles="@(Uglies)" DestinationFolder="$(NeatenizePath)lib" />
   </Target>
 
-  <PropertyGroup>
-    <NoCopyShaders>Eto.VeldridSurface</NoCopyShaders>
-  </PropertyGroup>
-
-  <Target Name="CopyShaders" AfterTargets="NeatenizeLibraries" Condition="!$(NoCopyShaders.Contains($(MSBuildProjectName)))">
+  <Target Name="CopyShaders" AfterTargets="NeatenizeLibraries" Condition="$(OutputType) != 'library'">
     <ItemGroup>
-      <Shaders Include="$(TopLevelDirectory)src\shaders\**\*" />
+      <Shaders Include="$(TopLevelDirectory)test\shaders\**\*" />
     </ItemGroup>
     <Copy Condition="$(OutputAppPath) != ''" SourceFiles="@(Shaders)" DestinationFolder="$(OutputAppPath)\Contents\Resources\shaders\%(Shaders.RecursiveDir)" />
     <Copy Condition="$(OutputAppPath) == ''" SourceFiles="@(Shaders)" DestinationFolder="$(OutputPath)\shaders\%(Shaders.RecursiveDir)" />

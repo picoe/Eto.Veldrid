@@ -1,6 +1,4 @@
-﻿using Eto.Forms;
-using OpenTK;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 using Veldrid;
 using Veldrid.OpenGL;
@@ -100,25 +98,6 @@ namespace PlaceholderName
 			Control.Loaded -= OneTimeControlInit;
 
 			Callback.OnVeldridInitialized(Widget, EventArgs.Empty);
-		}
-	}
-
-	public static class MainClass
-	{
-		[STAThread]
-		public static void Main(string[] args)
-		{
-			GraphicsBackend backend = VeldridSurface.PreferredBackend;
-
-			if (backend == GraphicsBackend.OpenGL)
-			{
-				Toolkit.Init(new ToolkitOptions { Backend = PlatformBackend.PreferNative });
-			}
-
-			var platform = new Eto.Wpf.Platform();
-			platform.Add<VeldridSurface.IHandler>(() => new WpfVeldridSurfaceHandler());
-
-			new Application(platform).Run(new MainForm(backend));
 		}
 	}
 }

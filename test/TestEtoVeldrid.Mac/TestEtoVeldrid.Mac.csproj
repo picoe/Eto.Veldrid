@@ -11,7 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Eto.VeldridSurface\Eto.VeldridSurface.csproj" />
+    <ProjectReference Include="..\..\src\Eto.Veldrid.Mac\Eto.Veldrid.Mac.csproj" />
+    <ProjectReference Include="..\TestEtoVeldrid\TestEtoVeldrid.csproj" />
   </ItemGroup>
 
   <!--Eto's MacTemplate.targets file doesn't automatically pack native .dylib
