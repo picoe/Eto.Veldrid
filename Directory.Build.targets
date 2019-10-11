@@ -11,7 +11,7 @@
       <UsingMacAppBundle Condition="$(BuildOS) == 'macOS' AND $(OutputAppPath) != ''">true</UsingMacAppBundle>
 
       <NeatenizePath>$(OutputPath)</NeatenizePath>
-      <NeatenizePath Condition="$(UsingMacAppBundle) AND !$(MacBundleMono)">$(OutputAppPath)\Contents\MonoBundle\</NeatenizePath>
+      <NeatenizePath Condition="$(UsingMacAppBundle) AND $(MacBundleMono) == false">$(OutputAppPath)\Contents\MonoBundle\</NeatenizePath>
     </PropertyGroup>
   </Target>
 

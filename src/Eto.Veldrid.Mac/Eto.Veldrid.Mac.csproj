@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <DefineConstants>MONOMAC</DefineConstants>
+    <MacBuildBundle>false</MacBuildBundle>
   </PropertyGroup>
 
   <ItemGroup>
