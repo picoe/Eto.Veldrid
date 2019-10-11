@@ -18,8 +18,11 @@ namespace VeldridEto
 		}
 	}
 
-	public class OVPSettings
+    public class OVPSettings
 	{
+        // This is true if something changed in the settings (set internally for query). The viewport itself should set this false when the changes are handled.
+        public bool changed;
+
 		public float minX, maxX, minY, maxY;
 		public bool enableFilledPolys;
 		public bool immediateMode; // if true, don't use VBOs.
@@ -45,20 +48,21 @@ namespace VeldridEto
 		public PointF cameraPosition;
 		public PointF default_cameraPosition;
 		public bool antiAlias;
-		public List<ovp_Poly> polyList;
-		public List<int> polyListPtCount;
-		public List<int> polySourceIndex; // will eventually track source of polygon, allowing for layer generating, etc. in output.
-		public List<ovp_Poly> bgPolyList;
-		public List<int> bgPolyListPtCount;
-		public List<int> bgPolySourceIndex; // will eventually track source of polygon, allowing for layer generating, etc. in output.
-		public List<ovp_Poly> lineList; // purely for lines.
-		public List<int> lineListPtCount;
-		public List<int> lineSourceIndex; // will eventually track source of polygon, allowing for layer generating, etc. in output.
-		public List<ovp_Poly> tessPolyList; // triangles, but also need to track color. This is decoupled to allow boundary extraction without triangles getting in the way.
-		public List<bool> drawnPoly; // tracks whether the polygon corresponds to an enabled configuration or not.
 		public bool lockedViewport;
 
-		public float zoom()
+        public List<ovp_Poly> polyList;
+        public List<int> polyListPtCount;
+        public List<int> polySourceIndex; // will eventually track source of polygon, allowing for layer generating, etc. in output.
+        public List<ovp_Poly> bgPolyList;
+        public List<int> bgPolyListPtCount;
+        public List<int> bgPolySourceIndex; // will eventually track source of polygon, allowing for layer generating, etc. in output.
+        public List<ovp_Poly> lineList; // purely for lines.
+        public List<int> lineListPtCount;
+        public List<int> lineSourceIndex; // will eventually track source of polygon, allowing for layer generating, etc. in output.
+        public List<ovp_Poly> tessPolyList; // triangles, but also need to track color. This is decoupled to allow boundary extraction without triangles getting in the way.
+        public List<bool> drawnPoly; // tracks whether the polygon corresponds to an enabled configuration or not.
+
+        public float zoom()
 		{
 			return base_zoom * zoomFactor;
 		}
@@ -78,9 +82,10 @@ namespace VeldridEto
 			{
 				tessPolyList[poly].color = newColor;
 			}
-		}
+            changed = true;
+        }
 
-		public void reset(bool clearBG = true)
+        public void reset(bool clearBG = true)
 		{
 			pReset(clearBG);
 		}
@@ -93,6 +98,7 @@ namespace VeldridEto
 			maxY = 0;
 			clear(clearBG);
 			drawnPoly.Clear();
+            changed = true;
 		}
 
 		public void clear(bool clearBG = true)
@@ -115,9 +121,10 @@ namespace VeldridEto
 			lineSourceIndex.Clear();
 			lineListPtCount.Clear();
 			tessPolyList.Clear();
-		}
+            changed = true;
+        }
 
-		public void addLine(PointF[] line, Color lineColor, float alpha, int layerIndex)
+        public void addLine(PointF[] line, Color lineColor, float alpha, int layerIndex)
 		{
 			pAddLine(line, lineColor, alpha, layerIndex);
 		}
@@ -127,9 +134,10 @@ namespace VeldridEto
 			lineList.Add(new ovp_Poly(line, lineColor, alpha));
 			lineSourceIndex.Add(layerIndex);
 			lineListPtCount.Add((line.Length - 1) * 2);
-		}
+            changed = true;
+        }
 
-		public void addPolygon(PointF[] poly, Color polyColor, float alpha, bool drawn, int layerIndex)
+        public void addPolygon(PointF[] poly, Color polyColor, float alpha, bool drawn, int layerIndex)
 		{
 			if (drawn)
 			{
@@ -162,9 +170,10 @@ namespace VeldridEto
 			polySourceIndex.Add(layerIndex);
 			polyListPtCount.Add(poly.Length);
 			drawnPoly.Add(drawn);
-		}
+            changed = true;
+        }
 
-		public void addBGPolygon(PointF[] poly, Color polyColor, float alpha, int layerIndex)
+        public void addBGPolygon(PointF[] poly, Color polyColor, float alpha, int layerIndex)
 		{
 			pAddBGPolygon(poly, polyColor, alpha, layerIndex);
 		}
@@ -177,9 +186,10 @@ namespace VeldridEto
 			bgPolyListPtCount.Add(poly.Length);
 			bgPolySourceIndex.Add(layerIndex);
 			drawnPoly.Add(false);
-		}
+            changed = true;
+        }
 
-		public OVPSettings(float defX = 0.0f, float defY = 0.0f)
+        public OVPSettings(float defX = 0.0f, float defY = 0.0f)
 		{
 			init(defX, defY);
 		}
@@ -208,9 +218,14 @@ namespace VeldridEto
 			fullReset(defX, defY);
 		}
 
-		public void fullReset(float defX = 0.0f, float defY = 0.0f)
-		{
-			default_cameraPosition = new PointF(defX, defY);
+        public void fullReset(float defX = 0.0f, float defY = 0.0f)
+        {
+            pFullReset(defX, defY);
+        }
+
+        void pFullReset(float defX = 0.0f, float defY = 0.0f)
+        {
+            default_cameraPosition = new PointF(defX, defY);
 			bgPolyList = new List<ovp_Poly>();
 			bgPolySourceIndex = new List<int>();
 			bgPolyListPtCount = new List<int>();
@@ -224,6 +239,7 @@ namespace VeldridEto
 			drawnPoly = new List<bool>();
 			zoomFactor = 1.0f;
 			cameraPosition = new PointF(default_cameraPosition.X, default_cameraPosition.Y);
+            changed = true;
 		}
 
 		PointF[] clockwiseOrder(PointF[] iPoints)

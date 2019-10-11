@@ -120,12 +120,21 @@ namespace VeldridEto
 			Clock.Interval = 1.0f / 60.0f;
 			Clock.Elapsed += Clock_Elapsed;
 
-			Surface.Resize += (sender, e) => updateViewport();
+            Surface.Resize += (sender, e) =>
+            {
+                pUpdateViewport();
+            };
 		}
 
 		private void Clock_Elapsed(object sender, EventArgs e)
 		{
-			Draw();
+            if (!ovpSettings.changed)
+            {
+                return;
+            }
+            ovpSettings.changed = false;
+
+            Draw();
 		}
 
 		private DateTime CurrentTime;
@@ -226,6 +235,7 @@ namespace VeldridEto
 			{
 				ovpSettings.zoomFactor = zoomLevel_y / ovpSettings.base_zoom;
 			}
+            ovpSettings.changed = true;
 
 			goToLocation(cX, cY);
 		}
@@ -235,6 +245,7 @@ namespace VeldridEto
 			if (savedLocation_valid)
 			{
 				ovpSettings.cameraPosition = new PointF(savedLocation.X, savedLocation.Y);
+                ovpSettings.changed = true;
 				updateViewport();
 			}
 		}
@@ -260,9 +271,10 @@ namespace VeldridEto
 				object locking = new object();
 				lock (locking)
 				{
-					float new_X = (ovpSettings.cameraPosition.X - ((e.Location.X - x_orig) * ovpSettings.zoomFactor));
-					float new_Y = (ovpSettings.cameraPosition.Y + ((e.Location.Y - y_orig) * ovpSettings.zoomFactor));
+					float new_X = (ovpSettings.cameraPosition.X - ((e.Location.X - x_orig) * ovpSettings.zoomFactor * ovpSettings.base_zoom));
+					float new_Y = (ovpSettings.cameraPosition.Y + ((e.Location.Y - y_orig) * ovpSettings.zoomFactor * ovpSettings.base_zoom));
 					ovpSettings.cameraPosition = new PointF(new_X, new_Y);
+                    ovpSettings.changed = true;
 					x_orig = e.Location.X;
 					y_orig = e.Location.Y;
 				}
@@ -274,6 +286,8 @@ namespace VeldridEto
 		public void freeze_thaw()
 		{
 			ovpSettings.lockedViewport = !ovpSettings.lockedViewport;
+            ovpSettings.changed = true;
+            updateHostFunc?.Invoke();
 		}
 
 		void upHandler(object sender, MouseEventArgs e)
@@ -303,6 +317,7 @@ namespace VeldridEto
 				return;
 			}
 			ovpSettings.zoomFactor += (ovpSettings.zoomStep * 0.01f * delta);
+            ovpSettings.changed = true;
 		}
 
 		public void zoomOut(float delta)
@@ -316,6 +331,7 @@ namespace VeldridEto
 			{
 				ovpSettings.zoomFactor = 0.0001f; // avoid any chance of getting to zero.
 			}
+            ovpSettings.changed = true;
 		}
 
 		void panVertical(float delta)
@@ -325,6 +341,7 @@ namespace VeldridEto
 				return;
 			}
 			ovpSettings.cameraPosition.Y += delta / 10;
+            ovpSettings.changed = true;
 		}
 
 		void panHorizontal(float delta)
@@ -334,6 +351,7 @@ namespace VeldridEto
 				return;
 			}
 			ovpSettings.cameraPosition.X += delta / 10;
+            ovpSettings.changed = true;
 		}
 
 		void addKeyHandler(object sender, EventArgs e)
@@ -354,6 +372,7 @@ namespace VeldridEto
 			}
 			ovpSettings.cameraPosition = new PointF(ovpSettings.default_cameraPosition.X, ovpSettings.default_cameraPosition.Y);
 			ovpSettings.zoomFactor = 1.0f;
+            ovpSettings.changed = true;
 		}
 
 		void keyHandler(object sender, KeyEventArgs e)
@@ -517,9 +536,11 @@ namespace VeldridEto
 			ovpSettings.maxX = maxX;
 			ovpSettings.minY = minY;
 			ovpSettings.maxY = maxY;
-		}
 
-		void drawPolygons()
+            ovpSettings.changed = true;
+        }
+
+        void drawPolygons()
 		{
 			try
 			{
@@ -863,18 +884,29 @@ namespace VeldridEto
 			Surface.GraphicsDevice.UpdateBuffer(buffer, 0, data);
 		}
 
-		public void updateViewport()
-		{
-			if (!Surface.ControlReady)
-			{
-				return;
-			}
+        public void updateViewport()
+        {
+            if (!Surface.ControlReady)
+            {
+                return;
+            }
 
-			drawAxes();
+            if (!ovpSettings.changed)
+            {
+                return;
+            }
+
+            pUpdateViewport();
+        }
+
+        void pUpdateViewport()
+        {
+            drawAxes();
 			drawGrid();
 			drawLines();
 			drawPolygons();
             updateHostFunc?.Invoke();
+            Draw();
 		}
 
         public void Draw()
@@ -883,8 +915,6 @@ namespace VeldridEto
             {
                 return;
             }
-
-            updateViewport();
 
             CommandList.Begin();
 

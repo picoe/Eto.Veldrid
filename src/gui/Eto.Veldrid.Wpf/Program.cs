@@ -112,7 +112,7 @@ namespace VeldridEto
 		[STAThread]
 		public static void Main(string[] args)
 		{
-			GraphicsBackend backend = GraphicsBackend.Direct3D11;// VeldridSurface.PreferredBackend;
+			GraphicsBackend backend = VeldridSurface.PreferredBackend;
 
 			if (backend == GraphicsBackend.OpenGL)
 			{
