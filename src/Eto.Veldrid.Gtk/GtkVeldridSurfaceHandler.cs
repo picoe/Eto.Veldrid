@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using Veldrid;
 using Veldrid.OpenGL;
 
-namespace PlaceholderName
+namespace Eto.Veldrid.Gtk
 {
 	internal static class X11Interop
 	{

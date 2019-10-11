@@ -1,4 +1,6 @@
 ﻿using Eto.Forms;
+using Eto.Veldrid;
+using Eto.Veldrid.Mac;
 using OpenTK;
 using System;
 using System.Diagnostics;
@@ -13,7 +15,7 @@ using AppKit;
 using CoreGraphics;
 #endif
 
-namespace PlaceholderName
+namespace TestEtoVeldrid.Mac
 {
 	public static class MainClass
 	{

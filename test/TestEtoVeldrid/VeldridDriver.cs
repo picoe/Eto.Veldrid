@@ -1,4 +1,5 @@
 ﻿using Eto.Forms;
+using Eto.Veldrid;
 using System;
 using System.IO;
 using System.Numerics;
@@ -6,7 +7,7 @@ using System.Runtime.InteropServices;
 using Veldrid;
 using Veldrid.SPIRV;
 
-namespace PlaceholderName
+namespace TestEtoVeldrid
 {
 	public struct VertexPositionColor
 	{

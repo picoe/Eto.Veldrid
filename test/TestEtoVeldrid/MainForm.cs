@@ -1,8 +1,9 @@
 ﻿using Eto.Forms;
+using Eto.Veldrid;
 using System;
 using Veldrid;
 
-namespace PlaceholderName
+namespace TestEtoVeldrid
 {
 	public partial class MainForm : Form
 	{

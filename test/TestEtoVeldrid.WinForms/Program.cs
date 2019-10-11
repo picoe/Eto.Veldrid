@@ -1,8 +1,10 @@
-﻿using OpenTK;
+﻿using Eto.Veldrid;
+using Eto.Veldrid.WinForms;
+using OpenTK;
 using System;
 using Veldrid;
 
-namespace PlaceholderName
+namespace TestEtoVeldrid.WinForms
 {
 	public static class Program
 	{

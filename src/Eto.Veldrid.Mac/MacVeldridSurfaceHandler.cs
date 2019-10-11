@@ -13,7 +13,7 @@ using AppKit;
 using CoreGraphics;
 #endif
 
-namespace PlaceholderName
+namespace Eto.Veldrid.Mac
 {
 	public class MacVeldridView : NSView, IMacControl
 	{

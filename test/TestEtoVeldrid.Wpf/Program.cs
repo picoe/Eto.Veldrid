@@ -1,9 +1,11 @@
 ﻿using Eto.Forms;
+using Eto.Veldrid;
+using Eto.Veldrid.Wpf;
 using OpenTK;
 using System;
 using Veldrid;
 
-namespace PlaceholderName
+namespace TestEtoVeldrid.Wpf
 {
 	public static class MainClass
 	{

@@ -1,15 +1,11 @@
-﻿using Eto;
-using Eto.Drawing;
+﻿using Eto.Drawing;
 using Eto.Forms;
 using OpenTK.Graphics;
 using System;
 using System.Reflection;
 using Veldrid;
 
-// TODO: Come up with a suitable namespace. Eto.Veldrid will conflict with the
-// global Veldrid, and Eto.VeldridSurface makes the VeldridSurface class harder
-// to use. Suggestions welcome!
-namespace PlaceholderName
+namespace Eto.Veldrid
 {
 	/// <summary>
 	/// A collection of helper methods to grant Veldrid access to an OpenGL context.
@@ -165,7 +161,7 @@ namespace PlaceholderName
 		public GraphicsDeviceOptions GraphicsDeviceOptions { get; } =
 			new GraphicsDeviceOptions(
 				false,
-				Veldrid.PixelFormat.R32_Float,
+				global::Veldrid.PixelFormat.R32_Float,
 				false,
 				ResourceBindingModel.Improved);
 

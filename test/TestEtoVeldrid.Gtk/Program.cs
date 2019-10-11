@@ -1,8 +1,10 @@
-﻿using OpenTK;
+﻿using Eto.Veldrid;
+using Eto.Veldrid.Gtk;
+using OpenTK;
 using System;
 using Veldrid;
 
-namespace PlaceholderName
+namespace TestEtoVeldrid.Gtk
 {
 	public static class MainClass
 	{

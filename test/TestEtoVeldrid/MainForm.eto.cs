@@ -1,7 +1,7 @@
 using Eto.Drawing;
 using Eto.Forms;
 
-namespace PlaceholderName
+namespace TestEtoVeldrid
 {
 	public partial class MainForm : Form
 	{

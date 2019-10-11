@@ -3,14 +3,14 @@ using System.Runtime.InteropServices;
 using Veldrid;
 using Veldrid.OpenGL;
 
-namespace PlaceholderName
+namespace Eto.Veldrid.Wpf
 {
-	public class WpfVeldridSurfaceHandler : Eto.Wpf.Forms.ManualBubbleWindowsFormsHostHandler<WinVeldridUserControl, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
+	public class WpfVeldridSurfaceHandler : Eto.Wpf.Forms.ManualBubbleWindowsFormsHostHandler<WinForms.WinVeldridUserControl, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
 		public int RenderWidth => WinFormsControl.Width;
 		public int RenderHeight => WinFormsControl.Height;
 
-		public WpfVeldridSurfaceHandler() : base(new WinVeldridUserControl())
+		public WpfVeldridSurfaceHandler() : base(new WinForms.WinVeldridUserControl())
 		{
 			WinFormsControl.HandleCreated += WinFormsControl_HandleCreated;
 		}
