@@ -39,7 +39,6 @@ namespace TestEtoVeldrid.Mac
 			// app bundle that instead bundles Mono by way of mkbundle, on the
 			// other hand, it returns the directory containing the .app..
 			new Application(platform).Run(new MainForm(
-				backend,
 				Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName),
 				Path.Combine("..", "Resources", "shaders")));
 		}

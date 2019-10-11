@@ -35,10 +35,16 @@ namespace TestEtoVeldrid
 			}
 		}
 
+		public MainForm() : this(VeldridSurface.PreferredBackend)
+		{
+		}
 		public MainForm(GraphicsBackend backend) : this(backend, AppContext.BaseDirectory, "shaders")
 		{
 		}
-		public MainForm(GraphicsBackend backend, string executableDirectory, string shaderSubdirectory)
+		public MainForm(string exeDir, string shaderSubdir) : this(VeldridSurface.PreferredBackend, exeDir, shaderSubdir)
+		{
+		}
+		public MainForm(GraphicsBackend backend, string exeDir, string shaderSubdir)
 		{
 			InitializeComponent();
 
@@ -52,8 +58,8 @@ namespace TestEtoVeldrid
 			Driver = new VeldridDriver
 			{
 				Surface = Surface,
-				ExecutableDirectory = executableDirectory,
-				ShaderSubdirectory = shaderSubdirectory
+				ExecutableDirectory = exeDir,
+				ShaderSubdirectory = shaderSubdir
 			};
 
 			// TODO: Make this binding actually work both ways.

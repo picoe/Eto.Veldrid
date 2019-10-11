@@ -1,5 +1,6 @@
 ﻿using Eto.Drawing;
 using Eto.Forms;
+using OpenTK;
 using OpenTK.Graphics;
 using System;
 using System.Reflection;
@@ -223,6 +224,8 @@ namespace Eto.Veldrid
 
 			if (Backend == GraphicsBackend.OpenGL)
 			{
+				Toolkit.Init(new ToolkitOptions { Backend = PlatformBackend.PreferNative });
+
 				OpenGLReady = false;
 			}
 		}
