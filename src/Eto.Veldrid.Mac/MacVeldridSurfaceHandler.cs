@@ -1,4 +1,6 @@
 ﻿using Eto.Mac.Forms;
+using Eto.Veldrid;
+using Eto.Veldrid.Mac;
 using OpenTK.Graphics;
 using OpenTK.Platform;
 using System;
@@ -12,6 +14,8 @@ using MonoMac.CoreGraphics;
 using AppKit;
 using CoreGraphics;
 #endif
+
+[assembly: Eto.ExportHandler(typeof(VeldridSurface), typeof(MacVeldridSurfaceHandler))]
 
 namespace Eto.Veldrid.Mac
 {

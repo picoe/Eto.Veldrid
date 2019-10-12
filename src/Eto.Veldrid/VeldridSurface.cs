@@ -1,5 +1,6 @@
 ﻿using Eto.Drawing;
 using Eto.Forms;
+using OpenTK;
 using OpenTK.Graphics;
 using System;
 using System.Reflection;
@@ -225,6 +226,23 @@ namespace Eto.Veldrid
 			{
 				OpenGLReady = false;
 			}
+		}
+
+		/// <summary>
+		/// Initializes OpenTK; if your program will make use of Veldrid's
+		/// OpenGL backend, this method must be called before creating your
+		/// Eto.Forms.Application.
+		/// </summary>
+		public static void InitializeOpenTK()
+		{
+			// Ensure that OpenTK ignores SDL2 if it's installed.
+			//
+			// This is technically only important for OpenGL, as it's the only
+			// Veldrid backend that uses OpenTK, but since Veldrid also allows
+			// live switching of backends, it's worth doing regardless of which
+			// one users start out with. Anyone who plans to completely avoid
+			// OpenGL is free to simply not call InitializeOpenTK at all.
+			Toolkit.Init(new ToolkitOptions { Backend = PlatformBackend.PreferNative });
 		}
 
 		public void InitializeGraphicsApi()

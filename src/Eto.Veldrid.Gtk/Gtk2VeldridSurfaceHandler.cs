@@ -2,12 +2,15 @@
 using Eto.GtkSharp.Forms;
 using Gdk;
 using Gtk;
+using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Platform;
 using System;
 using System.Runtime.InteropServices;
 using Veldrid;
 using Veldrid.OpenGL;
+
+[assembly: Eto.ExportHandler(typeof(Eto.Veldrid.VeldridSurface), typeof(Eto.Veldrid.Gtk2.Gtk2VeldridSurfaceHandler))]
 
 namespace Eto.Veldrid.Gtk2
 {

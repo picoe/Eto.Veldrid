@@ -1,4 +1,6 @@
-﻿using Eto.WinForms.Forms;
+﻿using Eto.Veldrid;
+using Eto.Veldrid.WinForms;
+using Eto.WinForms.Forms;
 using OpenTK.Graphics;
 using OpenTK.Platform;
 using System;
@@ -6,6 +8,8 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Veldrid;
 using Veldrid.OpenGL;
+
+[assembly: Eto.ExportHandler(typeof(VeldridSurface), typeof(WinFormsVeldridSurfaceHandler))]
 
 namespace Eto.Veldrid.WinForms
 {

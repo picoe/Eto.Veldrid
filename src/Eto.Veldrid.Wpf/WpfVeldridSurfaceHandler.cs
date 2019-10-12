@@ -1,7 +1,11 @@
-﻿using System;
+﻿using Eto.Veldrid;
+using Eto.Veldrid.Wpf;
+using System;
 using System.Runtime.InteropServices;
 using Veldrid;
 using Veldrid.OpenGL;
+
+[assembly: Eto.ExportHandler(typeof(VeldridSurface), typeof(WpfVeldridSurfaceHandler))]
 
 namespace Eto.Veldrid.Wpf
 {
