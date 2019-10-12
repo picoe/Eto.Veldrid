@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TestEtoVeldrid\TestEtoVeldrid.csproj" />
     <ProjectReference Include="..\..\src\Eto.Veldrid.Gtk\Eto.Veldrid.Gtk2.csproj" />
   </ItemGroup>
 	
