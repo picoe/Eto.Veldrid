@@ -11,18 +11,6 @@
     <None Include="..\shaders\**\*" Link="shaders\%(Filename)%(Extension)" />
     <None Remove="..\shaders\**\*.spv" />
   </ItemGroup>
-  
-  <!--Adapted from Veldrid.SPIRV.targets, included with the Veldrid.SPIRV NuGet
-  package. That file isn't always auto-imported, and although that could be done
-  by hand, importing it would affect its use of the MSBuildFileThisDirectory
-  variable, invalidating the relative paths it uses.-->
-  <ItemGroup>
-    <Content Include="$([MSBuild]::EnsureTrailingSlash('$(NuGetPackageRoot)'))veldrid.spirv\$(VeldridSpirvVersion)\runtimes\$(RuntimeID)\native\$(VeldridSpirvNativeName)">
-      <Link>%(Filename)%(Extension)</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <Visible>False</Visible>
-    </Content>
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Eto.Forms" Version="2.5.0-rc.4" />

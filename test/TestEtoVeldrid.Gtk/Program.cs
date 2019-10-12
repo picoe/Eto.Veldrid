@@ -1,10 +1,10 @@
 ﻿using Eto.Veldrid;
-using Eto.Veldrid.Gtk;
+using Eto.Veldrid.Gtk2;
 using OpenTK;
 using System;
 using Veldrid;
 
-namespace TestEtoVeldrid.Gtk
+namespace TestEtoVeldrid.Gtk2
 {
 	public static class MainClass
 	{
@@ -19,7 +19,7 @@ namespace TestEtoVeldrid.Gtk
 			}
 
 			var platform = new Eto.GtkSharp.Platform();
-			platform.Add<VeldridSurface.IHandler>(() => new GtkVeldridSurfaceHandler());
+			platform.Add<VeldridSurface.IHandler>(() => new Gtk2VeldridSurfaceHandler());
 
 			new Eto.Forms.Application(platform).Run(new MainForm(backend));
 		}

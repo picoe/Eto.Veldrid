@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using Veldrid;
 using Veldrid.OpenGL;
 
-namespace Eto.Veldrid.Gtk
+namespace Eto.Veldrid.Gtk2
 {
 	internal static class X11Interop
 	{
@@ -129,14 +129,14 @@ namespace Eto.Veldrid.Gtk
 		static public extern IntPtr XGetVisualInfo(IntPtr display, IntPtr vinfo_mask, ref XVisualInfo vinfo_template, out int nitems_return);
 	}
 
-	public class GtkVeldridDrawingArea : DrawingArea
+	public class Gtk2VeldridDrawingArea : DrawingArea
 	{
 		GraphicsMode Mode = new GraphicsMode(new ColorFormat(32), 8, 8);
 
 		public IWindowInfo WindowInfo { get; set; }
 		public GraphicsContext Context { get; private set; }
 
-		public GtkVeldridDrawingArea()
+		public Gtk2VeldridDrawingArea()
 		{
 			CanFocus = true;
 		}
@@ -178,16 +178,16 @@ namespace Eto.Veldrid.Gtk
 		}
 	}
 
-	public class GtkVeldridSurfaceHandler : GtkControl<GtkVeldridDrawingArea, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
+	public class Gtk2VeldridSurfaceHandler : GtkControl<Gtk2VeldridDrawingArea, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
 		// TODO: Find out if Gtk2 even supports different DPI settings, and if
 		// so test it out and get this to return the correct values.
 		public int RenderWidth => Widget.Width;
 		public int RenderHeight => Widget.Height;
 
-		public GtkVeldridSurfaceHandler()
+		public Gtk2VeldridSurfaceHandler()
 		{
-			Control = new GtkVeldridDrawingArea();
+			Control = new Gtk2VeldridDrawingArea();
 
 			Control.ExposeEvent += Control_ExposeEvent;
 		}

@@ -7,14 +7,6 @@ using System.Diagnostics;
 using System.IO;
 using Veldrid;
 
-#if MONOMAC
-using MonoMac.AppKit;
-using MonoMac.CoreGraphics;
-#elif XAMMAC2
-using AppKit;
-using CoreGraphics;
-#endif
-
 namespace TestEtoVeldrid.Mac
 {
 	public static class MainClass
