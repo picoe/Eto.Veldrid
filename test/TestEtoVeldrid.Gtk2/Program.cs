@@ -2,7 +2,7 @@
 using Eto.Veldrid;
 using System;
 
-namespace TestEtoVeldrid.Gtk
+namespace TestEtoVeldrid.Gtk2
 {
 	public static class MainClass
 	{

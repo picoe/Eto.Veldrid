@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	
   <PropertyGroup>
+    <OutputType>WinExe</OutputType>
     <TargetFramework>net472</TargetFramework>
     <!-- By design, the newer SDK-style projects don't search the GAC, and it's
     necessary to explicitly demand that to find the Gtk# assemblies. -->
@@ -18,7 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Eto.Veldrid\Eto.Veldrid.csproj" />
+    <ProjectReference Include="..\TestEtoVeldrid\TestEtoVeldrid.csproj" />
+    <ProjectReference Include="..\..\src\Eto.Veldrid.Gtk2\Eto.Veldrid.Gtk2.csproj" />
   </ItemGroup>
 	
   <ItemGroup>
