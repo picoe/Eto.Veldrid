@@ -209,7 +209,7 @@ namespace Eto.Veldrid
 			add { Properties.AddHandlerEvent(DrawEvent, value); }
 			remove { Properties.RemoveEvent(DrawEvent, value); }
 		}
-		public event EventHandler<EventArgs> Resize
+		public event EventHandler<ResizeEventArgs> Resize
 		{
 			add { Properties.AddHandlerEvent(ResizeEvent, value); }
 			remove { Properties.RemoveEvent(ResizeEvent, value); }
