@@ -92,18 +92,12 @@ namespace Eto.Veldrid.Gtk
 			{
 				return glXChooseVisual(display, screen, new int[] {
 					GLX_RGBA,
-					GLX_RED_SIZE,
-					8,
-					GLX_GREEN_SIZE,
-					8,
-					GLX_BLUE_SIZE,
-					8,
-					GLX_ALPHA_SIZE,
-					8,
-					GLX_DEPTH_SIZE,
-					8,
-					GLX_STENCIL_SIZE,
-					8,
+					GLX_RED_SIZE, 8,
+					GLX_GREEN_SIZE, 8,
+					GLX_BLUE_SIZE, 8,
+					GLX_ALPHA_SIZE, 8,
+					GLX_DEPTH_SIZE, 8,
+					GLX_STENCIL_SIZE, 8,
 					GLX_NONE
 				});
 			}
@@ -119,6 +113,9 @@ namespace Eto.Veldrid.Gtk
 
 		[DllImport(linux_libgdk_x11_name)]
 		static public extern IntPtr gdk_x11_display_get_xdisplay(IntPtr gdkDisplay);
+
+		[DllImport(linux_libgdk_x11_name)]
+		static public extern int gdk_x11_screen_get_screen_number(IntPtr gdkScreen);
 
 		[DllImport(linux_libgdk_x11_name)]
 		static public extern IntPtr gdk_x11_window_get_xid(IntPtr gdkDisplay);
@@ -148,8 +145,7 @@ namespace Eto.Veldrid.Gtk
 		public void CreateOpenGLContext()
 		{
 			IntPtr display = X11Interop.gdk_x11_display_get_xdisplay(Display.Handle);
-
-			int screen = Screen.Number;
+			int screen = X11Interop.gdk_x11_screen_get_screen_number(Screen.Handle);
 
 			IntPtr visualInfo;
 			if (Mode.Index.HasValue)
@@ -224,10 +220,10 @@ namespace Eto.Veldrid.Gtk
 			Callback.OnControlReady(Widget, EventArgs.Empty);
 		}
 
-			/// <summary>
-			/// Prepare this VeldridSurface to use OpenGL.
-			/// </summary>
-			public void InitializeOpenGL()
+		/// <summary>
+		/// Prepare this VeldridSurface to use OpenGL.
+		/// </summary>
+		public void InitializeOpenGL()
 		{
 			var platformInfo = new OpenGLPlatformInfo(
 				VeldridGL.GetGLContextHandle(),
@@ -259,7 +255,6 @@ namespace Eto.Veldrid.Gtk
 			//
 			//   https://github.com/mellinoe/veldrid/issues/155
 			//
-			//var bardles = SwapchainSource.CreateWayland()
 			var source = SwapchainSource.CreateXlib(
 				X11Interop.gdk_x11_display_get_xdisplay(Control.Display.Handle),
 				X11Interop.gdk_x11_window_get_xid(Control.Window.Handle));

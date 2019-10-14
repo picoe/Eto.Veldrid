@@ -5,8 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Eto.Veldrid.WinForms\Eto.Veldrid.WinForms.csproj" />
     <ProjectReference Include="..\Eto.Veldrid\Eto.Veldrid.csproj" />
+    <ProjectReference Include="..\Eto.Veldrid.WinForms\Eto.Veldrid.WinForms.csproj" />
   </ItemGroup>
 
   <ItemGroup>
