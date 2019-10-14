@@ -1,10 +1,23 @@
 using Eto.Drawing;
 using Eto.Forms;
 
-namespace VeldridEto
+namespace TestEtoVeldrid
 {
 	public partial class MainForm : Form
 	{
+		public CheckCommand CmdAnimate { get; } = new CheckCommand
+		{
+			MenuText = "Animate",
+			ToolTip = "Click window content to toggle animation",
+			Checked = true
+		};
+		public CheckCommand CmdClockwise { get; } = new CheckCommand
+		{
+			MenuText = "&Clockwise",
+			ToolTip = "Press C to toggle direction",
+			Checked = true
+		};
+
 		private void InitializeComponent()
 		{
 			Title = "Veldrid in Eto";
@@ -19,7 +32,11 @@ namespace VeldridEto
 			Menu = new MenuBar
 			{
 				QuitItem = quitCommand,
-				AboutItem = aboutCommand
+				AboutItem = aboutCommand,
+				Items =
+				{
+					new ButtonMenuItem { Text = "&View", Items = { CmdAnimate, CmdClockwise } }
+				}
 			};
 		}
 	}

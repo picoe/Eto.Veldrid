@@ -1,15 +1,12 @@
-﻿using Eto;
-using Eto.Drawing;
+﻿using Eto.Drawing;
 using Eto.Forms;
+using OpenTK;
 using OpenTK.Graphics;
 using System;
 using System.Reflection;
 using Veldrid;
 
-// TODO: Come up with a suitable namespace. Eto.Veldrid will conflict with the
-// global Veldrid, and Eto.VeldridSurface makes the VeldridSurface class harder
-// to use. Suggestions welcome!
-namespace VeldridEto
+namespace Eto.Veldrid
 {
 	/// <summary>
 	/// A collection of helper methods to grant Veldrid access to an OpenGL context.
@@ -21,54 +18,42 @@ namespace VeldridEto
 	/// </remarks>
 	public static class VeldridGL
 	{
-		public static IntPtr GetGLContextHandle()
-		{
-			return GetCurrentContext();
-		}
+		// Depending on a private method like CreateGetAddress is hardly in
+		// line with best practices, but it's the only way to grant Veldrid
+		// access to OpenTK's internals. It's not pretty, but this Eto
+		// integration was designed specifically for OpenTK 3.x, so sticking
+		// to that branch should ensure private things stay where they are.
+		static readonly Type _utilitiesType = typeof(OpenTK.Platform.Utilities);
+		static readonly MethodInfo _createGetAddress = _utilitiesType.GetMethod("CreateGetAddress", BindingFlags.NonPublic | BindingFlags.Static);
+		static readonly GraphicsContext.GetAddressDelegate _getProcAddress = (GraphicsContext.GetAddressDelegate)_createGetAddress.Invoke(null, Array.Empty<string>());
 
-		// It should be noted that both GetProcAddress and MakeCurrent aren't
-		// exactly following best practices here; they depend on a private
-		// method and field, respectively, to grant Veldrid access to OpenTK's
-		// internals. It's not pretty, but since this Eto integration was
-		// designed specifically with OpenTK 3.0.1 in mind, sticking with that
-		// version will guarantee that anything private will stay where it is.
+		// TODO: Find out if this is correct! The docs just say that the
+		// 'openGLContextHandle' parameter of an OpenGLPlatformInfo is, and I
+		// quote, "The OpenGL context handle", which isn't terribly helpful. Doing
+		// this seems to work, but then if all Veldrid needs is the current
+		// context, it could use the method I specify for GetCurrentContext,
+		// couldn't it? There must be more to this.
+		public static IntPtr GetGLContextHandle() => GetCurrentContext();
 
-		public static IntPtr GetProcAddress(string name)
-		{
-			Type type = typeof(OpenTK.Platform.Utilities);
+		public static IntPtr GetProcAddress(string name) => _getProcAddress.Invoke(name);
 
-			MethodInfo createGetAddress = type.GetMethod("CreateGetAddress", BindingFlags.NonPublic | BindingFlags.Static);
-			var getAddress = (GraphicsContext.GetAddressDelegate)createGetAddress.Invoke(null, Array.Empty<string>());
+		public static IntPtr GetCurrentContext() => GraphicsContext.CurrentContextHandle.Handle;
 
-			return getAddress.Invoke(name);
-		}
-
-		public static IntPtr GetCurrentContext()
-		{
-			return GraphicsContext.CurrentContextHandle.Handle;
-		}
-
-		public static void ClearCurrentContext()
-		{
-			GraphicsContext.CurrentContext.MakeCurrent(null);
-		}
+		public static void ClearCurrentContext() => GraphicsContext.CurrentContext.MakeCurrent(null);
 
 		public static void DeleteContext(IntPtr context)
 		{
+			// TODO: Update this! Eto.Gl/Eto.OpenTK is no longer in use, so I'll need
+			// to dispose the specified context manually. I think.
+
 			// Do nothing! With this Eto.Gl-based approach, Veldrid should never
 			// need to destroy an OpenGL context on its own; let the GLSurface
 			// take care of context deletion upon its own disposal.
 		}
 
-		public static void SwapBuffers()
-		{
-			GraphicsContext.CurrentContext.SwapBuffers();
-		}
+		public static void SwapBuffers() => GraphicsContext.CurrentContext.SwapBuffers();
 
-		public static void SetVSync(bool on)
-		{
-			GraphicsContext.CurrentContext.SwapInterval = on ? 1 : 0;
-		}
+		public static void SetVSync(bool on) => GraphicsContext.CurrentContext.SwapInterval = on ? 1 : 0;
 
 		// It's perfectly acceptable to create an instance of OpenGLPlatformInfo
 		// without providing these last two methods, if indeed you don't need
@@ -134,34 +119,26 @@ namespace VeldridEto
 		{
 			public void OnControlReady(VeldridSurface s, EventArgs e)
 			{
-				s.ControlReady = true;
+				if (s != null)
+				{
+					s.ControlReady = true;
+				}
 			}
-
-			public void OnDraw(VeldridSurface s, EventArgs e)
-			{
-				s.OnDraw(e);
-			}
-
+			public void OnDraw(VeldridSurface s, EventArgs e) => s?.OnDraw(e);
 			public void OnOpenGLReady(VeldridSurface s, EventArgs e)
 			{
-				s.OpenGLReady = true;
+				if (s != null)
+				{
+					s.OpenGLReady = true;
+				}
 			}
-
-			public void OnResize(VeldridSurface s, ResizeEventArgs e)
-			{
-				s.OnResize(e);
-			}
-
-			public void OnVeldridInitialized(VeldridSurface s, EventArgs e)
-			{
-				s.OnVeldridInitialized(e);
-			}
+			public void OnResize(VeldridSurface s, ResizeEventArgs e) => s?.OnResize(e);
+			public void OnVeldridInitialized(VeldridSurface s, EventArgs e) => s?.OnVeldridInitialized(e);
 		}
 
-		protected override object GetCallback()
-		{
-			return new Callback();
-		}
+		protected override object GetCallback() => new Callback();
+
+		public static GraphicsBackend PreferredBackend { get; } = GetPreferredBackend();
 
 		/// <summary>
 		/// The render area's width, which may differ from the control's width
@@ -185,59 +162,9 @@ namespace VeldridEto
 		public GraphicsDeviceOptions GraphicsDeviceOptions { get; } =
 			new GraphicsDeviceOptions(
 				false,
-				Veldrid.PixelFormat.R32_Float,
+				global::Veldrid.PixelFormat.R32_Float,
 				false,
 				ResourceBindingModel.Improved);
-
-		public static GraphicsBackend PreferredBackend
-		{
-			get
-			{
-				GraphicsBackend? backend = null;
-
-				// It'd be less ugly to just loop through the GraphicsBackend
-				// enum, but the backends aren't arranged in an ideal order,
-				// either ascending or descending. The below progression is only
-				// a judgment call, and could easily get rearranged if need be.
-				foreach (GraphicsBackend b in new[] {
-					GraphicsBackend.Metal,
-					GraphicsBackend.Vulkan,
-					GraphicsBackend.Direct3D11,
-					GraphicsBackend.OpenGL,
-					GraphicsBackend.OpenGLES })
-				{
-					bool supported = false;
-
-					try
-					{
-						supported = GraphicsDevice.IsBackendSupported(b);
-					}
-					catch (InvalidOperationException)
-					{
-						// Veldrid, as of 4.7.0, throws this exception when
-						// trying to test for Vulkan in macOS if it's not
-						// available on the system.
-					}
-
-					if (supported)
-					{
-						backend = b;
-
-						// With backends being checked from most to least
-						// desirable, it's important to break as soon as a
-						// suitable backend is detected.
-						break;
-					}
-				}
-
-				if (backend == null)
-				{
-					throw new VeldridException("VeldridSurface: No supported Veldrid backend found!");
-				}
-
-				return (GraphicsBackend)backend;
-			}
-		}
 
 		public GraphicsBackend Backend { get; set; }
 
@@ -301,6 +228,23 @@ namespace VeldridEto
 			}
 		}
 
+		/// <summary>
+		/// Initializes OpenTK; if your program will make use of Veldrid's
+		/// OpenGL backend, this method must be called before creating your
+		/// Eto.Forms.Application.
+		/// </summary>
+		public static void InitializeOpenTK()
+		{
+			// Ensure that OpenTK ignores SDL2 if it's installed.
+			//
+			// This is technically only important for OpenGL, as it's the only
+			// Veldrid backend that uses OpenTK, but since Veldrid also allows
+			// live switching of backends, it's worth doing regardless of which
+			// one users start out with. Anyone who plans to completely avoid
+			// OpenGL is free to simply not call InitializeOpenTK at all.
+			Toolkit.Init(new ToolkitOptions { Backend = PlatformBackend.PreferNative });
+		}
+
 		public void InitializeGraphicsApi()
 		{
 			if (!ControlReady)
@@ -326,52 +270,96 @@ namespace VeldridEto
 			// to call OnVeldridInitialized itself.
 		}
 
-		private void InitializeOtherApi()
+		private static GraphicsBackend GetPreferredBackend()
 		{
-			if (Backend == GraphicsBackend.Metal)
+			GraphicsBackend? backend = null;
+
+			// It'd be less ugly to just loop through the GraphicsBackend
+			// enum, but the backends aren't arranged in an ideal order,
+			// either ascending or descending. The below progression is only
+			// a judgment call, and could easily get rearranged if need be.
+			foreach (GraphicsBackend b in new[] {
+				GraphicsBackend.Metal,
+				GraphicsBackend.Vulkan,
+				GraphicsBackend.Direct3D11,
+				GraphicsBackend.OpenGL,
+				GraphicsBackend.OpenGLES })
 			{
-				GraphicsDevice = GraphicsDevice.CreateMetal(GraphicsDeviceOptions);
-			}
-			else if (Backend == GraphicsBackend.Vulkan)
-			{
-				GraphicsDevice = GraphicsDevice.CreateVulkan(GraphicsDeviceOptions);
-			}
-			else if (Backend == GraphicsBackend.Direct3D11)
-			{
-				GraphicsDevice = GraphicsDevice.CreateD3D11(GraphicsDeviceOptions);
-			}
-			else
-			{
-				string message;
-				if (!Enum.IsDefined(typeof(GraphicsBackend), Backend))
+				bool supported = false;
+
+				try
 				{
-					message = "Unrecognized backend!";
+					supported = GraphicsDevice.IsBackendSupported(b);
 				}
-				else
+				catch (InvalidOperationException)
 				{
-					message = "Specified backend not supported on this platform!";
+					// Veldrid, as of 4.7.0, throws this exception when
+					// trying to test for Vulkan in macOS if it's not
+					// available on the system.
 				}
 
-				throw new ArgumentException(message);
+				if (supported)
+				{
+					backend = b;
+
+					// With backends being checked from most to least
+					// desirable, it's important to break as soon as a
+					// suitable backend is detected.
+					break;
+				}
+			}
+
+			if (backend == null)
+			{
+				throw new VeldridException("VeldridSurface: No supported Veldrid backend found!");
+			}
+
+			return (GraphicsBackend)backend;
+		}
+
+		private void InitializeOtherApi()
+		{
+			switch (Backend)
+			{
+				case GraphicsBackend.Metal:
+					GraphicsDevice = GraphicsDevice.CreateMetal(GraphicsDeviceOptions);
+					break;
+				case GraphicsBackend.Vulkan:
+					GraphicsDevice = GraphicsDevice.CreateVulkan(GraphicsDeviceOptions);
+					break;
+				case GraphicsBackend.Direct3D11:
+					GraphicsDevice = GraphicsDevice.CreateD3D11(GraphicsDeviceOptions);
+					break;
+				default:
+					string message;
+					if (!Enum.IsDefined(typeof(GraphicsBackend), Backend))
+					{
+						message = "Unrecognized backend!";
+					}
+					else
+					{
+						message = "Specified backend not supported on this platform!";
+					}
+
+					throw new ArgumentException(message);
 			}
 
 			Handler.InitializeOtherApi();
 		}
 
-		protected virtual void OnVeldridInitialized(EventArgs e)
-		{
-			Properties.TriggerEvent(VeldridInitializedEvent, this, e);
-		}
-		protected virtual void OnDraw(EventArgs e)
-		{
-			Properties.TriggerEvent(DrawEvent, this, e);
-		}
+		protected virtual void OnDraw(EventArgs e) => Properties.TriggerEvent(DrawEvent, this, e);
+
 		protected virtual void OnResize(ResizeEventArgs e)
 		{
-			Swapchain?.Resize((uint)e.Width, (uint)e.Height);
+			if (Swapchain != null && e != null)
+			{
+				Swapchain.Resize((uint)e.Width, (uint)e.Height);
+			}
 
-			Properties.TriggerEvent(ResizeEvent, this, EventArgs.Empty);
+			Properties.TriggerEvent(ResizeEvent, this, e);
 		}
+
+		protected virtual void OnVeldridInitialized(EventArgs e) => Properties.TriggerEvent(VeldridInitializedEvent, this, e);
 
 		protected override void OnSizeChanged(EventArgs e)
 		{

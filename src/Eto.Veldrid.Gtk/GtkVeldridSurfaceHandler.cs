@@ -1,23 +1,27 @@
 ﻿using Eto.Forms;
 using Eto.GtkSharp.Forms;
-using OpenTK;
+using Eto.Veldrid;
+using Eto.Veldrid.Gtk;
+using Gdk;
+using Gtk;
 using OpenTK.Graphics;
 using OpenTK.Platform;
 using System;
 using System.Runtime.InteropServices;
 using Veldrid;
 using Veldrid.OpenGL;
-using Gtk;
 
-namespace VeldridEto
+[assembly: Eto.ExportHandler(typeof(VeldridSurface), typeof(GtkVeldridSurfaceHandler))]
+
+namespace Eto.Veldrid.Gtk
 {
 	internal static class X11Interop
 	{
 		const string
 			libX11_name = "libX11",
-			linux_libgdk_x11_name = "libgdk-x11-2.0.so.0",
-			linux_libgl_name = "libGL.so.1",
-			linux_libx11_name = "libX11.so.6";
+			linux_libgdk_x11_name = "libgdk-3.so.0",
+			linux_libGL_name = "libGL.so.1",
+			linux_libX11_name = "libX11.so.6";
 
 		public enum XVisualClass
 		{
@@ -43,10 +47,7 @@ namespace VeldridEto
 			public int ColormapSize;
 			public int BitsPerRgb;
 
-			public override string ToString()
-			{
-				return $"VisualID {VisualID}, Screen {Screen}, Depth {Depth}, Class {Class}";
-			}
+			public override string ToString() => $"VisualID {VisualID}, Screen {Screen}, Depth {Depth}, Class {Class}";
 		}
 
 		[Flags]
@@ -116,20 +117,20 @@ namespace VeldridEto
 			}
 		}
 
-		[DllImport(libX11_name, EntryPoint = ("XGetVisualInfo"))]
-		static public extern IntPtr XGetVisualInfo(IntPtr display, IntPtr vinfo_mask, ref XVisualInfo vinfo_template, out int nitems_return);
-
 		[DllImport(linux_libgdk_x11_name)]
 		static public extern IntPtr gdk_x11_display_get_xdisplay(IntPtr gdkDisplay);
 
 		[DllImport(linux_libgdk_x11_name)]
-		static public extern IntPtr gdk_x11_drawable_get_xid(IntPtr gdkDisplay);
+		static public extern IntPtr gdk_x11_window_get_xid(IntPtr gdkDisplay);
 
-		[DllImport(linux_libgl_name)]
+		[DllImport(linux_libGL_name)]
 		static public extern IntPtr glXChooseVisual(IntPtr display, int screen, int[] attr);
 
-		[DllImport(linux_libx11_name)]
+		[DllImport(linux_libX11_name)]
 		static public extern void XFree(IntPtr handle);
+
+		[DllImport(libX11_name, EntryPoint = "XGetVisualInfo")]
+		static public extern IntPtr XGetVisualInfo(IntPtr display, IntPtr vinfo_mask, ref XVisualInfo vinfo_template, out int nitems_return);
 	}
 
 	public class GtkVeldridDrawingArea : DrawingArea
@@ -147,6 +148,7 @@ namespace VeldridEto
 		public void CreateOpenGLContext()
 		{
 			IntPtr display = X11Interop.gdk_x11_display_get_xdisplay(Display.Handle);
+
 			int screen = Screen.Number;
 
 			IntPtr visualInfo;
@@ -154,7 +156,7 @@ namespace VeldridEto
 			{
 				var info = new X11Interop.XVisualInfo { VisualID = Mode.Index.Value };
 
-				visualInfo = X11Interop.XGetVisualInfo(display, (IntPtr)(int)X11Interop.XVisualInfoMask.ID, ref info, out int dummy);
+				visualInfo = X11Interop.XGetVisualInfo(display, (IntPtr)(int)X11Interop.XVisualInfoMask.ID, ref info, out _);
 			}
 			else
 			{
@@ -164,8 +166,8 @@ namespace VeldridEto
 			WindowInfo = Utilities.CreateX11WindowInfo(
 				display,
 				screen,
-				X11Interop.gdk_x11_drawable_get_xid(GdkWindow.Handle),
-				X11Interop.gdk_x11_drawable_get_xid(RootWindow.Handle),
+				X11Interop.gdk_x11_window_get_xid(Window.Handle),
+				X11Interop.gdk_x11_window_get_xid(Screen.RootWindow.Handle),
 				visualInfo);
 
 			X11Interop.XFree(visualInfo);
@@ -183,10 +185,7 @@ namespace VeldridEto
 
 	public class GtkVeldridSurfaceHandler : GtkControl<GtkVeldridDrawingArea, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
-		public new VeldridSurface.ICallback Callback => base.Callback;
-		public new VeldridSurface Widget => base.Widget;
-
-		// TODO: Find out if Gtk2 even supports different DPI settings, and if
+		// TODO: Find out if Gtk3 even supports different DPI settings, and if
 		// so test it out and get this to return the correct values.
 		public int RenderWidth => Widget.Width;
 		public int RenderHeight => Widget.Height;
@@ -195,7 +194,7 @@ namespace VeldridEto
 		{
 			Control = new GtkVeldridDrawingArea();
 
-			Control.ExposeEvent += Control_ExposeEvent;
+			Control.Drawn += Control_Drawn;
 		}
 
 		public override void AttachEvent(string id)
@@ -203,7 +202,7 @@ namespace VeldridEto
 			switch (id)
 			{
 				case VeldridSurface.DrawEvent:
-					Control.ExposeEvent += (sender, e) => Callback.OnDraw(Widget, e);
+					Control.Drawn += (sender, e) => Callback.OnDraw(Widget, e);
 					break;
 				default:
 					base.AttachEvent(id);
@@ -211,7 +210,7 @@ namespace VeldridEto
 			}
 		}
 
-		void Control_ExposeEvent(object o, ExposeEventArgs args)
+		void Control_Drawn(object o, DrawnArgs args)
 		{
 			if (Widget.Backend == GraphicsBackend.OpenGL)
 			{
@@ -220,15 +219,15 @@ namespace VeldridEto
 				Callback.OnOpenGLReady(Widget, EventArgs.Empty);
 			}
 
-			Control.ExposeEvent -= Control_ExposeEvent;
+			Control.Drawn -= Control_Drawn;
 
 			Callback.OnControlReady(Widget, EventArgs.Empty);
 		}
 
-		/// <summary>
-		/// Prepare this VeldridSurface to use OpenGL.
-		/// </summary>
-		public void InitializeOpenGL()
+			/// <summary>
+			/// Prepare this VeldridSurface to use OpenGL.
+			/// </summary>
+			public void InitializeOpenGL()
 		{
 			var platformInfo = new OpenGLPlatformInfo(
 				VeldridGL.GetGLContextHandle(),
@@ -260,9 +259,10 @@ namespace VeldridEto
 			//
 			//   https://github.com/mellinoe/veldrid/issues/155
 			//
+			//var bardles = SwapchainSource.CreateWayland()
 			var source = SwapchainSource.CreateXlib(
 				X11Interop.gdk_x11_display_get_xdisplay(Control.Display.Handle),
-				X11Interop.gdk_x11_drawable_get_xid(Control.GdkWindow.Handle));
+				X11Interop.gdk_x11_window_get_xid(Control.Window.Handle));
 
 			Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
 				new SwapchainDescription(
@@ -273,25 +273,6 @@ namespace VeldridEto
 					false));
 
 			Callback.OnVeldridInitialized(Widget, EventArgs.Empty);
-		}
-	}
-
-	public static class MainClass
-	{
-		[STAThread]
-		public static void Main(string[] args)
-		{
-			GraphicsBackend backend = VeldridSurface.PreferredBackend;
-
-			if (backend == GraphicsBackend.OpenGL)
-			{
-				Toolkit.Init(new ToolkitOptions { Backend = PlatformBackend.PreferNative });
-			}
-
-			var platform = new Eto.GtkSharp.Platform();
-			platform.Add<VeldridSurface.IHandler>(() => new GtkVeldridSurfaceHandler());
-
-			new Eto.Forms.Application(platform).Run(new MainForm(backend));
 		}
 	}
 }

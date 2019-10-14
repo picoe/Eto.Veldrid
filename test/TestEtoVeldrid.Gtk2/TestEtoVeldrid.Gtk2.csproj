@@ -19,7 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Eto.VeldridSurface\Eto.VeldridSurface.csproj" />
+    <ProjectReference Include="..\TestEtoVeldrid\TestEtoVeldrid.csproj" />
+    <ProjectReference Include="..\..\src\Eto.Veldrid.Gtk2\Eto.Veldrid.Gtk2.csproj" />
   </ItemGroup>
 	
   <ItemGroup>

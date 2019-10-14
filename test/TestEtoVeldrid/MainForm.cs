@@ -1,18 +1,20 @@
 ﻿using Eto.Drawing;
 using Eto.Forms;
+using Eto.Veldrid;
 using System;
 using System.Threading;
 using Veldrid;
+using VeldridEto;
 
-namespace VeldridEto
+namespace TestEtoVeldrid
 {
 	public partial class MainForm : Form
 	{
 		VeldridSurface Surface;
 
-		VeldridDriver Driver;
-
 		OVPSettings ovpSettings;
+
+		VeldridDriver Driver;
 
 		private bool _veldridReady = false;
 		public bool VeldridReady
@@ -38,36 +40,23 @@ namespace VeldridEto
 			}
 		}
 
+		public MainForm() : this(VeldridSurface.PreferredBackend)
+		{
+		}
 		public MainForm(GraphicsBackend backend) : this(backend, AppContext.BaseDirectory, "shaders")
 		{
 		}
-		public MainForm(GraphicsBackend backend, string executableDirectory, string shaderSubdirectory)
+		public MainForm(string exeDir, string shaderSubdir) : this(VeldridSurface.PreferredBackend, exeDir, shaderSubdir)
+		{
+		}
+		public MainForm(GraphicsBackend backend, string exeDir, string shaderSubdir)
 		{
 			InitializeComponent();
 
 			Shown += (sender, e) => FormReady = true;
-			/*
-			PixelLayout mpl = new PixelLayout();
-			Content = mpl;
 
-			TabControl tc = new TabControl();
-			TabPage tp = new TabPage();
-			tc.Pages.Add(tp);
-			TabPage tp2 = new TabPage();
-			tc.Pages.Add(tp2);
-			PixelLayout pl = new PixelLayout();
-			tp.Content = pl;
-
-			Panel p = new Panel();
-			p.Size = new Size(100, 100);
-			pl.Add(p, 1, 1);
-
-			mpl.Add(tc, 1, 1);
-			*/
 			Surface = new VeldridSurface(backend);
 			Surface.VeldridInitialized += (sender, e) => VeldridReady = true;
-
-			//p.Content = Surface;
 
 			Content = Surface;
 
@@ -80,9 +69,29 @@ namespace VeldridEto
 			Driver = new VeldridDriver(ref ovpSettings, ref Surface)
 			{
 				Surface = Surface,
-				ExecutableDirectory = executableDirectory,
-				ShaderSubdirectory = shaderSubdirectory
+				ExecutableDirectory = exeDir,
+				ShaderSubdirectory = shaderSubdir
 			};
+
+			// TODO: Make this binding actually work both ways.
+			CmdAnimate.Bind<bool>("Checked", Driver, "Animate");
+			CmdClockwise.Bind<bool>("Checked", Driver, "Clockwise");
+		}
+
+		private void SetUpVeldrid()
+		{
+			if (!(FormReady && VeldridReady))
+			{
+				return;
+			}
+
+			Driver.SetUpVeldrid();
+
+			Title = $"Veldrid backend: {Surface.Backend.ToString()}";
+
+			createVPContextMenu();
+
+			Driver.Clock.Start();
 		}
 
 		void addPolys()
@@ -162,20 +171,6 @@ namespace VeldridEto
 		}
 
 		ContextMenu vp_menu;
-		private void SetUpVeldrid()
-		{
-			if (!(FormReady && VeldridReady))
-			{
-				return;
-			}
-
-			Driver.SetUpVeldrid();
-
-			Title = $"Veldrid backend: {Surface.Backend.ToString()}";
-
-			Driver.Clock.Start();
-			createVPContextMenu();
-		}
 
 		void createVPContextMenu()
 		{

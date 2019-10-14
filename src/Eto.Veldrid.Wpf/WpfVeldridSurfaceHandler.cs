@@ -1,22 +1,20 @@
-﻿using Eto.Forms;
-using OpenTK;
+﻿using Eto.Veldrid;
+using Eto.Veldrid.Wpf;
 using System;
 using System.Runtime.InteropServices;
 using Veldrid;
 using Veldrid.OpenGL;
-using VeldridEtoWinForms;
 
-namespace VeldridEto
+[assembly: Eto.ExportHandler(typeof(VeldridSurface), typeof(WpfVeldridSurfaceHandler))]
+
+namespace Eto.Veldrid.Wpf
 {
-	public class WpfVeldridSurfaceHandler : Eto.Wpf.Forms.ManualBubbleWindowsFormsHostHandler<WinVeldridUserControl, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
+	public class WpfVeldridSurfaceHandler : Eto.Wpf.Forms.ManualBubbleWindowsFormsHostHandler<WinForms.WinVeldridUserControl, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
-		public new VeldridSurface.ICallback Callback => base.Callback;
-		public new VeldridSurface Widget => base.Widget;
-
 		public int RenderWidth => WinFormsControl.Width;
 		public int RenderHeight => WinFormsControl.Height;
 
-		public WpfVeldridSurfaceHandler() : base(new WinVeldridUserControl())
+		public WpfVeldridSurfaceHandler() : base(new WinForms.WinVeldridUserControl())
 		{
 			WinFormsControl.HandleCreated += WinFormsControl_HandleCreated;
 		}
@@ -77,7 +75,6 @@ namespace VeldridEto
 		/// <summary>
 		/// Prepare this VeldridSurface to use a graphics API other than OpenGL.
 		/// </summary>
-
 		public void InitializeOtherApi()
 		{
 			Control.Loaded += OneTimeControlInit;
@@ -93,36 +90,18 @@ namespace VeldridEto
 			var source = SwapchainSource.CreateWin32(
 				WinFormsControl.Handle,
 				Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
+
 			Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
-			new SwapchainDescription(
-				source,
-				(uint)RenderWidth,
-				(uint)RenderHeight,
-				PixelFormat.R32_Float,
-				false));
+				new SwapchainDescription(
+					source,
+					(uint)RenderWidth,
+					(uint)RenderHeight,
+					PixelFormat.R32_Float,
+					false));
 
 			Control.Loaded -= OneTimeControlInit;
 
 			Callback.OnVeldridInitialized(Widget, EventArgs.Empty);
-		}
-	}
-
-	public static class MainClass
-	{
-		[STAThread]
-		public static void Main(string[] args)
-		{
-			GraphicsBackend backend = VeldridSurface.PreferredBackend;
-
-			if (backend == GraphicsBackend.OpenGL)
-			{
-				Toolkit.Init(new ToolkitOptions { Backend = PlatformBackend.PreferNative });
-			}
-
-			var platform = new Eto.Wpf.Platform();
-			platform.Add<VeldridSurface.IHandler>(() => new WpfVeldridSurfaceHandler());
-
-			new Application(platform).Run(new MainForm(backend));
 		}
 	}
 }

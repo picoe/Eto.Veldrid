@@ -1,11 +1,9 @@
-﻿using Eto.Forms;
-using Eto.Mac.Forms;
-using OpenTK;
+﻿using Eto.Mac.Forms;
+using Eto.Veldrid;
+using Eto.Veldrid.Mac;
 using OpenTK.Graphics;
 using OpenTK.Platform;
 using System;
-using System.Diagnostics;
-using System.IO;
 using Veldrid;
 using Veldrid.OpenGL;
 
@@ -17,19 +15,15 @@ using AppKit;
 using CoreGraphics;
 #endif
 
-namespace VeldridEto
+[assembly: Eto.ExportHandler(typeof(VeldridSurface), typeof(MacVeldridSurfaceHandler))]
+
+namespace Eto.Veldrid.Mac
 {
 	public class MacVeldridView : NSView, IMacControl
 	{
-		public override bool AcceptsFirstMouse(NSEvent theEvent)
-		{
-			return CanFocus;
-		}
+		public override bool AcceptsFirstMouse(NSEvent theEvent) => CanFocus;
 
-		public override bool AcceptsFirstResponder()
-		{
-			return CanFocus;
-		}
+		public override bool AcceptsFirstResponder() => CanFocus;
 
 		public bool CanFocus { get; set; } = true;
 
@@ -41,7 +35,6 @@ namespace VeldridEto
 		public GraphicsContext Context { get; private set; }
 
 		public event EventHandler Draw;
-		public event EventHandler OpenGLContextCreated;
 
 		public void CreateOpenGLContext()
 		{
@@ -79,9 +72,6 @@ namespace VeldridEto
 
 	public class MacVeldridSurfaceHandler : MacView<MacVeldridView, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
-		public new VeldridSurface.ICallback Callback => base.Callback;
-		public new VeldridSurface Widget => base.Widget;
-
 		// TODO: Set up some way to test HiDPI in macOS and figure out how to
 		// get the right values here.
 		public int RenderWidth => Widget.Width;
@@ -168,34 +158,6 @@ namespace VeldridEto
 					false));
 
 			Callback.OnVeldridInitialized(Widget, EventArgs.Empty);
-		}
-	}
-
-	public static class MainClass
-	{
-		[STAThread]
-		public static void Main(string[] args)
-		{
-			GraphicsBackend backend = VeldridSurface.PreferredBackend;
-
-			if (backend == GraphicsBackend.OpenGL)
-			{
-				Toolkit.Init(new ToolkitOptions { Backend = PlatformBackend.PreferNative });
-			}
-
-			var platform = new Eto.Mac.Platform();
-			platform.Add<VeldridSurface.IHandler>(() => new MacVeldridSurfaceHandler());
-
-			// AppContext.BaseDirectory is too simple for the case of the Mac
-			// projects. When building an app bundle that depends on the Mono
-			// framework being installed, it properly returns the path of the
-			// executable in Eto.Veldrid.app/Contents/MacOS. When building an
-			// app bundle that instead bundles Mono by way of mkbundle, on the
-			// other hand, it returns the directory containing the .app.
-			new Application(platform).Run(new MainForm(
-				backend,
-				Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName),
-				Path.Combine("..", "Resources", "shaders")));
 		}
 	}
 }
