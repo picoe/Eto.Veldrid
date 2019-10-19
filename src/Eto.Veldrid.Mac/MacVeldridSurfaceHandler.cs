@@ -1,75 +1,20 @@
 ﻿using Eto.Mac.Forms;
 using Eto.Veldrid;
 using Eto.Veldrid.Mac;
-using OpenTK.Graphics;
-using OpenTK.Platform;
 using System;
 using Veldrid;
 using Veldrid.OpenGL;
 
 #if MONOMAC
 using MonoMac.AppKit;
-using MonoMac.CoreGraphics;
 #elif XAMMAC2
 using AppKit;
-using CoreGraphics;
 #endif
 
 [assembly: Eto.ExportHandler(typeof(VeldridSurface), typeof(MacVeldridSurfaceHandler))]
 
 namespace Eto.Veldrid.Mac
 {
-	public class MacVeldridView : NSView, IMacControl
-	{
-		public override bool AcceptsFirstMouse(NSEvent theEvent) => CanFocus;
-
-		public override bool AcceptsFirstResponder() => CanFocus;
-
-		public bool CanFocus { get; set; } = true;
-
-		public WeakReference WeakHandler { get; set; }
-
-		GraphicsMode Mode = new GraphicsMode(new ColorFormat(32), 8, 8);
-
-		public IWindowInfo WindowInfo { get; set; }
-		public GraphicsContext Context { get; private set; }
-
-		public event EventHandler Draw;
-
-		public void CreateOpenGLContext()
-		{
-			WindowInfo = Utilities.CreateMacOSWindowInfo(Window.Handle, Handle);
-
-			Context = new GraphicsContext(Mode, WindowInfo, 3, 3, GraphicsContextFlags.ForwardCompatible);
-
-			Context.MakeCurrent(WindowInfo);
-		}
-
-		public void MakeCurrent(IntPtr context)
-		{
-			Context.MakeCurrent(WindowInfo);
-		}
-
-		public void UpdateContext()
-		{
-			WindowInfo = Utilities.CreateMacOSWindowInfo(Window.Handle, Handle);
-
-			Context?.Update(WindowInfo);
-		}
-
-		public override void DidChangeBackingProperties()
-		{
-			base.DidChangeBackingProperties();
-
-			UpdateContext();
-		}
-
-		public override void DrawRect(CGRect dirtyRect)
-		{
-			Draw?.Invoke(this, EventArgs.Empty);
-		}
-	}
-
 	public class MacVeldridSurfaceHandler : MacView<MacVeldridView, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
 		// TODO: Set up some way to test HiDPI in macOS and figure out how to

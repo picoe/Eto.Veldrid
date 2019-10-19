@@ -9,12 +9,12 @@ using Veldrid.OpenGL;
 
 namespace Eto.Veldrid.Wpf
 {
-	public class WpfVeldridSurfaceHandler : Eto.Wpf.Forms.ManualBubbleWindowsFormsHostHandler<WinForms.WinVeldridUserControl, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
+	public class WpfVeldridSurfaceHandler : Eto.Wpf.Forms.ManualBubbleWindowsFormsHostHandler<WinForms.WinFormsVeldridUserControl, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
 		public int RenderWidth => WinFormsControl.Width;
 		public int RenderHeight => WinFormsControl.Height;
 
-		public WpfVeldridSurfaceHandler() : base(new WinForms.WinVeldridUserControl())
+		public WpfVeldridSurfaceHandler() : base(new WinForms.WinFormsVeldridUserControl())
 		{
 			WinFormsControl.HandleCreated += WinFormsControl_HandleCreated;
 		}
