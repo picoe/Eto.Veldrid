@@ -145,8 +145,9 @@ namespace Eto.Veldrid.WinForms
 					source,
 					(uint)RenderWidth,
 					(uint)RenderHeight,
-					PixelFormat.R32_Float,
-					false));
+					Widget.GraphicsDeviceOptions.SwapchainDepthFormat,
+					Widget.GraphicsDeviceOptions.SyncToVerticalBlank,
+					Widget.GraphicsDeviceOptions.SwapchainSrgbFormat));
 
 			Callback.OnVeldridInitialized(Widget, EventArgs.Empty);
 		}

@@ -151,20 +151,7 @@ namespace Eto.Veldrid
 		/// </summary>
 		public int RenderHeight => Handler.RenderHeight;
 
-		// A depth buffer isn't strictly necessary for this project, which uses
-		// only 2D vertex coordinates, but it's helpful to create one for the
-		// sake of demonstration.
-		//
-		// The "improved" resource binding model changes how resource slots are
-		// assigned in the Metal backend, allowing it to work like the others,
-		// so the numbers used in calls to CommandList.SetGraphicsResourceSet
-		// will make more sense to developers used to e.g. OpenGL or Direct3D.
-		public GraphicsDeviceOptions GraphicsDeviceOptions { get; } =
-			new GraphicsDeviceOptions(
-				false,
-				global::Veldrid.PixelFormat.R32_Float,
-				false,
-				ResourceBindingModel.Improved);
+		public GraphicsDeviceOptions GraphicsDeviceOptions { get; private set; }
 
 		public GraphicsBackend Backend { get; set; }
 
@@ -218,9 +205,16 @@ namespace Eto.Veldrid
 		public VeldridSurface() : this(PreferredBackend)
 		{
 		}
-		public VeldridSurface(GraphicsBackend backend)
+		public VeldridSurface(GraphicsBackend backend) : this(backend, new GraphicsDeviceOptions())
+		{
+		}
+		public VeldridSurface(GraphicsDeviceOptions options) : this(PreferredBackend, options)
+		{
+		}
+		public VeldridSurface(GraphicsBackend backend, GraphicsDeviceOptions options)
 		{
 			Backend = backend;
+			GraphicsDeviceOptions = options;
 
 			if (Backend == GraphicsBackend.OpenGL)
 			{

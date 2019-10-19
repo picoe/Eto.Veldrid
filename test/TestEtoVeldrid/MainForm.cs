@@ -50,7 +50,21 @@ namespace TestEtoVeldrid
 
 			Shown += (sender, e) => FormReady = true;
 
-			Surface = new VeldridSurface(backend);
+			// A depth buffer isn't strictly necessary for this project, which uses
+			// only 2D vertex coordinates, but it's helpful to create one for the
+			// sake of demonstration.
+			//
+			// The "improved" resource binding model changes how resource slots are
+			// assigned in the Metal backend, allowing it to work like the others,
+			// so the numbers used in calls to CommandList.SetGraphicsResourceSet
+			// will make more sense to developers used to e.g. OpenGL or Direct3D.
+			var options = new GraphicsDeviceOptions(
+				false,
+				PixelFormat.R32_Float,
+				false,
+				ResourceBindingModel.Improved);
+
+			Surface = new VeldridSurface(backend, options);
 			Surface.VeldridInitialized += (sender, e) => VeldridReady = true;
 
 			Content = Surface;

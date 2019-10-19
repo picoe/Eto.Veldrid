@@ -96,8 +96,9 @@ namespace Eto.Veldrid.Wpf
 					source,
 					(uint)RenderWidth,
 					(uint)RenderHeight,
-					PixelFormat.R32_Float,
-					false));
+					Widget.GraphicsDeviceOptions.SwapchainDepthFormat,
+					Widget.GraphicsDeviceOptions.SyncToVerticalBlank,
+					Widget.GraphicsDeviceOptions.SwapchainSrgbFormat));
 
 			Control.Loaded -= OneTimeControlInit;
 
