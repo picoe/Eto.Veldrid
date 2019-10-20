@@ -39,8 +39,13 @@ namespace Eto.Veldrid.Gtk
 			WindowInfo = Utilities.CreateX11WindowInfo(
 				display,
 				screen,
+#if GTK3
 				X11Interop.gdk_x11_window_get_xid(Window.Handle),
 				X11Interop.gdk_x11_window_get_xid(Screen.RootWindow.Handle),
+#else
+				X11Interop.gdk_x11_drawable_get_xid(GdkWindow.Handle),
+				X11Interop.gdk_x11_drawable_get_xid(RootWindow.Handle),
+#endif
 				visualInfo);
 
 			X11Interop.XFree(visualInfo);

@@ -21,7 +21,11 @@ namespace Eto.Veldrid.Gtk
 		{
 			Control = new GtkVeldridDrawingArea();
 
+#if GTK3
 			Control.Drawn += Control_Drawn;
+#else
+			Control.ExposeEvent += Control_ExposeEvent;
+#endif
 		}
 
 		public override void AttachEvent(string id)
@@ -29,7 +33,11 @@ namespace Eto.Veldrid.Gtk
 			switch (id)
 			{
 				case VeldridSurface.DrawEvent:
+#if GTK3
 					Control.Drawn += (sender, e) => Callback.OnDraw(Widget, e);
+#else
+					Control.ExposeEvent += (sender, e) => Callback.OnDraw(Widget, e);
+#endif
 					break;
 				default:
 					base.AttachEvent(id);
@@ -37,7 +45,11 @@ namespace Eto.Veldrid.Gtk
 			}
 		}
 
+#if GTK3
 		void Control_Drawn(object o, DrawnArgs args)
+#else
+		void Control_ExposeEvent(object o, ExposeEventArgs args)
+#endif
 		{
 			if (Widget.Backend == GraphicsBackend.OpenGL)
 			{
@@ -46,9 +58,13 @@ namespace Eto.Veldrid.Gtk
 				Callback.OnOpenGLReady(Widget, EventArgs.Empty);
 			}
 
-			Control.Drawn -= Control_Drawn;
-
 			Callback.OnControlReady(Widget, EventArgs.Empty);
+
+#if GTK3
+			Control.Drawn -= Control_Drawn;
+#else
+			Control.ExposeEvent -= Control_ExposeEvent;
+#endif
 		}
 
 		/// <summary>
@@ -88,7 +104,11 @@ namespace Eto.Veldrid.Gtk
 			//
 			var source = SwapchainSource.CreateXlib(
 				X11Interop.gdk_x11_display_get_xdisplay(Control.Display.Handle),
+#if GTK3
 				X11Interop.gdk_x11_window_get_xid(Control.Window.Handle));
+#else
+				X11Interop.gdk_x11_drawable_get_xid(Control.GdkWindow.Handle));
+#endif
 
 			Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
 				new SwapchainDescription(

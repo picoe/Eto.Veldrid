@@ -7,7 +7,11 @@ namespace Eto.Veldrid.Gtk
 	{
 		const string
 			libX11_name = "libX11",
+#if GTK3
 			linux_libgdk_x11_name = "libgdk-3.so.0",
+#else
+			linux_libgdk_x11_name = "libgdk-x11-2.0.so.0",
+#endif
 			linux_libGL_name = "libGL.so.1",
 			linux_libX11_name = "libX11.so.6";
 
@@ -105,8 +109,13 @@ namespace Eto.Veldrid.Gtk
 		[DllImport(linux_libgdk_x11_name)]
 		static public extern int gdk_x11_screen_get_screen_number(IntPtr gdkScreen);
 
+#if GTK3
 		[DllImport(linux_libgdk_x11_name)]
 		static public extern IntPtr gdk_x11_window_get_xid(IntPtr gdkDisplay);
+#else	
+		[DllImport(linux_libgdk_x11_name)]
+		static public extern IntPtr gdk_x11_drawable_get_xid(IntPtr gdkDisplay);
+#endif
 
 		[DllImport(linux_libGL_name)]
 		static public extern IntPtr glXChooseVisual(IntPtr display, int screen, int[] attr);
