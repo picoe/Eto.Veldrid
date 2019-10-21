@@ -28,6 +28,76 @@ namespace Eto.Veldrid.Gtk
 #endif
 		}
 
+		public Swapchain CreateSwapchain()
+		{
+			Swapchain swapchain;
+
+			if (Widget.Backend == GraphicsBackend.OpenGL)
+			{
+				swapchain = Widget.GraphicsDevice.MainSwapchain;
+			}
+			else
+			{
+				// To embed Veldrid in an Eto control, these platform-specific
+				// versions of CreateSwapchain use the technique outlined here:
+				//
+				//   https://github.com/mellinoe/veldrid/issues/155
+				//
+				var source = SwapchainSource.CreateXlib(
+					X11Interop.gdk_x11_display_get_xdisplay(Control.Display.Handle),
+#if GTK3
+					X11Interop.gdk_x11_window_get_xid(Control.Window.Handle));
+#else
+					X11Interop.gdk_x11_drawable_get_xid(Control.GdkWindow.Handle));
+#endif
+
+				swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
+					new SwapchainDescription(
+						source,
+						(uint)RenderWidth,
+						(uint)RenderHeight,
+						Widget.GraphicsDeviceOptions.SwapchainDepthFormat,
+						Widget.GraphicsDeviceOptions.SyncToVerticalBlank,
+						Widget.GraphicsDeviceOptions.SwapchainSrgbFormat));
+			}
+
+			return swapchain;
+		}
+
+#if GTK3
+		void Control_Drawn(object o, DrawnArgs args)
+#else
+		void Control_ExposeEvent(object o, ExposeEventArgs args)
+#endif
+		{
+			OpenGLPlatformInfo glInfo = null;
+
+			if (Widget.Backend == GraphicsBackend.OpenGL)
+			{
+				Control.CreateOpenGLContext();
+
+				glInfo = new OpenGLPlatformInfo(
+					VeldridGL.GetGLContextHandle(),
+					VeldridGL.GetProcAddress,
+					Control.MakeCurrent,
+					VeldridGL.GetCurrentContext,
+					VeldridGL.ClearCurrentContext,
+					VeldridGL.DeleteContext,
+					VeldridGL.SwapBuffers,
+					VeldridGL.SetVSync,
+					VeldridGL.SetSwapchainFramebuffer,
+					VeldridGL.ResizeSwapchain);
+			}
+
+			Callback.InitializeGraphicsBackend(Widget, glInfo);
+
+#if GTK3
+			Control.Drawn -= Control_Drawn;
+#else
+			Control.ExposeEvent -= Control_ExposeEvent;
+#endif
+		}
+
 		public override void AttachEvent(string id)
 		{
 			switch (id)
@@ -43,83 +113,6 @@ namespace Eto.Veldrid.Gtk
 					base.AttachEvent(id);
 					break;
 			}
-		}
-
-#if GTK3
-		void Control_Drawn(object o, DrawnArgs args)
-#else
-		void Control_ExposeEvent(object o, ExposeEventArgs args)
-#endif
-		{
-			if (Widget.Backend == GraphicsBackend.OpenGL)
-			{
-				Control.CreateOpenGLContext();
-
-				Callback.OnOpenGLReady(Widget, EventArgs.Empty);
-			}
-
-			Callback.OnControlReady(Widget, EventArgs.Empty);
-
-#if GTK3
-			Control.Drawn -= Control_Drawn;
-#else
-			Control.ExposeEvent -= Control_ExposeEvent;
-#endif
-		}
-
-		/// <summary>
-		/// Prepare this VeldridSurface to use OpenGL.
-		/// </summary>
-		public void InitializeOpenGL()
-		{
-			var platformInfo = new OpenGLPlatformInfo(
-				VeldridGL.GetGLContextHandle(),
-				VeldridGL.GetProcAddress,
-				Control.MakeCurrent,
-				VeldridGL.GetCurrentContext,
-				VeldridGL.ClearCurrentContext,
-				VeldridGL.DeleteContext,
-				VeldridGL.SwapBuffers,
-				VeldridGL.SetVSync,
-				VeldridGL.SetSwapchainFramebuffer,
-				VeldridGL.ResizeSwapchain);
-
-			Widget.GraphicsDevice = GraphicsDevice.CreateOpenGL(
-				Widget.GraphicsDeviceOptions,
-				platformInfo,
-				(uint)RenderWidth,
-				(uint)RenderHeight);
-
-			Widget.Swapchain = Widget.GraphicsDevice.MainSwapchain;
-
-			Callback.OnVeldridInitialized(Widget, EventArgs.Empty);
-		}
-
-		public void InitializeOtherApi()
-		{
-			// To embed Veldrid in an Eto control, all these platform-specific
-			// versions of InitializeOtherApi use the technique outlined here:
-			//
-			//   https://github.com/mellinoe/veldrid/issues/155
-			//
-			var source = SwapchainSource.CreateXlib(
-				X11Interop.gdk_x11_display_get_xdisplay(Control.Display.Handle),
-#if GTK3
-				X11Interop.gdk_x11_window_get_xid(Control.Window.Handle));
-#else
-				X11Interop.gdk_x11_drawable_get_xid(Control.GdkWindow.Handle));
-#endif
-
-			Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
-				new SwapchainDescription(
-					source,
-					(uint)RenderWidth,
-					(uint)RenderHeight,
-					Widget.GraphicsDeviceOptions.SwapchainDepthFormat,
-					Widget.GraphicsDeviceOptions.SyncToVerticalBlank,
-					Widget.GraphicsDeviceOptions.SwapchainSrgbFormat));
-
-			Callback.OnVeldridInitialized(Widget, EventArgs.Empty);
 		}
 	}
 }

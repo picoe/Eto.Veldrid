@@ -2,6 +2,7 @@
 using OpenTK;
 using System;
 using Veldrid;
+using Veldrid.OpenGL;
 
 namespace Eto.Veldrid
 {
@@ -16,38 +17,23 @@ namespace Eto.Veldrid
 			int RenderWidth { get; }
 			int RenderHeight { get; }
 
-			void InitializeOpenGL();
-			void InitializeOtherApi();
+			Swapchain CreateSwapchain();
 		}
 
 		public new IHandler Handler => (IHandler)base.Handler;
 
 		public new interface ICallback : Control.ICallback
 		{
-			void OnControlReady(VeldridSurface s, EventArgs e);
+			void InitializeGraphicsBackend(VeldridSurface s, OpenGLPlatformInfo glInfo);
 			void OnDraw(VeldridSurface s, EventArgs e);
-			void OnOpenGLReady(VeldridSurface s, EventArgs e);
 			void OnResize(VeldridSurface s, ResizeEventArgs e);
 			void OnVeldridInitialized(VeldridSurface s, EventArgs e);
 		}
 
 		protected new class Callback : Control.Callback, ICallback
 		{
-			public void OnControlReady(VeldridSurface s, EventArgs e)
-			{
-				if (s != null)
-				{
-					s.ControlReady = true;
-				}
-			}
+			public void InitializeGraphicsBackend(VeldridSurface s, OpenGLPlatformInfo glInfo) => s?.InitializeGraphicsBackend(glInfo);
 			public void OnDraw(VeldridSurface s, EventArgs e) => s?.OnDraw(e);
-			public void OnOpenGLReady(VeldridSurface s, EventArgs e)
-			{
-				if (s != null)
-				{
-					s.OpenGLReady = true;
-				}
-			}
 			public void OnResize(VeldridSurface s, ResizeEventArgs e) => s?.OnResize(e);
 			public void OnVeldridInitialized(VeldridSurface s, EventArgs e) => s?.OnVeldridInitialized(e);
 		}
@@ -71,30 +57,6 @@ namespace Eto.Veldrid
 		public GraphicsDevice GraphicsDevice { get; set; }
 		public GraphicsDeviceOptions GraphicsDeviceOptions { get; private set; }
 		public Swapchain Swapchain { get; set; }
-
-		private bool _controlReady = false;
-		public bool ControlReady
-		{
-			get { return _controlReady; }
-			private set
-			{
-				_controlReady = value;
-
-				InitializeGraphicsApi();
-			}
-		}
-
-		private bool? _openGLReady = null;
-		public bool? OpenGLReady
-		{
-			get { return _openGLReady; }
-			private set
-			{
-				_openGLReady = value;
-
-				InitializeGraphicsApi();
-			}
-		}
 
 		public const string VeldridInitializedEvent = "VeldridSurface.VeldridInitialized";
 		public const string DrawEvent = "VeldridSurface.Draw";
@@ -129,11 +91,6 @@ namespace Eto.Veldrid
 		{
 			Backend = backend;
 			GraphicsDeviceOptions = options;
-
-			if (Backend == GraphicsBackend.OpenGL)
-			{
-				OpenGLReady = false;
-			}
 		}
 
 		/// <summary>
@@ -151,31 +108,6 @@ namespace Eto.Veldrid
 			// one users start out with. Anyone who plans to completely avoid
 			// OpenGL is free to simply not call InitializeOpenTK at all.
 			Toolkit.Init(new ToolkitOptions { Backend = PlatformBackend.PreferNative });
-		}
-
-		public void InitializeGraphicsApi()
-		{
-			if (!ControlReady)
-			{
-				return;
-			}
-
-			switch (OpenGLReady)
-			{
-				case false:
-					return;
-				case true:
-					Handler.InitializeOpenGL();
-					break;
-				case null:
-					InitializeOtherApi();
-					break;
-			}
-
-			// Ideally Callback.OnVeldridInitialized would be called here, but
-			// WPF needs to delay raising that event until after its control has
-			// been Loaded. Each platform's XVeldridSurfaceHandler therefore has
-			// to call OnVeldridInitialized itself.
 		}
 
 		private static GraphicsBackend GetPreferredBackend()
@@ -225,7 +157,7 @@ namespace Eto.Veldrid
 			return (GraphicsBackend)backend;
 		}
 
-		private void InitializeOtherApi()
+		private void InitializeGraphicsBackend(OpenGLPlatformInfo glInfo)
 		{
 			switch (Backend)
 			{
@@ -237,6 +169,13 @@ namespace Eto.Veldrid
 					break;
 				case GraphicsBackend.Direct3D11:
 					GraphicsDevice = GraphicsDevice.CreateD3D11(GraphicsDeviceOptions);
+					break;
+				case GraphicsBackend.OpenGL:
+					GraphicsDevice = GraphicsDevice.CreateOpenGL(
+						GraphicsDeviceOptions,
+						glInfo,
+						(uint)RenderWidth,
+						(uint)RenderHeight);
 					break;
 				default:
 					string message;
@@ -252,7 +191,9 @@ namespace Eto.Veldrid
 					throw new ArgumentException(message);
 			}
 
-			Handler.InitializeOtherApi();
+			Swapchain = Handler.CreateSwapchain();
+
+			OnVeldridInitialized(EventArgs.Empty);
 		}
 
 		protected virtual void OnDraw(EventArgs e) => Properties.TriggerEvent(DrawEvent, this, e);

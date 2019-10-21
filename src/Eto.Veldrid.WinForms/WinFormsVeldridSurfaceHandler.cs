@@ -22,6 +22,64 @@ namespace Eto.Veldrid.WinForms
 			Control.HandleCreated += Control_HandleCreated;
 		}
 
+		public Swapchain CreateSwapchain()
+		{
+			Swapchain swapchain;
+
+			if (Widget.Backend == GraphicsBackend.OpenGL)
+			{
+				swapchain = Widget.GraphicsDevice.MainSwapchain;
+			}
+			else
+			{
+				// To embed Veldrid in an Eto control, these platform-specific
+				// versions of CreateSwapchain use the technique outlined here:
+				//
+				//   https://github.com/mellinoe/veldrid/issues/155
+				//
+				var source = SwapchainSource.CreateWin32(
+					Control.Handle,
+					Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
+
+				swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
+					new SwapchainDescription(
+						source,
+						(uint)RenderWidth,
+						(uint)RenderHeight,
+						Widget.GraphicsDeviceOptions.SwapchainDepthFormat,
+						Widget.GraphicsDeviceOptions.SyncToVerticalBlank,
+						Widget.GraphicsDeviceOptions.SwapchainSrgbFormat));
+			}
+
+			return swapchain;
+		}
+
+		private void Control_HandleCreated(object sender, EventArgs e)
+		{
+			OpenGLPlatformInfo glInfo = null;
+
+			if (Widget.Backend == GraphicsBackend.OpenGL)
+			{
+				Control.CreateOpenGLContext();
+
+				glInfo = new OpenGLPlatformInfo(
+					   VeldridGL.GetGLContextHandle(),
+					   VeldridGL.GetProcAddress,
+					   Control.MakeCurrent,
+					   VeldridGL.GetCurrentContext,
+					   VeldridGL.ClearCurrentContext,
+					   VeldridGL.DeleteContext,
+					   VeldridGL.SwapBuffers,
+					   VeldridGL.SetVSync,
+					   VeldridGL.SetSwapchainFramebuffer,
+					   VeldridGL.ResizeSwapchain);
+			}
+
+			Callback.InitializeGraphicsBackend(Widget, glInfo);
+
+			Control.HandleCreated -= Control_HandleCreated;
+		}
+
 		public override void AttachEvent(string id)
 		{
 			switch (id)
@@ -33,69 +91,6 @@ namespace Eto.Veldrid.WinForms
 					base.AttachEvent(id);
 					break;
 			}
-		}
-
-		private void Control_HandleCreated(object sender, EventArgs e)
-		{
-			if (Widget.Backend == GraphicsBackend.OpenGL)
-			{
-				Control.CreateOpenGLContext();
-
-				Callback.OnOpenGLReady(Widget, EventArgs.Empty);
-			}
-
-			Callback.OnControlReady(Widget, EventArgs.Empty);
-		}
-
-		/// <summary>
-		/// Prepare this VeldridSurface to use OpenGL.
-		/// </summary>
-		public void InitializeOpenGL()
-		{
-			var platformInfo = new OpenGLPlatformInfo(
-				VeldridGL.GetGLContextHandle(),
-				VeldridGL.GetProcAddress,
-				Control.MakeCurrent,
-				VeldridGL.GetCurrentContext,
-				VeldridGL.ClearCurrentContext,
-				VeldridGL.DeleteContext,
-				VeldridGL.SwapBuffers,
-				VeldridGL.SetVSync,
-				VeldridGL.SetSwapchainFramebuffer,
-				VeldridGL.ResizeSwapchain);
-
-			Widget.GraphicsDevice = GraphicsDevice.CreateOpenGL(
-				Widget.GraphicsDeviceOptions,
-				platformInfo,
-				(uint)RenderWidth,
-				(uint)RenderHeight);
-
-			Widget.Swapchain = Widget.GraphicsDevice.MainSwapchain;
-
-			Callback.OnVeldridInitialized(Widget, EventArgs.Empty);
-		}
-
-		public void InitializeOtherApi()
-		{
-			// To embed Veldrid in an Eto control, all these platform-specific
-			// versions of InitializeOtherApi use the technique outlined here:
-			//
-			//   https://github.com/mellinoe/veldrid/issues/155
-			//
-			var source = SwapchainSource.CreateWin32(
-				Control.Handle,
-				Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
-
-			Widget.Swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
-				new SwapchainDescription(
-					source,
-					(uint)RenderWidth,
-					(uint)RenderHeight,
-					Widget.GraphicsDeviceOptions.SwapchainDepthFormat,
-					Widget.GraphicsDeviceOptions.SyncToVerticalBlank,
-					Widget.GraphicsDeviceOptions.SwapchainSrgbFormat));
-
-			Callback.OnVeldridInitialized(Widget, EventArgs.Empty);
 		}
 	}
 }
