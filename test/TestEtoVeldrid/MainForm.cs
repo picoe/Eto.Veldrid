@@ -55,7 +55,13 @@ namespace TestEtoVeldrid
 
 			Shown += (sender, e) => FormReady = true;
 
-			Surface = new VeldridSurface(backend);
+			var options = new GraphicsDeviceOptions(
+				false,
+				Veldrid.PixelFormat.R32_Float,
+				false,
+				ResourceBindingModel.Improved);
+
+			Surface = new VeldridSurface(backend, options);
 			Surface.VeldridInitialized += (sender, e) => VeldridReady = true;
 
 			Content = Surface;

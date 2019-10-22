@@ -1,14 +1,25 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <TopLevelDirectory>$(MSBuildThisFileDirectory)</TopLevelDirectory>
-    <VeldridSpirvVersion>1.0.12</VeldridSpirvVersion>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <BuildOS Condition="$([MSBuild]::IsOsPlatform(`Windows`)) == true">Windows</BuildOS>
     <BuildOS Condition="$([MSBuild]::IsOsPlatform(`Linux`)) == true">Linux</BuildOS>
     <BuildOS Condition="$([MSBuild]::IsOsPlatform(`OSX`)) == true">macOS</BuildOS>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TopLevelDirectory>$(MSBuildThisFileDirectory)</TopLevelDirectory>
+    <ArtifactsDir>$(TopLevelDirectory)artifacts\</ArtifactsDir>
+
+    <!-- Without separate intermediate directories, project.assets.json would
+    get stomped on by each project as it was restored and built. For more info
+    see https://github.com/NuGet/Home/issues/4463 -->
+    <BaseIntermediateOutputPath>$(ArtifactsDir)obj\$(BuildOS)\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+
+    <!-- Placing output binaries in a higher level directory than the project
+    files avoids problems with generated AssemblyInfo, among other benefits. -->
+    <BaseOutputPath>$(ArtifactsDir)bin\$(MSBuildProjectName)\</BaseOutputPath>
+
+    <VeldridSpirvVersion>1.0.12</VeldridSpirvVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="$(BuildOS) == 'Windows'">

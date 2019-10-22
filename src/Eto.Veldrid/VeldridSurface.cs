@@ -1,94 +1,11 @@
-﻿using Eto.Drawing;
-using Eto.Forms;
+﻿﻿using Eto.Forms;
 using OpenTK;
-using OpenTK.Graphics;
 using System;
-using System.Reflection;
 using Veldrid;
+using Veldrid.OpenGL;
 
 namespace Eto.Veldrid
 {
-	/// <summary>
-	/// A collection of helper methods to grant Veldrid access to an OpenGL context.
-	/// </summary>
-	/// <remarks>
-	/// These are potentially dangerous methods, so please don't try to use them
-	/// for your own purposes. Hand them off to Veldrid as VeldridSurfaceHandler
-	/// does in InitializeOpenGL, and forget about them.
-	/// </remarks>
-	public static class VeldridGL
-	{
-		// Depending on a private method like CreateGetAddress is hardly in
-		// line with best practices, but it's the only way to grant Veldrid
-		// access to OpenTK's internals. It's not pretty, but this Eto
-		// integration was designed specifically for OpenTK 3.x, so sticking
-		// to that branch should ensure private things stay where they are.
-		static readonly Type _utilitiesType = typeof(OpenTK.Platform.Utilities);
-		static readonly MethodInfo _createGetAddress = _utilitiesType.GetMethod("CreateGetAddress", BindingFlags.NonPublic | BindingFlags.Static);
-		static readonly GraphicsContext.GetAddressDelegate _getProcAddress = (GraphicsContext.GetAddressDelegate)_createGetAddress.Invoke(null, Array.Empty<string>());
-
-		// TODO: Find out if this is correct! The docs just say that the
-		// 'openGLContextHandle' parameter of an OpenGLPlatformInfo is, and I
-		// quote, "The OpenGL context handle", which isn't terribly helpful. Doing
-		// this seems to work, but then if all Veldrid needs is the current
-		// context, it could use the method I specify for GetCurrentContext,
-		// couldn't it? There must be more to this.
-		public static IntPtr GetGLContextHandle() => GetCurrentContext();
-
-		public static IntPtr GetProcAddress(string name) => _getProcAddress.Invoke(name);
-
-		public static IntPtr GetCurrentContext() => GraphicsContext.CurrentContextHandle.Handle;
-
-		public static void ClearCurrentContext() => GraphicsContext.CurrentContext.MakeCurrent(null);
-
-		public static void DeleteContext(IntPtr context)
-		{
-			// TODO: Update this! Eto.Gl/Eto.OpenTK is no longer in use, so I'll need
-			// to dispose the specified context manually. I think.
-
-			// Do nothing! With this Eto.Gl-based approach, Veldrid should never
-			// need to destroy an OpenGL context on its own; let the GLSurface
-			// take care of context deletion upon its own disposal.
-		}
-
-		public static void SwapBuffers() => GraphicsContext.CurrentContext.SwapBuffers();
-
-		public static void SetVSync(bool on) => GraphicsContext.CurrentContext.SwapInterval = on ? 1 : 0;
-
-		// It's perfectly acceptable to create an instance of OpenGLPlatformInfo
-		// without providing these last two methods, if indeed you don't need
-		// them. They're stubbed out here only to serve as a reminder that they
-		// can be customized should the occasion call for it.
-
-		public static void SetSwapchainFramebuffer()
-		{
-		}
-
-		public static void ResizeSwapchain(uint width, uint height)
-		{
-		}
-	}
-
-	public class ResizeEventArgs : EventArgs
-	{
-		public int Width { get; set; }
-		public int Height { get; set; }
-
-		public ResizeEventArgs()
-		{
-		}
-		public ResizeEventArgs(int width, int height)
-		{
-			Width = width;
-			Height = height;
-		}
-		public ResizeEventArgs(Size size)
-		{
-			Width = size.Width;
-			Height = size.Height;
-		}
-	}
-
 	/// <summary>
 	/// A simple control that allows drawing with Veldrid.
 	/// </summary>
@@ -100,38 +17,23 @@ namespace Eto.Veldrid
 			int RenderWidth { get; }
 			int RenderHeight { get; }
 
-			void InitializeOpenGL();
-			void InitializeOtherApi();
+			Swapchain CreateSwapchain();
 		}
 
 		public new IHandler Handler => (IHandler)base.Handler;
 
 		public new interface ICallback : Control.ICallback
 		{
-			void OnControlReady(VeldridSurface s, EventArgs e);
+			void InitializeGraphicsBackend(VeldridSurface s, OpenGLPlatformInfo glInfo);
 			void OnDraw(VeldridSurface s, EventArgs e);
-			void OnOpenGLReady(VeldridSurface s, EventArgs e);
 			void OnResize(VeldridSurface s, ResizeEventArgs e);
 			void OnVeldridInitialized(VeldridSurface s, EventArgs e);
 		}
 
 		protected new class Callback : Control.Callback, ICallback
 		{
-			public void OnControlReady(VeldridSurface s, EventArgs e)
-			{
-				if (s != null)
-				{
-					s.ControlReady = true;
-				}
-			}
+			public void InitializeGraphicsBackend(VeldridSurface s, OpenGLPlatformInfo glInfo) => s?.InitializeGraphicsBackend(glInfo);
 			public void OnDraw(VeldridSurface s, EventArgs e) => s?.OnDraw(e);
-			public void OnOpenGLReady(VeldridSurface s, EventArgs e)
-			{
-				if (s != null)
-				{
-					s.OpenGLReady = true;
-				}
-			}
 			public void OnResize(VeldridSurface s, ResizeEventArgs e) => s?.OnResize(e);
 			public void OnVeldridInitialized(VeldridSurface s, EventArgs e) => s?.OnVeldridInitialized(e);
 		}
@@ -151,49 +53,10 @@ namespace Eto.Veldrid
 		/// </summary>
 		public int RenderHeight => Handler.RenderHeight;
 
-		// A depth buffer isn't strictly necessary for this project, which uses
-		// only 2D vertex coordinates, but it's helpful to create one for the
-		// sake of demonstration.
-		//
-		// The "improved" resource binding model changes how resource slots are
-		// assigned in the Metal backend, allowing it to work like the others,
-		// so the numbers used in calls to CommandList.SetGraphicsResourceSet
-		// will make more sense to developers used to e.g. OpenGL or Direct3D.
-		public GraphicsDeviceOptions GraphicsDeviceOptions { get; } =
-			new GraphicsDeviceOptions(
-				false,
-				global::Veldrid.PixelFormat.R32_Float,
-				false,
-				ResourceBindingModel.Improved);
-
 		public GraphicsBackend Backend { get; set; }
-
 		public GraphicsDevice GraphicsDevice { get; set; }
+		public GraphicsDeviceOptions GraphicsDeviceOptions { get; private set; }
 		public Swapchain Swapchain { get; set; }
-
-		private bool _controlReady = false;
-		public bool ControlReady
-		{
-			get { return _controlReady; }
-			private set
-			{
-				_controlReady = value;
-
-				InitializeGraphicsApi();
-			}
-		}
-
-		private bool? _openGLReady = null;
-		public bool? OpenGLReady
-		{
-			get { return _openGLReady; }
-			private set
-			{
-				_openGLReady = value;
-
-				InitializeGraphicsApi();
-			}
-		}
 
 		public const string VeldridInitializedEvent = "VeldridSurface.VeldridInitialized";
 		public const string DrawEvent = "VeldridSurface.Draw";
@@ -218,14 +81,16 @@ namespace Eto.Veldrid
 		public VeldridSurface() : this(PreferredBackend)
 		{
 		}
-		public VeldridSurface(GraphicsBackend backend)
+		public VeldridSurface(GraphicsBackend backend) : this(backend, new GraphicsDeviceOptions())
+		{
+		}
+		public VeldridSurface(GraphicsDeviceOptions options) : this(PreferredBackend, options)
+		{
+		}
+		public VeldridSurface(GraphicsBackend backend, GraphicsDeviceOptions options)
 		{
 			Backend = backend;
-
-			if (Backend == GraphicsBackend.OpenGL)
-			{
-				OpenGLReady = false;
-			}
+			GraphicsDeviceOptions = options;
 		}
 
 		/// <summary>
@@ -243,31 +108,6 @@ namespace Eto.Veldrid
 			// one users start out with. Anyone who plans to completely avoid
 			// OpenGL is free to simply not call InitializeOpenTK at all.
 			Toolkit.Init(new ToolkitOptions { Backend = PlatformBackend.PreferNative });
-		}
-
-		public void InitializeGraphicsApi()
-		{
-			if (!ControlReady)
-			{
-				return;
-			}
-
-			switch (OpenGLReady)
-			{
-				case false:
-					return;
-				case true:
-					Handler.InitializeOpenGL();
-					break;
-				case null:
-					InitializeOtherApi();
-					break;
-			}
-
-			// Ideally Callback.OnVeldridInitialized would be called here, but
-			// WPF needs to delay raising that event until after its control has
-			// been Loaded. Each platform's XVeldridSurfaceHandler therefore has
-			// to call OnVeldridInitialized itself.
 		}
 
 		private static GraphicsBackend GetPreferredBackend()
@@ -317,7 +157,7 @@ namespace Eto.Veldrid
 			return (GraphicsBackend)backend;
 		}
 
-		private void InitializeOtherApi()
+		private void InitializeGraphicsBackend(OpenGLPlatformInfo glInfo)
 		{
 			switch (Backend)
 			{
@@ -329,6 +169,13 @@ namespace Eto.Veldrid
 					break;
 				case GraphicsBackend.Direct3D11:
 					GraphicsDevice = GraphicsDevice.CreateD3D11(GraphicsDeviceOptions);
+					break;
+				case GraphicsBackend.OpenGL:
+					GraphicsDevice = GraphicsDevice.CreateOpenGL(
+						GraphicsDeviceOptions,
+						glInfo,
+						(uint)RenderWidth,
+						(uint)RenderHeight);
 					break;
 				default:
 					string message;
@@ -344,7 +191,9 @@ namespace Eto.Veldrid
 					throw new ArgumentException(message);
 			}
 
-			Handler.InitializeOtherApi();
+			Swapchain = Handler.CreateSwapchain();
+
+			OnVeldridInitialized(EventArgs.Empty);
 		}
 
 		protected virtual void OnDraw(EventArgs e) => Properties.TriggerEvent(DrawEvent, this, e);
