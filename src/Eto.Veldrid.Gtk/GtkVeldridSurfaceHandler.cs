@@ -2,9 +2,10 @@
 using Eto.Veldrid;
 using Eto.Veldrid.Gtk;
 using Gtk;
+using OpenTK.Graphics;
+using OpenTK.Platform;
 using System;
 using Veldrid;
-using Veldrid.OpenGL;
 
 [assembly: Eto.ExportHandler(typeof(VeldridSurface), typeof(GtkVeldridSurfaceHandler))]
 
@@ -17,6 +18,10 @@ namespace Eto.Veldrid.Gtk
 		public int RenderWidth => Widget.Width;
 		public int RenderHeight => Widget.Height;
 
+		public IWindowInfo WindowInfo => Control.WindowInfo;
+
+		public Action<uint, uint> ResizeSwapchain { get; protected set; }
+
 		public GtkVeldridSurfaceHandler()
 		{
 			Control = new GtkVeldridDrawingArea();
@@ -26,6 +31,9 @@ namespace Eto.Veldrid.Gtk
 #else
 			Control.ExposeEvent += Control_ExposeEvent;
 #endif
+			Control.WindowInfoUpdated += (sender, e) => Callback.OnWindowInfoUpdated(Widget, EventArgs.Empty);
+
+			ResizeSwapchain = (w, h) => { };
 		}
 
 		public Swapchain CreateSwapchain()
@@ -64,32 +72,15 @@ namespace Eto.Veldrid.Gtk
 			return swapchain;
 		}
 
+		public IWindowInfo UpdateWindowInfo(GraphicsMode mode) => Control.UpdateWindowInfo(mode);
+
 #if GTK3
-		void Control_Drawn(object o, DrawnArgs args)
+		private void Control_Drawn(object o, DrawnArgs args)
 #else
-		void Control_ExposeEvent(object o, ExposeEventArgs args)
+		private void Control_ExposeEvent(object o, ExposeEventArgs args)
 #endif
 		{
-			OpenGLPlatformInfo glInfo = null;
-
-			if (Widget.Backend == GraphicsBackend.OpenGL)
-			{
-				Control.CreateOpenGLContext();
-
-				glInfo = new OpenGLPlatformInfo(
-					VeldridGL.GetGLContextHandle(),
-					VeldridGL.GetProcAddress,
-					Control.MakeCurrent,
-					VeldridGL.GetCurrentContext,
-					VeldridGL.ClearCurrentContext,
-					VeldridGL.DeleteContext,
-					VeldridGL.SwapBuffers,
-					VeldridGL.SetVSync,
-					VeldridGL.SetSwapchainFramebuffer,
-					VeldridGL.ResizeSwapchain);
-			}
-
-			Callback.InitializeGraphicsBackend(Widget, glInfo);
+			Callback.InitializeGraphicsBackend(Widget);
 
 #if GTK3
 			Control.Drawn -= Control_Drawn;

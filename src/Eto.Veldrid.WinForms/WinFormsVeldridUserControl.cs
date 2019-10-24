@@ -7,10 +7,9 @@ namespace Eto.Veldrid.WinForms
 {
 	public class WinFormsVeldridUserControl : UserControl
 	{
-		GraphicsMode Mode = new GraphicsMode(new ColorFormat(32), 8, 8);
+		public IWindowInfo WindowInfo { get; protected set; }
 
-		public IWindowInfo WindowInfo { get; set; }
-		public GraphicsContext Context { get; private set; }
+		public event EventHandler WindowInfoUpdated;
 
 		protected override CreateParams CreateParams
 		{
@@ -43,16 +42,15 @@ namespace Eto.Veldrid.WinForms
 			BackColor = System.Drawing.Color.HotPink;
 		}
 
-		public void CreateOpenGLContext()
+		public IWindowInfo UpdateWindowInfo(GraphicsMode mode)
 		{
+			WindowInfo?.Dispose();
+
 			WindowInfo = Utilities.CreateWindowsWindowInfo(Handle);
 
-			Context = new GraphicsContext(Mode, WindowInfo, 3, 3, GraphicsContextFlags.ForwardCompatible);
-		}
+			WindowInfoUpdated?.Invoke(this, EventArgs.Empty);
 
-		public void MakeCurrent(IntPtr context)
-		{
-			Context.MakeCurrent(WindowInfo);
+			return WindowInfo;
 		}
 	}
 }

@@ -1,5 +1,7 @@
-﻿﻿using Eto.Forms;
+﻿using Eto.Forms;
 using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Platform;
 using System;
 using Veldrid;
 using Veldrid.OpenGL;
@@ -17,25 +19,32 @@ namespace Eto.Veldrid
 			int RenderWidth { get; }
 			int RenderHeight { get; }
 
+			IWindowInfo WindowInfo { get; }
+
+			Action<uint, uint> ResizeSwapchain { get; }
+
 			Swapchain CreateSwapchain();
+			IWindowInfo UpdateWindowInfo(GraphicsMode mode);
 		}
 
 		public new IHandler Handler => (IHandler)base.Handler;
 
 		public new interface ICallback : Control.ICallback
 		{
-			void InitializeGraphicsBackend(VeldridSurface s, OpenGLPlatformInfo glInfo);
+			void InitializeGraphicsBackend(VeldridSurface s);
 			void OnDraw(VeldridSurface s, EventArgs e);
 			void OnResize(VeldridSurface s, ResizeEventArgs e);
 			void OnVeldridInitialized(VeldridSurface s, EventArgs e);
+			void OnWindowInfoUpdated(VeldridSurface s, EventArgs e);
 		}
 
 		protected new class Callback : Control.Callback, ICallback
 		{
-			public void InitializeGraphicsBackend(VeldridSurface s, OpenGLPlatformInfo glInfo) => s?.InitializeGraphicsBackend(glInfo);
+			public void InitializeGraphicsBackend(VeldridSurface s) => s?.InitializeGraphicsBackend();
 			public void OnDraw(VeldridSurface s, EventArgs e) => s?.OnDraw(e);
 			public void OnResize(VeldridSurface s, ResizeEventArgs e) => s?.OnResize(e);
 			public void OnVeldridInitialized(VeldridSurface s, EventArgs e) => s?.OnVeldridInitialized(e);
+			public void OnWindowInfoUpdated(VeldridSurface s, EventArgs e) => s?.OnWindowInfoUpdated(e);
 		}
 
 		protected override object GetCallback() => new Callback();
@@ -52,6 +61,12 @@ namespace Eto.Veldrid
 		/// (e.g. with high DPI displays).
 		/// </summary>
 		public int RenderHeight => Handler.RenderHeight;
+
+		public GraphicsContext OpenTKGraphicsContext { get; protected set; }
+		public GraphicsMode OpenTKGraphicsMode { get; } = new GraphicsMode(
+			color: new ColorFormat(32),
+			depth: 8,
+			stencil: 8);
 
 		public GraphicsBackend Backend { get; set; }
 		public GraphicsDevice GraphicsDevice { get; set; }
@@ -157,7 +172,7 @@ namespace Eto.Veldrid
 			return (GraphicsBackend)backend;
 		}
 
-		private void InitializeGraphicsBackend(OpenGLPlatformInfo glInfo)
+		private void InitializeGraphicsBackend()
 		{
 			switch (Backend)
 			{
@@ -171,11 +186,26 @@ namespace Eto.Veldrid
 					GraphicsDevice = GraphicsDevice.CreateD3D11(GraphicsDeviceOptions);
 					break;
 				case GraphicsBackend.OpenGL:
+					Handler.UpdateWindowInfo(OpenTKGraphicsMode);
+
+					var glInfo = new OpenGLPlatformInfo(
+						VeldridGL.GetGLContextHandle(),
+						VeldridGL.GetProcAddress,
+						(c) => OpenTKGraphicsContext.MakeCurrent(Handler.WindowInfo),
+						VeldridGL.GetCurrentContext,
+						VeldridGL.ClearCurrentContext,
+						VeldridGL.DeleteContext,
+						VeldridGL.SwapBuffers,
+						VeldridGL.SetVSync,
+						VeldridGL.SetSwapchainFramebuffer,
+						Handler.ResizeSwapchain);
+
 					GraphicsDevice = GraphicsDevice.CreateOpenGL(
 						GraphicsDeviceOptions,
 						glInfo,
 						(uint)RenderWidth,
 						(uint)RenderHeight);
+
 					break;
 				default:
 					string message;
@@ -209,6 +239,29 @@ namespace Eto.Veldrid
 		}
 
 		protected virtual void OnVeldridInitialized(EventArgs e) => Properties.TriggerEvent(VeldridInitializedEvent, this, e);
+
+		protected virtual void OnWindowInfoUpdated(EventArgs e)
+		{
+			if (Backend != GraphicsBackend.OpenGL)
+			{
+				return;
+			}
+
+			if (OpenTKGraphicsContext == null)
+			{
+				OpenTKGraphicsContext = new GraphicsContext(
+					OpenTKGraphicsMode,
+					Handler.WindowInfo,
+					3, 3,
+					GraphicsContextFlags.ForwardCompatible);
+			}
+			else
+			{
+				OpenTKGraphicsContext.Update(Handler.WindowInfo);
+			}
+
+			OpenTKGraphicsContext.MakeCurrent(Handler.WindowInfo);
+		}
 
 		protected override void OnSizeChanged(EventArgs e)
 		{
