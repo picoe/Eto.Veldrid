@@ -23,39 +23,36 @@ namespace Eto.Veldrid.Mac
 
 		public WeakReference WeakHandler { get; set; }
 
-		GraphicsMode Mode = new GraphicsMode(new ColorFormat(32), 8, 8);
-
-		public IWindowInfo WindowInfo { get; set; }
-		public GraphicsContext Context { get; private set; }
+		public IWindowInfo WindowInfo { get; protected set; }
 
 		public event EventHandler Draw;
+		public event EventHandler WindowInfoUpdated;
 
-		public void CreateOpenGLContext()
+		public IWindowInfo UpdateWindowInfo(GraphicsMode mode) => UpdateWindowInfo();
+		public IWindowInfo UpdateWindowInfo()
 		{
+			WindowInfo?.Dispose();
+
 			WindowInfo = Utilities.CreateMacOSWindowInfo(Window.Handle, Handle);
 
-			Context = new GraphicsContext(Mode, WindowInfo, 3, 3, GraphicsContextFlags.ForwardCompatible);
+			WindowInfoUpdated?.Invoke(this, EventArgs.Empty);
 
-			Context.MakeCurrent(WindowInfo);
-		}
-
-		public void MakeCurrent(IntPtr context)
-		{
-			Context.MakeCurrent(WindowInfo);
-		}
-
-		public void UpdateContext()
-		{
-			WindowInfo = Utilities.CreateMacOSWindowInfo(Window.Handle, Handle);
-
-			Context?.Update(WindowInfo);
+			return WindowInfo;
 		}
 
 		public override void DidChangeBackingProperties()
 		{
 			base.DidChangeBackingProperties();
 
-			UpdateContext();
+			// If backing properties have changed, but WindowInfo hasn't been
+			// assigned a value yet, trying to update it will silently cause
+			// rendering errors, in particular a blank window.
+			if (WindowInfo == null)
+			{
+				return;
+			}
+
+			UpdateWindowInfo();
 		}
 
 		public override void DrawRect(CGRect dirtyRect)

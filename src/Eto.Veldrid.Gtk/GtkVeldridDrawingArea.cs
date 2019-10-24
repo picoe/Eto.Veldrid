@@ -9,27 +9,28 @@ namespace Eto.Veldrid.Gtk
 {
 	public class GtkVeldridDrawingArea : DrawingArea
 	{
-		GraphicsMode Mode = new GraphicsMode(new ColorFormat(32), 8, 8);
+		public IWindowInfo WindowInfo { get; protected set; }
 
-		public IWindowInfo WindowInfo { get; set; }
-		public GraphicsContext Context { get; private set; }
+		public event EventHandler WindowInfoUpdated;
 
 		public GtkVeldridDrawingArea()
 		{
 			CanFocus = true;
 		}
 
-		public void CreateOpenGLContext()
+		public IWindowInfo UpdateWindowInfo(GraphicsMode mode)
 		{
+			WindowInfo?.Dispose();
+
 			IntPtr display = X11Interop.gdk_x11_display_get_xdisplay(Display.Handle);
 			int screen = X11Interop.gdk_x11_screen_get_screen_number(Screen.Handle);
 
 			IntPtr visualInfo;
-			if (Mode.Index.HasValue)
+			if (mode.Index.HasValue)
 			{
-				var info = new X11Interop.XVisualInfo { VisualID = Mode.Index.Value };
+				var template = new X11Interop.XVisualInfo { VisualID = mode.Index.Value };
 
-				visualInfo = X11Interop.XGetVisualInfo(display, (IntPtr)(int)X11Interop.XVisualInfoMask.ID, ref info, out _);
+				visualInfo = X11Interop.XGetVisualInfo(display, (IntPtr)(int)X11Interop.XVisualInfoMask.ID, ref template, out _);
 			}
 			else
 			{
@@ -50,14 +51,9 @@ namespace Eto.Veldrid.Gtk
 
 			X11Interop.XFree(visualInfo);
 
-			Context = new GraphicsContext(Mode, WindowInfo, 3, 3, GraphicsContextFlags.ForwardCompatible);
+			WindowInfoUpdated?.Invoke(this, EventArgs.Empty);
 
-			Context.MakeCurrent(WindowInfo);
-		}
-
-		public void MakeCurrent(IntPtr context)
-		{
-			Context.MakeCurrent(WindowInfo);
+			return WindowInfo;
 		}
 	}
 }
