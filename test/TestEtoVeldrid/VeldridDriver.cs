@@ -887,11 +887,6 @@ namespace VeldridEto
 
 		public void updateViewport()
 		{
-			if (!Surface.ControlReady)
-			{
-				return;
-			}
-
 			if (!ovpSettings.changed)
 			{
 				return;
@@ -902,6 +897,11 @@ namespace VeldridEto
 
 		void pUpdateViewport()
 		{
+			if (Surface.GraphicsDevice == null)
+			{
+				return;
+			}
+
 			drawAxes();
 			drawGrid();
 			drawLines();
