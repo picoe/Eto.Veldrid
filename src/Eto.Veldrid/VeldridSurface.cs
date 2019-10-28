@@ -63,14 +63,15 @@ namespace Eto.Veldrid
 		public int RenderHeight => Handler.RenderHeight;
 
 		public GraphicsContext OpenTKGraphicsContext { get; protected set; }
-		public GraphicsMode OpenTKGraphicsMode { get; } = new GraphicsMode(
-			color: new ColorFormat(32),
-			depth: 8,
-			stencil: 8);
+		public OpenTKOptions OpenTKOptions { get; set; } = new OpenTKOptions(
+			new GraphicsMode(new ColorFormat(32)),
+			3,
+			3,
+			GraphicsContextFlags.ForwardCompatible);
 
-		public GraphicsBackend Backend { get; set; }
+		public GraphicsBackend Backend { get; set; } = PreferredBackend;
 		public GraphicsDevice GraphicsDevice { get; set; }
-		public GraphicsDeviceOptions GraphicsDeviceOptions { get; private set; }
+		public GraphicsDeviceOptions GraphicsDeviceOptions { get; private set; } = new GraphicsDeviceOptions();
 		public Swapchain Swapchain { get; set; }
 
 		public const string VeldridInitializedEvent = "VeldridSurface.VeldridInitialized";
@@ -93,19 +94,23 @@ namespace Eto.Veldrid
 			remove { Properties.RemoveEvent(ResizeEvent, value); }
 		}
 
-		public VeldridSurface() : this(PreferredBackend)
+		public VeldridSurface()
 		{
 		}
-		public VeldridSurface(GraphicsBackend backend) : this(backend, new GraphicsDeviceOptions())
-		{
-		}
-		public VeldridSurface(GraphicsDeviceOptions options) : this(PreferredBackend, options)
-		{
-		}
-		public VeldridSurface(GraphicsBackend backend, GraphicsDeviceOptions options)
+		public VeldridSurface(GraphicsBackend backend)
 		{
 			Backend = backend;
-			GraphicsDeviceOptions = options;
+		}
+		public VeldridSurface(GraphicsBackend backend, GraphicsDeviceOptions gdOptions)
+		{
+			Backend = backend;
+			GraphicsDeviceOptions = gdOptions;
+		}
+		public VeldridSurface(GraphicsBackend backend, GraphicsDeviceOptions gdOptions, OpenTKOptions tkOptions)
+		{
+			Backend = backend;
+			GraphicsDeviceOptions = gdOptions;
+			OpenTKOptions = tkOptions;
 		}
 
 		/// <summary>
@@ -116,13 +121,14 @@ namespace Eto.Veldrid
 		public static void InitializeOpenTK()
 		{
 			// Ensure that OpenTK ignores SDL2 if it's installed.
-			//
+			var options = new ToolkitOptions { Backend = PlatformBackend.PreferNative };
+
 			// This is technically only important for OpenGL, as it's the only
 			// Veldrid backend that uses OpenTK, but since Veldrid also allows
 			// live switching of backends, it's worth doing regardless of which
 			// one users start out with. Anyone who plans to completely avoid
 			// OpenGL is free to simply not call InitializeOpenTK at all.
-			Toolkit.Init(new ToolkitOptions { Backend = PlatformBackend.PreferNative });
+			Toolkit.Init(options);
 		}
 
 		private static GraphicsBackend GetPreferredBackend()
@@ -186,7 +192,7 @@ namespace Eto.Veldrid
 					GraphicsDevice = GraphicsDevice.CreateD3D11(GraphicsDeviceOptions);
 					break;
 				case GraphicsBackend.OpenGL:
-					Handler.UpdateWindowInfo(OpenTKGraphicsMode);
+					Handler.UpdateWindowInfo(OpenTKOptions.Mode);
 
 					var glInfo = new OpenGLPlatformInfo(
 						VeldridGL.GetGLContextHandle(),
@@ -250,10 +256,11 @@ namespace Eto.Veldrid
 			if (OpenTKGraphicsContext == null)
 			{
 				OpenTKGraphicsContext = new GraphicsContext(
-					OpenTKGraphicsMode,
+					OpenTKOptions.Mode,
 					Handler.WindowInfo,
-					3, 3,
-					GraphicsContextFlags.ForwardCompatible);
+					OpenTKOptions.MajorVersion,
+					OpenTKOptions.MinorVersion,
+					OpenTKOptions.Flags);
 			}
 			else
 			{
