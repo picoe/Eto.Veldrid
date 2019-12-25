@@ -265,8 +265,7 @@ namespace VeldridEto
 			}
 			if (e.Buttons == MouseButtons.Primary)
 			{
-				float dpiFactor = (float)Surface.RenderWidth / (float)Surface.Width;
-				PointF scaledLocation = e.Location * dpiFactor;
+				PointF scaledLocation = e.Location * Surface.DpiFactor;
 
 				if (!dragging)
 				{
