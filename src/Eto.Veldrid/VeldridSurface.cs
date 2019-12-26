@@ -61,6 +61,7 @@ namespace Eto.Veldrid
 		/// (e.g. with high DPI displays).
 		/// </summary>
 		public int RenderHeight => Handler.RenderHeight;
+		public float DpiFactor { get; protected set; }
 
 		public GraphicsContext OpenTKGraphicsContext { get; protected set; }
 		public GraphicsMode OpenTKGraphicsMode { get; } = new GraphicsMode(
@@ -104,6 +105,7 @@ namespace Eto.Veldrid
 		}
 		public VeldridSurface(GraphicsBackend backend, GraphicsDeviceOptions options)
 		{
+			DpiFactor = (float)RenderWidth / (float)Width;
 			Backend = backend;
 			GraphicsDeviceOptions = options;
 		}
@@ -234,6 +236,8 @@ namespace Eto.Veldrid
 			{
 				Swapchain.Resize((uint)e.Width, (uint)e.Height);
 			}
+
+			DpiFactor = (float)RenderWidth / (float)Width;
 
 			Properties.TriggerEvent(ResizeEvent, this, e);
 		}

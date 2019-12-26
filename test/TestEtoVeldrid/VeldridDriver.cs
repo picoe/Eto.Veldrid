@@ -265,19 +265,21 @@ namespace VeldridEto
 			}
 			if (e.Buttons == MouseButtons.Primary)
 			{
+				PointF scaledLocation = e.Location * Surface.DpiFactor;
+
 				if (!dragging)
 				{
-					setDown(e.Location.X, e.Location.Y);
+					setDown(scaledLocation.X, scaledLocation.Y);
 				}
 				object locking = new object();
 				lock (locking)
 				{
-					float new_X = (ovpSettings.cameraPosition.X - ((e.Location.X - x_orig) * ovpSettings.zoomFactor * ovpSettings.base_zoom));
-					float new_Y = (ovpSettings.cameraPosition.Y + ((e.Location.Y - y_orig) * ovpSettings.zoomFactor * ovpSettings.base_zoom));
+					float new_X = (ovpSettings.cameraPosition.X - ((scaledLocation.X - x_orig) * ovpSettings.zoomFactor * ovpSettings.base_zoom));
+					float new_Y = (ovpSettings.cameraPosition.Y + ((scaledLocation.Y - y_orig) * ovpSettings.zoomFactor * ovpSettings.base_zoom));
 					ovpSettings.cameraPosition = new PointF(new_X, new_Y);
 					ovpSettings.changed = true;
-					x_orig = e.Location.X;
-					y_orig = e.Location.Y;
+					x_orig = scaledLocation.X;
+					y_orig = scaledLocation.Y;
 				}
 			}
 			updateViewport();
