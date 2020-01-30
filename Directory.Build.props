@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <RestoreAdditionalProjectSources>https://www.myget.org/F/eto/</RestoreAdditionalProjectSources>
+
     <TopLevelDirectory>$(MSBuildThisFileDirectory)</TopLevelDirectory>
     <ArtifactsDir>$(TopLevelDirectory)artifacts\</ArtifactsDir>
 
@@ -19,7 +21,7 @@
     files avoids problems with generated AssemblyInfo, among other benefits. -->
     <BaseOutputPath>$(ArtifactsDir)bin\$(MSBuildProjectName)\</BaseOutputPath>
 
-    <VeldridSpirvVersion>1.0.12</VeldridSpirvVersion>
+    <VeldridSpirvVersion>1.0.13</VeldridSpirvVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="$(BuildOS) == 'Windows'">

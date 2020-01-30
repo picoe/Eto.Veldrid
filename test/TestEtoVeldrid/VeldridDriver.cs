@@ -222,13 +222,10 @@ namespace TestEtoVeldrid
 			var fragment = new ShaderDescription(ShaderStages.Fragment, fragmentShaderSpirvBytes, "main", true);
 			Shader[] shaders = factory.CreateFromSpirv(vertex, fragment, options);
 
-			// Veldrid.SPIRV as of 1.0.12 uses "vdspv_X_Y" as the naming scheme
-			// for uniform blocks, where X is the set and Y is the binding, as
-			// defined in your GLSL shader code.
 			ResourceLayout modelMatrixLayout = factory.CreateResourceLayout(
 				new ResourceLayoutDescription(
 					new ResourceLayoutElementDescription(
-						"vdspv_0_0",
+						"ModelMatrix",
 						ResourceKind.UniformBuffer,
 						ShaderStages.Vertex)));
 

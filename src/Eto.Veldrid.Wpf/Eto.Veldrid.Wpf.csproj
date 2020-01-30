@@ -10,10 +10,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Eto.Platform.Windows" Version="2.5.0-rc.4" />
-    <PackageReference Include="Eto.Platform.Wpf" Version="2.5.0-rc.4" />
-    <PackageReference Include="Extended.Wpf.Toolkit" Version="3.5.0" />
+    <PackageReference Include="Eto.Platform.Windows" Version="2.5.0-rc.5" />
+    <PackageReference Include="Eto.Platform.Wpf" Version="2.5.0-rc.5" />
     <PackageReference Include="OpenTK" Version="3.1.0" />
+
+    <!-- Please note that version 3.6.0 is the newest version of this toolkit
+    that has licensing terms permitting use in commercial projects.
+    https://github.com/picoe/Eto/issues/1544
+    https://github.com/xceedsoftware/wpftoolkit/issues/1557 -->
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="[3.6.0]" />
   </ItemGroup>
 
   <ItemGroup>
