@@ -1,8 +1,6 @@
 ﻿using Eto.Veldrid;
 using Eto.Veldrid.WinForms;
 using Eto.WinForms.Forms;
-using OpenTK.Graphics;
-using OpenTK.Platform;
 using System;
 using System.Runtime.InteropServices;
 using Veldrid;
@@ -16,18 +14,11 @@ namespace Eto.Veldrid.WinForms
 		public int RenderWidth => Control.Width;
 		public int RenderHeight => Control.Height;
 
-		public IWindowInfo WindowInfo => Control.WindowInfo;
-
-		public Action<uint, uint> ResizeSwapchain { get; protected set; }
-
 		public WinFormsVeldridSurfaceHandler()
 		{
 			Control = new WinFormsVeldridUserControl();
 
 			Control.HandleCreated += Control_HandleCreated;
-			Control.WindowInfoUpdated += (sender, e) => Callback.OnWindowInfoUpdated(Widget, EventArgs.Empty);
-
-			ResizeSwapchain = (w, h) => { };
 		}
 
 		public Swapchain CreateSwapchain()
@@ -61,8 +52,6 @@ namespace Eto.Veldrid.WinForms
 
 			return swapchain;
 		}
-
-		public IWindowInfo UpdateWindowInfo(GraphicsMode mode) => Control.UpdateWindowInfo(mode);
 
 		private void Control_HandleCreated(object sender, EventArgs e)
 		{

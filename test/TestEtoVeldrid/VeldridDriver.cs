@@ -47,6 +47,8 @@ namespace TestEtoVeldrid
 				Surface.MouseDown += Surface_MouseDown;
 				Surface.KeyDown += Surface_KeyDown;
 				Surface.MouseWheel += Surface_MouseWheel;
+
+				Surface.Draw += (sender, e) => Draw();
 			}
 		}
 
@@ -105,10 +107,7 @@ namespace TestEtoVeldrid
 			Clock.Elapsed += Clock_Elapsed;
 		}
 
-		private void Clock_Elapsed(object sender, EventArgs e)
-		{
-			Draw();
-		}
+		private void Clock_Elapsed(object sender, EventArgs e) => Surface.Invalidate();
 
 		private DateTime CurrentTime;
 		private DateTime PreviousTime = DateTime.Now;
@@ -125,7 +124,8 @@ namespace TestEtoVeldrid
 			CurrentTime = DateTime.Now;
 			if (Animate)
 			{
-				float degrees = OpenTK.MathHelper.DegreesToRadians(Convert.ToSingle((CurrentTime - PreviousTime).TotalMilliseconds / 10.0));
+				double radians = Convert.ToDouble((CurrentTime - PreviousTime).TotalMilliseconds / 10.0);
+				float degrees = Convert.ToSingle(radians * (System.Math.PI / 180.0));
 				degrees *= Speed;
 
 				ModelMatrix *= Matrix4x4.CreateFromAxisAngle(

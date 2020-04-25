@@ -11,7 +11,6 @@
 
   <ItemGroup>
     <PackageReference Include="Eto.Platform.Windows" Version="2.5.0" />
-    <PackageReference Include="OpenTK" Version="3.1.0" />
   </ItemGroup>
 
 </Project>

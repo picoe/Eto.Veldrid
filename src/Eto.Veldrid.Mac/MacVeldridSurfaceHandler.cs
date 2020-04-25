@@ -3,8 +3,6 @@ using Eto.Veldrid;
 using Eto.Veldrid.Mac;
 using System;
 using Veldrid;
-using OpenTK.Graphics;
-using OpenTK.Platform;
 
 #if MONOMAC
 using MonoMac.AppKit;
@@ -23,22 +21,15 @@ namespace Eto.Veldrid.Mac
 		public int RenderWidth => Widget.Width;
 		public int RenderHeight => Widget.Height;
 
-		public IWindowInfo WindowInfo => Control.WindowInfo;
-
 		public override NSView ContainerControl => Control;
 
 		public override bool Enabled { get; set; }
-
-		public Action<uint, uint> ResizeSwapchain { get; protected set; }
 
 		public MacVeldridSurfaceHandler()
 		{
 			Control = new MacVeldridView();
 
 			Control.Draw += Control_Draw;
-			Control.WindowInfoUpdated += (sender, e) => Callback.OnWindowInfoUpdated(Widget, EventArgs.Empty);
-
-			ResizeSwapchain = (w, h) => Control.UpdateWindowInfo();
 		}
 
 		public Swapchain CreateSwapchain()
@@ -70,8 +61,6 @@ namespace Eto.Veldrid.Mac
 
 			return swapchain;
 		}
-
-		public IWindowInfo UpdateWindowInfo(GraphicsMode mode) => Control.UpdateWindowInfo(mode);
 
 		private void Control_Draw(object sender, EventArgs e)
 		{
