@@ -1,32 +1,17 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <Target Name="RemoveSupportDirectories" BeforeTargets="Clean">
-    <RemoveDir Directories="$(OutputPath)lib" />
     <RemoveDir Directories="$(OutputPath)shaders" />
   </Target>
 
-  <Target Name="SetPaths" AfterTargets="Build" BeforeTargets="NeatenizeLibraries">
+  <Target Name="SetPaths" AfterTargets="Build" BeforeTargets="CopyShaders">
     <PropertyGroup>
       <UsingMacAppBundle>false</UsingMacAppBundle>
       <UsingMacAppBundle Condition="$(BuildOS) == 'macOS' AND $(OutputAppPath) != ''">true</UsingMacAppBundle>
-
-      <NeatenizePath>$(OutputPath)</NeatenizePath>
-      <NeatenizePath Condition="$(UsingMacAppBundle) AND $(MacBundleMono) == false">$(OutputAppPath)\Contents\MonoBundle\</NeatenizePath>
     </PropertyGroup>
   </Target>
 
-  <Target Name="NeatenizeLibraries" AfterTargets="SetPaths" Condition="$(OutputType) != 'library'">
-    <ItemGroup>
-      <Uglies Include="$(NeatenizePath)*" />
-      <Uglies Remove="$(NeatenizePath)$(AssemblyName).exe" />
-      <Uglies Remove="$(NeatenizePath)$(AssemblyName).exe.config" />
-      <Uglies Remove="$(NeatenizePath)$(AssemblyName).pdb" />
-      <Uglies Remove="$(NeatenizePath)shaders" />
-    </ItemGroup>
-    <Move SourceFiles="@(Uglies)" DestinationFolder="$(NeatenizePath)lib" />
-  </Target>
-
-  <Target Name="CopyShaders" AfterTargets="NeatenizeLibraries" Condition="$(OutputType) != 'library'">
+  <Target Name="CopyShaders" AfterTargets="SetPaths" Condition="$(OutputType) != 'library'">
     <ItemGroup>
       <Shaders Include="$(TopLevelDirectory)test\shaders\**\*" />
     </ItemGroup>

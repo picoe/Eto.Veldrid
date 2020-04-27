@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
     <DefineConstants>GTK2</DefineConstants>
     <!-- By design, the newer SDK-style projects don't search the GAC, and it's
     necessary to explicitly demand that to find the Gtk# assemblies. -->

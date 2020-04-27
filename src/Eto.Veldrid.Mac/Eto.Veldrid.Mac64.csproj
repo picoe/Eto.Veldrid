@@ -1,13 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
     <DefineConstants>MONOMAC</DefineConstants>
     <MacBuildBundle>false</MacBuildBundle>
+    <OutputPath Condition="$(MacIsBuildingBundle) == 'True'"></OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Eto.Platform.Mac64" Version="2.5.0-rc.5" />
+    <PackageReference Include="Eto.Platform.Mac64" Version="2.5.0" />
   </ItemGroup>
 
   <ItemGroup>

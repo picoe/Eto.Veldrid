@@ -2,7 +2,7 @@
 	
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
     <!-- By design, the newer SDK-style projects don't search the GAC, and it's
     necessary to explicitly demand that to find the Gtk# assemblies. -->
     <AssemblySearchPaths>$(AssemblySearchPaths);{GAC}</AssemblySearchPaths>
@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Eto.Platform.Gtk2" Version="2.5.0-rc.5" />
+    <PackageReference Include="Eto.Platform.Gtk2" Version="2.5.0" />
     <PackageReference Include="OpenTK" Version="3.1.0" />
   </ItemGroup>
 

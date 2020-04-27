@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
     <DefineConstants>GTK3</DefineConstants>
   </PropertyGroup>
 
@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Eto.Platform.Gtk" Version="2.5.0-rc.5" />
+    <PackageReference Include="Eto.Platform.Gtk" Version="2.5.0" />
     <PackageReference Include="OpenTK" Version="3.1.0" />
   </ItemGroup>
 
