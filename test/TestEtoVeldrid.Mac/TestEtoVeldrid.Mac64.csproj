@@ -4,6 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
     <DefineConstants>MONOMAC</DefineConstants>
+    <RuntimeIdentifiers>osx-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <ItemGroup>

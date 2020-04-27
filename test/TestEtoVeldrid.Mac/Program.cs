@@ -1,4 +1,5 @@
-﻿using Eto.Forms;
+﻿using Eto;
+using Eto.Forms;
 using Eto.Veldrid;
 using System;
 using System.Diagnostics;
@@ -11,7 +12,7 @@ namespace TestEtoVeldrid.Mac
 		[STAThread]
 		public static void Main(string[] args)
 		{
-			VeldridSurface.InitializeOpenTK();
+			//VeldridSurface.InitializeOpenTK();
 
 			var platform = new Eto.Mac.Platform();
 
@@ -30,7 +31,7 @@ namespace TestEtoVeldrid.Mac
 			// other hand, it returns the directory containing the .app..
 			new Application(platform).Run(new MainForm(
 				Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName),
-				Path.Combine("..", "Resources", "shaders")));
+				Path.Combine(EtoEnvironment.GetFolderPath(EtoSpecialFolder.ApplicationResources), "shaders")));
 		}
 	}
 }

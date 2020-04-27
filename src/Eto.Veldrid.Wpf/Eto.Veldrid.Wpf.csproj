@@ -1,4 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project>
+
+  <PropertyGroup>
+    <HaveWindowsDesktopSdk Condition="$(HaveWindowsDesktopSdk) == '' and $(OS) == 'Windows_NT' and $([System.Version]::Parse($([MSBuild]::ValueOrDefault('$(VisualStudioVersion)', '1.0')))) &gt;= $([System.Version]::Parse('16.0'))">true</HaveWindowsDesktopSdk>
+  </PropertyGroup>
+
+  <Import Condition="'$(HaveWindowsDesktopSdk)' != 'true'" Sdk="Microsoft.NET.Sdk" Project="Sdk.props" />
+  <Import Condition="'$(HaveWindowsDesktopSdk)' == 'true'" Sdk="Microsoft.NET.Sdk.WindowsDesktop" Project="Sdk.props" />
 
   <PropertyGroup>
     <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
@@ -29,5 +36,9 @@
     <Reference Include="WindowsBase" />
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
+
+  <Import Condition="'$(HaveWindowsDesktopSdk)' != 'true'" Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
+  <Import Condition="'$(HaveWindowsDesktopSdk)' == 'true'" Sdk="Microsoft.NET.Sdk.WindowsDesktop" Project="Sdk.targets" />
+
 
 </Project>
