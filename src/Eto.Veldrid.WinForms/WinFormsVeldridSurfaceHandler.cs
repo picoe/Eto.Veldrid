@@ -19,6 +19,7 @@ namespace Eto.Veldrid.WinForms
 		public WinFormsVeldridSurfaceHandler()
 		{
 			Control = new WinFormsVeldridUserControl();
+			Control.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
 
 			Control.HandleCreated += Control_HandleCreated;
 		}
@@ -58,6 +59,8 @@ namespace Eto.Veldrid.WinForms
 
 		private void Control_HandleCreated(object sender, EventArgs e)
 		{
+			if (RenderSize.IsEmpty)
+				return;
 			Callback.OnInitializeBackend(Widget, new InitializeEventArgs(RenderSize));
 
 			Control.HandleCreated -= Control_HandleCreated;

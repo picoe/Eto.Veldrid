@@ -1,0 +1,93 @@
+name: Build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  create:
+    tags: [ '*' ]
+
+env:
+  BuildVersion: "CI.${{ github.run_id }}"
+  BuildBranch: "${{ github.ref }}"
+  BuildParameters: "/v:Minimal /p:Configuration=Release Eto.Veldrid.sln"
+
+jobs:
+  build-windows:
+
+    runs-on: windows-latest
+
+    env:
+      PlatformBuildParameters: /p:Platform=Windows
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.101
+
+    - name: Setup msbuild
+      uses: microsoft/setup-msbuild@v1
+
+    - uses: actions/cache@v1
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Build
+      run: msbuild /restore ${{ env.PlatformBuildParameters }} ${{ env.BuildParameters }}
+
+    - name: Pack
+      run: msbuild /t:Pack ${{ env.PlatformBuildParameters }} ${{ env.BuildParameters }}
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: nuget
+        path: artifacts/nuget/**/*.nupkg
+
+  build-mac:
+
+    runs-on: macos-latest
+
+    env:
+      PlatformBuildParameters: /p:Platform=Mac
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.101
+
+    - name: setup-xamarin
+      uses: maxim-lobanov/setup-xamarin@v1.1
+      with:
+        mono-version: latest
+        xamarin-mac-version: latest
+        xcode-version: latest
+
+    - uses: actions/cache@v1
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Build
+      run: msbuild /restore ${{ env.PlatformBuildParameters }} ${{ env.BuildParameters }}
+
+    - name: Pack
+      run: msbuild /t:Pack ${{ env.PlatformBuildParameters }} ${{ env.BuildParameters }}
+
+#    - name: Upload artifacts
+#      uses: actions/upload-artifact@v2
+#      with:
+#        name: nuget
+#        path: artifacts/nuget/**/Eto.Veldrid.XamMac2.nupkg

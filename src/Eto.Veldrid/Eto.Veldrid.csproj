@@ -3,21 +3,13 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <RootNamespace>Eto.Veldrid</RootNamespace>
-    <Title>Eto.Veldrid</Title>
+    <Title>Veldrid Control for Eto.Forms</Title>
+    <Description>
+      This provides the control to use in your Eto.Forms application.
+      Add the platform-specific package for each platform you wish to support. E.g. Eto.Veldrid.Gtk, Eto.Veldrid.Mac64, Eto.Veldrid.Wpf, etc.
+    </Description>
   </PropertyGroup>
   
-  <!--Adapted from Veldrid.SPIRV.targets, included with the Veldrid.SPIRV NuGet
-  package. That file isn't always auto-imported, and although that could be done
-  by hand, importing it would affect its use of the MSBuildFileThisDirectory
-  variable, invalidating the relative paths it uses.-->
-  <ItemGroup>
-    <Content Include="$([MSBuild]::EnsureTrailingSlash('$(NuGetPackageRoot)'))veldrid.spirv\$(VeldridSpirvVersion)\runtimes\$(RuntimeID)\native\$(VeldridSpirvNativeName)">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <Visible>False</Visible>
-    </Content>
-  </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Eto.Forms" Version="2.5.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
@@ -25,7 +17,18 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Veldrid" Version="4.7.0" />
-    <PackageReference Include="Veldrid.SPIRV" Version="$(VeldridSpirvVersion)" />
+    <PackageReference Include="Veldrid.SPIRV" Version="1.0.13" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(TopLevelDirectory)LICENSE" Pack="True" PackagePath=".">
+      <Link>Eto.Veldrid-LICENSE</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$(TopLevelDirectory)AUTHORS" Pack="True" PackagePath=".">
+      <Link>Eto.Veldrid-AUTHORS</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

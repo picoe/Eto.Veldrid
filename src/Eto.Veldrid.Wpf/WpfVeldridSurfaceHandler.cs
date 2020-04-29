@@ -9,13 +9,13 @@ using Veldrid;
 
 namespace Eto.Veldrid.Wpf
 {
-	public class WpfVeldridSurfaceHandler : Eto.Wpf.Forms.ManualBubbleWindowsFormsHostHandler<WinForms.WinFormsVeldridUserControl, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
+	public class WpfVeldridSurfaceHandler : Eto.Wpf.Forms.ManualBubbleWindowsFormsHostHandler<WinFormsVeldridUserControl, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
 		public Size RenderSize => Size.Round((SizeF)Widget.Size * Scale);
 
 		float Scale => Widget.ParentWindow?.LogicalPixelSize ?? 1;
 
-		public WpfVeldridSurfaceHandler() : base(new WinForms.WinFormsVeldridUserControl())
+		public WpfVeldridSurfaceHandler() : base(new WinFormsVeldridUserControl())
 		{
 			Control.Loaded += Control_Loaded;
 		}

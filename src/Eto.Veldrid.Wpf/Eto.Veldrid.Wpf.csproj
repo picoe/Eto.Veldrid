@@ -8,13 +8,15 @@
   <Import Condition="'$(HaveWindowsDesktopSdk)' == 'true'" Sdk="Microsoft.NET.Sdk.WindowsDesktop" Project="Sdk.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
-    <UseWPF>true</UseWPF>
+    <TargetFrameworks>net461;netcoreapp3.1</TargetFrameworks>
+    <UseWPF Condition="$(HaveWindowsDesktopSdk) == 'True'">true</UseWPF>
+    <UseWinForms Condition="$(HaveWindowsDesktopSdk) == 'True'">true</UseWinForms>
+    <!-- prevent warning with Extended.Wpf.Toolkit in .NET Core -->
+    <NoWarn>NU1701</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Eto.Veldrid\Eto.Veldrid.csproj" />
-    <ProjectReference Include="..\Eto.Veldrid.WinForms\Eto.Veldrid.WinForms.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,7 +29,7 @@
     <PackageReference Include="Extended.Wpf.Toolkit" Version="[3.6.0]" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="$(TargetFramework) == 'net461'">
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="ReachFramework" />
