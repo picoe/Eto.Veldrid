@@ -33,9 +33,6 @@ namespace TestEtoVeldrid
 	/// </remarks>
 	public class VeldridDriver
 	{
-		public string ExecutableDirectory { get; set; }
-		public string ShaderSubdirectory { get; set; }
-
 		private VeldridSurface _surface;
 		public VeldridSurface Surface
 		{
@@ -287,26 +284,20 @@ namespace TestEtoVeldrid
 
 		private byte[] LoadSpirvBytes(ShaderStages stage)
 		{
-			byte[] bytes;
-
 			string name = $"VertexColor-{stage.ToString().ToLowerInvariant()}.450.glsl";
-			string full = Path.Combine(ExecutableDirectory, ShaderSubdirectory, name);
+			string full = $"TestEtoVeldrid.shaders.{name}";
 
 			// Precompiled SPIR-V bytecode can speed up program start by saving
 			// the need to load text files and compile them before converting
 			// the result to the final backend shader format. If they're not
 			// available, though, the plain .glsl files will do just fine. Look
 			// up glslangValidator to learn how to compile SPIR-V binary files.
-			try
-			{
-				bytes = File.ReadAllBytes($"{full}.spv");
-			}
-			catch (FileNotFoundException)
-			{
-				bytes = File.ReadAllBytes(full);
-			}
 
-			return bytes;
+			using (var stream = GetType().Assembly.GetManifestResourceStream(full))
+			using (var reader = new BinaryReader(stream))
+			{
+				return reader.ReadBytes((int)stream.Length);
+			}
 		}
 	}
 }

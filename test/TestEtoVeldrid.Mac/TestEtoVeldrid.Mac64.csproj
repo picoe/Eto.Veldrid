@@ -4,11 +4,11 @@
     <OutputType>WinExe</OutputType>
     <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
     <DefineConstants>MONOMAC</DefineConstants>
-    <RuntimeIdentifiers>osx-x64</RuntimeIdentifiers>
+    <RuntimeIdentifier>osx-x64</RuntimeIdentifier>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Eto.Platform.Mac64" Version="2.5.0" />
+    <PackageReference Include="Eto.Platform.Mac64" Version="2.5.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -16,13 +16,5 @@
     <ProjectReference Include="..\..\src\Eto.Veldrid.Mac\Eto.Veldrid.Mac64.csproj" />
   </ItemGroup>
 
-  <!--Eto's MacTemplate.targets file doesn't automatically pack native .dylib
-  libraries into the monolithic executable produced by mkbundle. Luckily, it
-  respects existing values of MkBundleArgs by appending instead of replacing.-->
-  <Target Name="SetMkBundleArgs" BeforeTargets="MacBundleMono" Condition="$(MacBundleMono) == true">
-    <PropertyGroup>
-      <MkBundleArgs>--simple --library "$(OutputPath)$(VeldridSpirvNativeName)"</MkBundleArgs>
-    </PropertyGroup>
-  </Target>
 
 </Project>

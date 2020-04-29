@@ -23,6 +23,8 @@
     <BaseOutputPath>$(ArtifactsDir)bin\$(MSBuildProjectName)\</BaseOutputPath>
 
     <PackageOutputPath>$(ArtifactsDir)nuget\$(Configuration)\</PackageOutputPath>
+
+    <NoWarn>CA1034;CA1303</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>
