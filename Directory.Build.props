@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
@@ -21,22 +22,24 @@
     files avoids problems with generated AssemblyInfo, among other benefits. -->
     <BaseOutputPath>$(ArtifactsDir)bin\$(MSBuildProjectName)\</BaseOutputPath>
 
-    <VeldridSpirvVersion>1.0.13</VeldridSpirvVersion>
+    <PackageOutputPath>$(ArtifactsDir)nuget\$(Configuration)\</PackageOutputPath>
   </PropertyGroup>
 
-  <PropertyGroup Condition="$(BuildOS) == 'Windows'">
-    <RuntimeID>win-x64</RuntimeID>
-    <VeldridSpirvNativeName>libveldrid-spirv.dll</VeldridSpirvNativeName>
-  </PropertyGroup>
+  <PropertyGroup>
+    <DevVersion>0.1.0</DevVersion>
 
-  <PropertyGroup Condition="$(BuildOS) == 'Linux'">
-    <RuntimeID>linux-x64</RuntimeID>
-    <VeldridSpirvNativeName>libveldrid-spirv.so</VeldridSpirvNativeName>
-  </PropertyGroup>
+    <!-- set version from tag -->
+    <Version Condition="$(BuildBranch.StartsWith('refs/tags/'))">$(BuildBranch.Substring(10))</Version>
+    <!-- set version for CI build -->
+    <Version Condition="$(Version) == '' AND $(BuildVersion) != ''">$(DevVersion)-$(BuildVersion)</Version>
+    <!-- set version for development -->
+    <Version Condition="$(Version) == ''">$(DevVersion)-dev</Version>
 
-  <PropertyGroup Condition="$(BuildOS) == 'macOS'">
-    <RuntimeID>osx-x64</RuntimeID>
-    <VeldridSpirvNativeName>libveldrid-spirv.dylib</VeldridSpirvNativeName>
+    <Authors>Eto.Veldrid Authors</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>Eto;Veldrid;Vulkan;Metal;Direct3D</PackageTags>
+    <RepositoryUrl>https://github.com/picoe/Eto.Veldrid</RepositoryUrl>
+    <Copyright>Copyright (c) 2018-2020 Eto.Vulkan authors, see AUTHORS file.</Copyright>
   </PropertyGroup>
 
 </Project>

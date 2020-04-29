@@ -65,6 +65,7 @@ namespace TestEtoVeldrid
 				ResourceBindingModel.Improved);
 
 			Surface = new VeldridSurface(backend, options);
+			Surface.Size = new Eto.Drawing.Size(200, 200);
 			Surface.VeldridInitialized += (sender, e) => VeldridReady = true;
 
 			Content = Surface;

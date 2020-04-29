@@ -12,6 +12,9 @@
     <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
     <ApplicationManifest>app1.manifest</ApplicationManifest>
     <UseWPF>true</UseWPF>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <!-- prevent warning with Extended.Wpf.Toolkit in .NET Core -->
+    <NoWarn>NU1701</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
