@@ -1,4 +1,5 @@
-﻿using Eto.GtkSharp.Forms;
+﻿using Eto.Drawing;
+using Eto.GtkSharp.Forms;
 using Eto.Veldrid;
 using Eto.Veldrid.Gtk;
 using Gtk;
@@ -11,10 +12,9 @@ namespace Eto.Veldrid.Gtk
 {
 	public class GtkVeldridSurfaceHandler : GtkControl<GtkVeldridDrawingArea, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler, VeldridSurface.IOpenGL
 	{
-		// TODO: Find out if Gtk3 even supports different DPI settings, and if
-		// so test it out and get this to return the correct values.
-		public int RenderWidth => Widget.Width;
-		public int RenderHeight => Widget.Height;
+		public Size RenderSize => Size.Round((SizeF)Widget.Size * Scale);
+
+		float Scale => Widget.ParentWindow?.LogicalPixelSize ?? 1;
 
 		public GtkVeldridSurfaceHandler()
 		{
@@ -42,11 +42,12 @@ namespace Eto.Veldrid.Gtk
 					X11Interop.gdk_x11_display_get_xdisplay(Control.Display.Handle),
 					X11Interop.gdk_x11_window_get_xid(Control.Window.Handle));
 
+				var renderSize = RenderSize;
 				swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
 					new SwapchainDescription(
 						source,
-						(uint)RenderWidth,
-						(uint)RenderHeight,
+						(uint)renderSize.Width,
+						(uint)renderSize.Height,
 						Widget.GraphicsDeviceOptions.SwapchainDepthFormat,
 						Widget.GraphicsDeviceOptions.SyncToVerticalBlank,
 						Widget.GraphicsDeviceOptions.SwapchainSrgbFormat));
@@ -57,11 +58,14 @@ namespace Eto.Veldrid.Gtk
 
 		void Control_InitializeGraphicsBackend(object o, RenderArgs args)
 		{
-			Callback.InitializeGraphicsBackend(Widget);
+			Callback.OnInitializeBackend(Widget, new InitializeEventArgs(RenderSize));
 
 			Control.Render -= Control_InitializeGraphicsBackend;
 			Control.Render += Control_Render;
+			Widget.SizeChanged += Widget_SizeChanged;
 		}
+
+		private void Widget_SizeChanged(object sender, EventArgs e) => Callback.OnResize(Widget, new ResizeEventArgs(RenderSize));
 
 		void Control_Render(object o, RenderArgs args) => Callback.OnDraw(Widget, args);
 

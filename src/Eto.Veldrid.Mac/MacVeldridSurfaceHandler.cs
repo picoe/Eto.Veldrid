@@ -18,11 +18,12 @@ namespace Eto.Veldrid.Mac
 {
 	public class MacVeldridSurfaceHandler : MacView<MacVeldridView, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
-		CVDisplayLink displayLink;
-		// TODO: Set up some way to test HiDPI in macOS and figure out how to
-		// get the right values here.
-		public int RenderWidth => Widget.Width;
-		public int RenderHeight => Widget.Height;
+		CVDisplayLink _displayLink;
+		Size? _newRenderSize;
+
+		public Size RenderSize => Size.Round((SizeF)Widget.Size * Scale);
+
+		float Scale => Widget.ParentWindow?.LogicalPixelSize ?? 1;
 
 		public override NSView ContainerControl => Control;
 
@@ -52,11 +53,12 @@ namespace Eto.Veldrid.Mac
 				//
 				var source = SwapchainSource.CreateNSView(Control.Handle);
 
+				var renderSize = RenderSize;
 				swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
 					new SwapchainDescription(
 						source,
-						(uint)RenderWidth,
-						(uint)RenderHeight,
+						(uint)renderSize.Width,
+						(uint)renderSize.Height,
 						Widget.GraphicsDeviceOptions.SwapchainDepthFormat,
 						Widget.GraphicsDeviceOptions.SyncToVerticalBlank,
 						Widget.GraphicsDeviceOptions.SwapchainSrgbFormat));
@@ -67,20 +69,39 @@ namespace Eto.Veldrid.Mac
 
 		private void Control_Draw(object sender, EventArgs e)
 		{
-			Callback.InitializeGraphicsBackend(Widget);
+			Callback.OnInitializeBackend(Widget, new InitializeEventArgs(RenderSize));
 
 			if (Widget.Backend == GraphicsBackend.Metal)
 			{
-				displayLink = new CVDisplayLink();
-				displayLink.SetOutputCallback(HandleDisplayLinkOutputCallback);
-				displayLink.Start();
+				_displayLink = new CVDisplayLink();
+				_displayLink.SetOutputCallback(HandleDisplayLinkOutputCallback);
+				_displayLink.Start();
 			}
 
 			Control.Draw -= Control_Draw;
+			Widget.SizeChanged += Widget_SizeChanged;
+		}
+
+		private void Widget_SizeChanged(object sender, EventArgs e)
+		{
+			if (Widget.Backend == GraphicsBackend.OpenGL)
+			{
+				Callback.OnResize(Widget, new ResizeEventArgs(RenderSize));
+			}
+			else
+			{
+				_newRenderSize = RenderSize;
+			}
 		}
 
 		private CVReturn HandleDisplayLinkOutputCallback(CVDisplayLink displayLink, ref CVTimeStamp inNow, ref CVTimeStamp inOutputTime, CVOptionFlags flagsIn, ref CVOptionFlags flagsOut)
 		{
+			if (_newRenderSize != null)
+			{
+				Callback.OnResize(Widget, new ResizeEventArgs(_newRenderSize.Value));
+				_newRenderSize = null;
+			}
+
 			Callback.OnDraw(Widget, EventArgs.Empty);
 			return CVReturn.Success;
 		}

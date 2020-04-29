@@ -14,28 +14,24 @@ namespace Eto.Veldrid
 	{
 		public new interface IHandler : Control.IHandler
 		{
-			int RenderWidth { get; }
-			int RenderHeight { get; }
-
+			Size RenderSize { get; }
 			Swapchain CreateSwapchain();
 		}
 
-		public new IHandler Handler => (IHandler)base.Handler;
+		new IHandler Handler => (IHandler)base.Handler;
 
 		public new interface ICallback : Control.ICallback
 		{
-			void InitializeGraphicsBackend(VeldridSurface s);
+			void OnInitializeBackend(VeldridSurface s, InitializeEventArgs e);
 			void OnDraw(VeldridSurface s, EventArgs e);
 			void OnResize(VeldridSurface s, ResizeEventArgs e);
-			void OnVeldridInitialized(VeldridSurface s, EventArgs e);
 		}
 
 		protected new class Callback : Control.Callback, ICallback
 		{
-			public void InitializeGraphicsBackend(VeldridSurface s) => s?.InitializeGraphicsBackend();
+			public void OnInitializeBackend(VeldridSurface s, InitializeEventArgs e) => s?.InitializeGraphicsBackend(e);
 			public void OnDraw(VeldridSurface s, EventArgs e) => s?.OnDraw(e);
 			public void OnResize(VeldridSurface s, ResizeEventArgs e) => s?.OnResize(e);
-			public void OnVeldridInitialized(VeldridSurface s, EventArgs e) => s?.OnVeldridInitialized(e);
 		}
 
 		protected override object GetCallback() => new Callback();
@@ -59,26 +55,31 @@ namespace Eto.Veldrid
 		public static GraphicsBackend PreferredBackend { get; } = GetPreferredBackend();
 
 		/// <summary>
+		/// The render area's size, which may differ from the control's size
+		/// (e.g. with high DPI displays).
+		/// </summary>
+		public Size RenderSize => Handler.RenderSize;
+		/// <summary>
 		/// The render area's width, which may differ from the control's width
 		/// (e.g. with high DPI displays).
 		/// </summary>
-		public int RenderWidth => Handler.RenderWidth;
+		public int RenderWidth => RenderSize.Width;
 		/// <summary>
 		/// The render area's height, which may differ from the control's height
 		/// (e.g. with high DPI displays).
 		/// </summary>
-		public int RenderHeight => Handler.RenderHeight;
+		public int RenderHeight => RenderSize.Height;
 
-		public GraphicsBackend Backend { get; set; } = PreferredBackend;
-		public GraphicsDevice GraphicsDevice { get; set; }
+		public GraphicsBackend Backend { get; private set; }
+		public GraphicsDevice GraphicsDevice { get; private set; }
 		public GraphicsDeviceOptions GraphicsDeviceOptions { get; private set; } = new GraphicsDeviceOptions();
-		public Swapchain Swapchain { get; set; }
+		public Swapchain Swapchain { get; private set; }
 
 		public const string VeldridInitializedEvent = "VeldridSurface.VeldridInitialized";
 		public const string DrawEvent = "VeldridSurface.Draw";
 		public const string ResizeEvent = "VeldridSurface.Resize";
 
-		public event EventHandler<EventArgs> VeldridInitialized
+		public event EventHandler<InitializeEventArgs> VeldridInitialized
 		{
 			add { Properties.AddHandlerEvent(VeldridInitializedEvent, value); }
 			remove { Properties.RemoveEvent(VeldridInitializedEvent, value); }
@@ -95,6 +96,7 @@ namespace Eto.Veldrid
 		}
 
 		public VeldridSurface()
+			: this(PreferredBackend)
 		{
 		}
 		public VeldridSurface(GraphicsBackend backend)
@@ -132,7 +134,7 @@ namespace Eto.Veldrid
 			return (GraphicsBackend)backend;
 		}
 
-		private void InitializeGraphicsBackend()
+		private void InitializeGraphicsBackend(InitializeEventArgs e)
 		{
 			switch (Backend)
 			{
@@ -159,8 +161,8 @@ namespace Eto.Veldrid
 							OpenGL.SetSyncToVerticalBlank,
 							OpenGL.SetSwapchainFramebuffer,
 							OpenGL.ResizeSwapchain),
-						(uint)RenderWidth,
-						(uint)RenderHeight);
+						(uint)e.Width,
+						(uint)e.Height);
 					break;
 				default:
 					string message;
@@ -178,44 +180,21 @@ namespace Eto.Veldrid
 
 			Swapchain = Handler.CreateSwapchain();
 
-			OnVeldridInitialized(EventArgs.Empty);
+			OnVeldridInitialized(e);
 		}
 
-		protected virtual void OnDraw(EventArgs e)
-		{
-			if (_resizeEvent != null)
-			{
-				OnResize(_resizeEvent);
-				_resizeEvent = null;
-			}
-
-			Properties.TriggerEvent(DrawEvent, this, e);
-		}
+		protected virtual void OnDraw(EventArgs e) => Properties.TriggerEvent(DrawEvent, this, e);
 
 		protected virtual void OnResize(ResizeEventArgs e)
 		{
-			if (Swapchain != null && e != null)
-			{
-				Swapchain.Resize((uint)e.Width, (uint)e.Height);
-			}
+			if (e == null)
+				throw new ArgumentNullException(nameof(e));
+
+			Swapchain?.Resize((uint)e.Width, (uint)e.Height);
 
 			Properties.TriggerEvent(ResizeEvent, this, e);
 		}
 
-		ResizeEventArgs _resizeEvent;
-
-		protected virtual void OnVeldridInitialized(EventArgs e) => Properties.TriggerEvent(VeldridInitializedEvent, this, e);
-
-		protected override void OnSizeChanged(EventArgs e)
-		{
-			base.OnSizeChanged(e);
-
-			if (!Loaded)
-			{
-				return;
-			}
-
-			_resizeEvent = new ResizeEventArgs(RenderWidth, RenderHeight);
-		}
+		protected virtual void OnVeldridInitialized(InitializeEventArgs e) => Properties.TriggerEvent(VeldridInitializedEvent, this, e);
 	}
 }

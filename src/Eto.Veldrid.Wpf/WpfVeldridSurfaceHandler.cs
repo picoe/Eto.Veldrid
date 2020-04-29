@@ -1,4 +1,5 @@
-﻿using Eto.Veldrid;
+﻿using Eto.Drawing;
+using Eto.Veldrid;
 using Eto.Veldrid.Wpf;
 using System;
 using System.Runtime.InteropServices;
@@ -10,8 +11,9 @@ namespace Eto.Veldrid.Wpf
 {
 	public class WpfVeldridSurfaceHandler : Eto.Wpf.Forms.ManualBubbleWindowsFormsHostHandler<WinForms.WinFormsVeldridUserControl, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
-		public int RenderWidth => WinFormsControl.Width;
-		public int RenderHeight => WinFormsControl.Height;
+		public Size RenderSize => Size.Round((SizeF)Widget.Size * Scale);
+
+		float Scale => Widget.ParentWindow?.LogicalPixelSize ?? 1;
 
 		public WpfVeldridSurfaceHandler() : base(new WinForms.WinFormsVeldridUserControl())
 		{
@@ -37,11 +39,12 @@ namespace Eto.Veldrid.Wpf
 					WinFormsControl.Handle,
 					Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
 
+				var renderSize = RenderSize;
 				swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
 					new SwapchainDescription(
 						source,
-						(uint)RenderWidth,
-						(uint)RenderHeight,
+						(uint)renderSize.Width,
+						(uint)renderSize.Height,
 						Widget.GraphicsDeviceOptions.SwapchainDepthFormat,
 						Widget.GraphicsDeviceOptions.SyncToVerticalBlank,
 						Widget.GraphicsDeviceOptions.SwapchainSrgbFormat));
@@ -52,9 +55,15 @@ namespace Eto.Veldrid.Wpf
 
 		private void Control_Loaded(object sender, System.Windows.RoutedEventArgs e)
 		{
-			Callback.InitializeGraphicsBackend(Widget);
+			Callback.OnInitializeBackend(Widget, new InitializeEventArgs(RenderSize));
 
 			Control.Loaded -= Control_Loaded;
+			Widget.SizeChanged += Widget_SizeChanged;
+		}
+
+		private void Widget_SizeChanged(object sender, EventArgs e)
+		{
+			Callback.OnResize(Widget, new ResizeEventArgs(RenderSize));
 		}
 
 		public override void AttachEvent(string id)
