@@ -3,23 +3,22 @@ using System;
 
 namespace Eto.Veldrid
 {
+	public class InitializeEventArgs : ResizeEventArgs
+	{
+		public InitializeEventArgs(Size size) : base(size)
+		{
+		}
+	}
+
 	public class ResizeEventArgs : EventArgs
 	{
-		public int Width { get; set; }
-		public int Height { get; set; }
+		public Size Size { get; }
+		public int Width => Size.Width;
+		public int Height => Size.Height;
 
-		public ResizeEventArgs()
-		{
-		}
-		public ResizeEventArgs(int width, int height)
-		{
-			Width = width;
-			Height = height;
-		}
 		public ResizeEventArgs(Size size)
 		{
-			Width = size.Width;
-			Height = size.Height;
+			Size = size;
 		}
 	}
 }

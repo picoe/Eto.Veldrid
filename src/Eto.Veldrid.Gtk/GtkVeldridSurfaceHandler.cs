@@ -1,9 +1,8 @@
-﻿using Eto.GtkSharp.Forms;
+﻿using Eto.Drawing;
+using Eto.GtkSharp.Forms;
 using Eto.Veldrid;
 using Eto.Veldrid.Gtk;
 using Gtk;
-using OpenTK.Graphics;
-using OpenTK.Platform;
 using System;
 using Veldrid;
 
@@ -11,29 +10,17 @@ using Veldrid;
 
 namespace Eto.Veldrid.Gtk
 {
-	public class GtkVeldridSurfaceHandler : GtkControl<GtkVeldridDrawingArea, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
+	public class GtkVeldridSurfaceHandler : GtkControl<GtkVeldridDrawingArea, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler, VeldridSurface.IOpenGL
 	{
-		// TODO: Find out if Gtk3 even supports different DPI settings, and if
-		// so test it out and get this to return the correct values.
-		public int RenderWidth => Widget.Width;
-		public int RenderHeight => Widget.Height;
+		public Size RenderSize => Size.Round((SizeF)Widget.Size * Scale);
 
-		public IWindowInfo WindowInfo => Control.WindowInfo;
-
-		public Action<uint, uint> ResizeSwapchain { get; protected set; }
+		float Scale => Widget.ParentWindow?.LogicalPixelSize ?? 1;
 
 		public GtkVeldridSurfaceHandler()
 		{
 			Control = new GtkVeldridDrawingArea();
 
-#if GTK3
-			Control.Drawn += Control_Drawn;
-#else
-			Control.ExposeEvent += Control_ExposeEvent;
-#endif
-			Control.WindowInfoUpdated += (sender, e) => Callback.OnWindowInfoUpdated(Widget, EventArgs.Empty);
-
-			ResizeSwapchain = (w, h) => { };
+			Control.Render += Control_InitializeGraphicsBackend;
 		}
 
 		public Swapchain CreateSwapchain()
@@ -53,17 +40,14 @@ namespace Eto.Veldrid.Gtk
 				//
 				var source = SwapchainSource.CreateXlib(
 					X11Interop.gdk_x11_display_get_xdisplay(Control.Display.Handle),
-#if GTK3
 					X11Interop.gdk_x11_window_get_xid(Control.Window.Handle));
-#else
-					X11Interop.gdk_x11_drawable_get_xid(Control.GdkWindow.Handle));
-#endif
 
+				var renderSize = RenderSize;
 				swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
 					new SwapchainDescription(
 						source,
-						(uint)RenderWidth,
-						(uint)RenderHeight,
+						(uint)renderSize.Width,
+						(uint)renderSize.Height,
 						Widget.GraphicsDeviceOptions.SwapchainDepthFormat,
 						Widget.GraphicsDeviceOptions.SyncToVerticalBlank,
 						Widget.GraphicsDeviceOptions.SwapchainSrgbFormat));
@@ -72,38 +56,49 @@ namespace Eto.Veldrid.Gtk
 			return swapchain;
 		}
 
-		public IWindowInfo UpdateWindowInfo(GraphicsMode mode) => Control.UpdateWindowInfo(mode);
-
-#if GTK3
-		private void Control_Drawn(object o, DrawnArgs args)
-#else
-		private void Control_ExposeEvent(object o, ExposeEventArgs args)
-#endif
+		void Control_InitializeGraphicsBackend(object o, RenderArgs args)
 		{
-			Callback.InitializeGraphicsBackend(Widget);
+			Callback.OnInitializeBackend(Widget, new InitializeEventArgs(RenderSize));
 
-#if GTK3
-			Control.Drawn -= Control_Drawn;
-#else
-			Control.ExposeEvent -= Control_ExposeEvent;
-#endif
+			Control.Render -= Control_InitializeGraphicsBackend;
+			Control.Render += Control_Render;
+			Widget.SizeChanged += Widget_SizeChanged;
 		}
 
-		public override void AttachEvent(string id)
+		private void Widget_SizeChanged(object sender, EventArgs e) => Callback.OnResize(Widget, new ResizeEventArgs(RenderSize));
+
+		void Control_Render(object o, RenderArgs args) => Callback.OnDraw(Widget, args);
+
+		// TODO: Figure this one out! The docstring for this property in Veldrid's OpenGLPlatformInfo is ambiguous.
+		IntPtr VeldridSurface.IOpenGL.OpenGLContextHandle => ((VeldridSurface.IOpenGL)this).GetCurrentContext();
+
+		IntPtr VeldridSurface.IOpenGL.GetProcAddress(string name) => X11Interop.glXGetProcAddress(name);
+
+		void VeldridSurface.IOpenGL.MakeCurrent(IntPtr context) => Control.MakeCurrent();
+
+		IntPtr VeldridSurface.IOpenGL.GetCurrentContext() => Gdk.GLContext.Current.Handle;
+
+		void VeldridSurface.IOpenGL.ClearCurrentContext() => Gdk.GLContext.ClearCurrent();
+
+		void VeldridSurface.IOpenGL.DeleteContext(IntPtr context)
 		{
-			switch (id)
-			{
-				case VeldridSurface.DrawEvent:
-#if GTK3
-					Control.Drawn += (sender, e) => Callback.OnDraw(Widget, e);
-#else
-					Control.ExposeEvent += (sender, e) => Callback.OnDraw(Widget, e);
-#endif
-					break;
-				default:
-					base.AttachEvent(id);
-					break;
-			}
+		}
+
+		void VeldridSurface.IOpenGL.SwapBuffers()
+		{
+			// This happens automatically in GLArea, so no need to do anything.
+		}
+
+		void VeldridSurface.IOpenGL.SetSyncToVerticalBlank(bool on)
+		{
+		}
+
+		void VeldridSurface.IOpenGL.SetSwapchainFramebuffer()
+		{
+		}
+
+		void VeldridSurface.IOpenGL.ResizeSwapchain(uint width, uint height)
+		{
 		}
 	}
 }

@@ -1,4 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project>
+
+  <PropertyGroup>
+    <HaveWindowsDesktopSdk Condition="$(HaveWindowsDesktopSdk) == '' and $(OS) == 'Windows_NT' and $([System.Version]::Parse($([MSBuild]::ValueOrDefault('$(VisualStudioVersion)', '1.0')))) &gt;= $([System.Version]::Parse('16.0'))">true</HaveWindowsDesktopSdk>
+  </PropertyGroup>
+
+  <Import Condition="'$(HaveWindowsDesktopSdk)' != 'true'" Sdk="Microsoft.NET.Sdk" Project="Sdk.props" />
+  <Import Condition="'$(HaveWindowsDesktopSdk)' == 'true'" Sdk="Microsoft.NET.Sdk.WindowsDesktop" Project="Sdk.props" />
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -14,13 +21,15 @@
 
   <ItemGroup>
     <PackageReference Include="Eto.Platform.Wpf" Version="2.5.0" />
-    <PackageReference Include="OpenTK" Version="3.1.0" />
-    
+
     <!-- Please note that version 3.6.0 is the newest version of this toolkit
     that has licensing terms permitting use in commercial projects.
     https://github.com/picoe/Eto/issues/1544
     https://github.com/xceedsoftware/wpftoolkit/issues/1557 -->
     <PackageReference Include="Extended.Wpf.Toolkit" Version="[3.6.0]" />
   </ItemGroup>
+
+  <Import Condition="'$(HaveWindowsDesktopSdk)' != 'true'" Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
+  <Import Condition="'$(HaveWindowsDesktopSdk)' == 'true'" Sdk="Microsoft.NET.Sdk.WindowsDesktop" Project="Sdk.targets" />
 
 </Project>

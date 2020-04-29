@@ -3,8 +3,8 @@ using Eto.Veldrid;
 using Eto.Veldrid.Mac;
 using System;
 using Veldrid;
-using OpenTK.Graphics;
-using OpenTK.Platform;
+using MonoMac.CoreVideo;
+using Eto.Drawing;
 
 #if MONOMAC
 using MonoMac.AppKit;
@@ -18,27 +18,22 @@ namespace Eto.Veldrid.Mac
 {
 	public class MacVeldridSurfaceHandler : MacView<MacVeldridView, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
-		// TODO: Set up some way to test HiDPI in macOS and figure out how to
-		// get the right values here.
-		public int RenderWidth => Widget.Width;
-		public int RenderHeight => Widget.Height;
+		CVDisplayLink _displayLink;
+		Size? _newRenderSize;
 
-		public IWindowInfo WindowInfo => Control.WindowInfo;
+		public Size RenderSize => Size.Round((SizeF)Widget.Size * Scale);
+
+		float Scale => Widget.ParentWindow?.LogicalPixelSize ?? 1;
 
 		public override NSView ContainerControl => Control;
 
 		public override bool Enabled { get; set; }
-
-		public Action<uint, uint> ResizeSwapchain { get; protected set; }
 
 		public MacVeldridSurfaceHandler()
 		{
 			Control = new MacVeldridView();
 
 			Control.Draw += Control_Draw;
-			Control.WindowInfoUpdated += (sender, e) => Callback.OnWindowInfoUpdated(Widget, EventArgs.Empty);
-
-			ResizeSwapchain = (w, h) => Control.UpdateWindowInfo();
 		}
 
 		public Swapchain CreateSwapchain()
@@ -58,11 +53,12 @@ namespace Eto.Veldrid.Mac
 				//
 				var source = SwapchainSource.CreateNSView(Control.Handle);
 
+				var renderSize = RenderSize;
 				swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
 					new SwapchainDescription(
 						source,
-						(uint)RenderWidth,
-						(uint)RenderHeight,
+						(uint)renderSize.Width,
+						(uint)renderSize.Height,
 						Widget.GraphicsDeviceOptions.SwapchainDepthFormat,
 						Widget.GraphicsDeviceOptions.SyncToVerticalBlank,
 						Widget.GraphicsDeviceOptions.SwapchainSrgbFormat));
@@ -71,13 +67,43 @@ namespace Eto.Veldrid.Mac
 			return swapchain;
 		}
 
-		public IWindowInfo UpdateWindowInfo(GraphicsMode mode) => Control.UpdateWindowInfo(mode);
-
 		private void Control_Draw(object sender, EventArgs e)
 		{
-			Callback.InitializeGraphicsBackend(Widget);
+			Callback.OnInitializeBackend(Widget, new InitializeEventArgs(RenderSize));
+
+			if (Widget.Backend == GraphicsBackend.Metal)
+			{
+				_displayLink = new CVDisplayLink();
+				_displayLink.SetOutputCallback(HandleDisplayLinkOutputCallback);
+				_displayLink.Start();
+			}
 
 			Control.Draw -= Control_Draw;
+			Widget.SizeChanged += Widget_SizeChanged;
+		}
+
+		private void Widget_SizeChanged(object sender, EventArgs e)
+		{
+			if (Widget.Backend == GraphicsBackend.OpenGL)
+			{
+				Callback.OnResize(Widget, new ResizeEventArgs(RenderSize));
+			}
+			else
+			{
+				_newRenderSize = RenderSize;
+			}
+		}
+
+		private CVReturn HandleDisplayLinkOutputCallback(CVDisplayLink displayLink, ref CVTimeStamp inNow, ref CVTimeStamp inOutputTime, CVOptionFlags flagsIn, ref CVOptionFlags flagsOut)
+		{
+			if (_newRenderSize != null)
+			{
+				Callback.OnResize(Widget, new ResizeEventArgs(_newRenderSize.Value));
+				_newRenderSize = null;
+			}
+
+			Callback.OnDraw(Widget, EventArgs.Empty);
+			return CVReturn.Success;
 		}
 
 		public override void AttachEvent(string id)
@@ -85,7 +111,10 @@ namespace Eto.Veldrid.Mac
 			switch (id)
 			{
 				case VeldridSurface.DrawEvent:
-					Control.Draw += (sender, e) => Callback.OnDraw(Widget, e);
+					if (Widget.Backend == GraphicsBackend.OpenGL)
+					{
+						Control.Draw += (sender, e) => Callback.OnDraw(Widget, e);
+					}
 					break;
 				default:
 					base.AttachEvent(id);

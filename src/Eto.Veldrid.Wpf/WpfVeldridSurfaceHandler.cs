@@ -1,7 +1,6 @@
-﻿using Eto.Veldrid;
+﻿using Eto.Drawing;
+using Eto.Veldrid;
 using Eto.Veldrid.Wpf;
-using OpenTK.Graphics;
-using OpenTK.Platform;
 using System;
 using System.Runtime.InteropServices;
 using Veldrid;
@@ -12,19 +11,13 @@ namespace Eto.Veldrid.Wpf
 {
 	public class WpfVeldridSurfaceHandler : Eto.Wpf.Forms.ManualBubbleWindowsFormsHostHandler<WinForms.WinFormsVeldridUserControl, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler
 	{
-		public int RenderWidth => WinFormsControl.Width;
-		public int RenderHeight => WinFormsControl.Height;
+		public Size RenderSize => Size.Round((SizeF)Widget.Size * Scale);
 
-		public IWindowInfo WindowInfo => WinFormsControl.WindowInfo;
-
-		public Action<uint, uint> ResizeSwapchain { get; protected set; }
+		float Scale => Widget.ParentWindow?.LogicalPixelSize ?? 1;
 
 		public WpfVeldridSurfaceHandler() : base(new WinForms.WinFormsVeldridUserControl())
 		{
 			Control.Loaded += Control_Loaded;
-			WinFormsControl.WindowInfoUpdated += (sender, e) => Callback.OnWindowInfoUpdated(Widget, EventArgs.Empty);
-
-			ResizeSwapchain = (w, h) => { };
 		}
 
 		public Swapchain CreateSwapchain()
@@ -46,11 +39,12 @@ namespace Eto.Veldrid.Wpf
 					WinFormsControl.Handle,
 					Marshal.GetHINSTANCE(typeof(VeldridSurface).Module));
 
+				var renderSize = RenderSize;
 				swapchain = Widget.GraphicsDevice.ResourceFactory.CreateSwapchain(
 					new SwapchainDescription(
 						source,
-						(uint)RenderWidth,
-						(uint)RenderHeight,
+						(uint)renderSize.Width,
+						(uint)renderSize.Height,
 						Widget.GraphicsDeviceOptions.SwapchainDepthFormat,
 						Widget.GraphicsDeviceOptions.SyncToVerticalBlank,
 						Widget.GraphicsDeviceOptions.SwapchainSrgbFormat));
@@ -59,13 +53,17 @@ namespace Eto.Veldrid.Wpf
 			return swapchain;
 		}
 
-		public IWindowInfo UpdateWindowInfo(GraphicsMode mode) => WinFormsControl.UpdateWindowInfo(mode);
-
 		private void Control_Loaded(object sender, System.Windows.RoutedEventArgs e)
 		{
-			Callback.InitializeGraphicsBackend(Widget);
+			Callback.OnInitializeBackend(Widget, new InitializeEventArgs(RenderSize));
 
 			Control.Loaded -= Control_Loaded;
+			Widget.SizeChanged += Widget_SizeChanged;
+		}
+
+		private void Widget_SizeChanged(object sender, EventArgs e)
+		{
+			Callback.OnResize(Widget, new ResizeEventArgs(RenderSize));
 		}
 
 		public override void AttachEvent(string id)
