@@ -93,7 +93,6 @@ jobs:
 #        path: artifacts/nuget/**/Eto.Veldrid.XamMac2.nupkg
 
   publish:
-    name: Publish NuGet
     needs: [ build-windows, build-mac ]
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published'
