@@ -5,8 +5,8 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-  create:
-    tags: [ '*' ]
+  release:
+    type: published
 
 env:
   BuildVersion: "CI.${{ github.run_id }}"
@@ -91,3 +91,22 @@ jobs:
 #      with:
 #        name: nuget
 #        path: artifacts/nuget/**/Eto.Veldrid.XamMac2.nupkg
+
+  publish:
+    name: Publish NuGet
+    needs: [ build-windows, build-mac ]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'published'
+    steps:
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        env:
+          NUGET_AUTH_TOKEN: ${{secrets.NUGET_API_KEY}}
+
+      - name: Download NuGet Packages
+        uses: actions/download-artifact@v1
+        with:
+          name: nuget
+
+      - name: Push packages
+        run: dotnet nuget push ./nuget/**/*.nupkg --skip-duplicate
