@@ -8,8 +8,11 @@
   <Import Condition="'$(HaveWindowsDesktopSdk)' == 'true'" Sdk="Microsoft.NET.Sdk.WindowsDesktop" Project="Sdk.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>net461;netcoreapp3.1</TargetFrameworks>
-    <UseWindowsForms>true</UseWindowsForms>
+    <TargetFrameworks>net461</TargetFrameworks>
+    <TargetFrameworks Condition="$(HaveWindowsDesktopSdk) == 'true'">$(TargetFrameworks);netcoreapp3.1</TargetFrameworks>
+    <UseWindowsForms Condition="$(HaveWindowsDesktopSdk) == 'true'">true</UseWindowsForms>
+    <Title>Veldrid Windows Forms implementation for Eto.Forms</Title>
+    <Description>This provides the Windows Forms implementation of Eto.Veldrid for Eto.Forms</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,7 +20,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="System.Drawing" Pack="False" />
+    <Reference Include="System.Windows.Forms" Pack="False" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Eto.Platform.Windows" Version="2.5.1" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="all" />
   </ItemGroup>
 
   <Import Condition="'$(HaveWindowsDesktopSdk)' != 'true'" Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />

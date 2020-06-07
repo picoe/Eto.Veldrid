@@ -1,0 +1,89 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "command": "dotnet",
+            "type": "process",
+            "osx": {
+                "args": [
+                    "build",
+                    "${workspaceFolder}/Eto.Veldrid.sln",
+                    "/p:Platform=Mac",
+                    "/p:Configuration=${input:configuration}",
+                    "/p:GenerateFullPaths=true",
+                    "/consoleloggerparameters:NoSummary"
+                ],
+            },
+            "linux": {
+                "args": [
+                    "build",
+                    "${workspaceFolder}/Eto.Veldrid.sln",
+                    "/p:Platform=Mac",
+                    "/p:Configuration=${input:configuration}",
+                    "/p:GenerateFullPaths=true",
+                    "/consoleloggerparameters:NoSummary"
+                ],
+            },
+            "windows": {
+                "args": [
+                    "build",
+                    "${workspaceFolder}/Eto.Veldrid.sln",
+                    "/p:Platform=Windows",
+                    "/p:Configuration=${input:configuration}",
+                    "/p:GenerateFullPaths=true",
+                    "/consoleloggerparameters:NoSummary"
+                ],
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Pack",
+            "command": "dotnet",
+            "type": "process",
+            "osx": {
+                "args": [
+                    "pack",
+                    "${workspaceFolder}/Eto.Veldrid.sln",
+                    "/p:Platform=Mac",
+                    "/p:Configuration=${input:configuration}",
+                    "/p:GenerateFullPaths=true",
+                    "/consoleloggerparameters:NoSummary"
+                ]
+            },
+            "linux": {
+                "args": [
+                    "pack",
+                    "${workspaceFolder}/Eto.Veldrid.sln",
+                    "/p:Platform=Mac",
+                    "/p:Configuration=${input:configuration}",
+                    "/p:GenerateFullPaths=true",
+                    "/consoleloggerparameters:NoSummary"
+                ]
+            },
+            "windows": {
+                "args": [
+                    "pack",
+                    "${workspaceFolder}/Eto.Veldrid.sln",
+                    "/p:Platform=Windows",
+                    "/p:Configuration=${input:configuration}",
+                    "/p:GenerateFullPaths=true",
+                    "/consoleloggerparameters:NoSummary"
+                ]
+            },
+            "problemMatcher": "$msCompile"
+        }
+    ],
+    "inputs": [
+        {
+            "description": "Configuration",
+            "type": "pickString",
+            "id": "configuration",
+            "default": "Debug",
+            "options": [
+                "Debug",
+                "Release"
+            ]
+        }
+    ]
+}

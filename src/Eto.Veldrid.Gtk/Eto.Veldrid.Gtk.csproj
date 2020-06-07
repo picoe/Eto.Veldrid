@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFrameworks>net461;netcoreapp3.1</TargetFrameworks>
     <DefineConstants>GTK3</DefineConstants>
+    <Title>Veldrid Gtk implementation for Eto.Forms</Title>
+    <Description>This provides the Gtk implementation of Eto.Veldrid for Eto.Forms</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'Default' ">
@@ -12,6 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="Eto.Platform.Gtk" Version="2.5.1" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

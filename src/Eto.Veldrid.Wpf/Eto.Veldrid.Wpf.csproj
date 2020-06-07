@@ -8,11 +8,14 @@
   <Import Condition="'$(HaveWindowsDesktopSdk)' == 'true'" Sdk="Microsoft.NET.Sdk.WindowsDesktop" Project="Sdk.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>net461;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>net461</TargetFrameworks>
+    <TargetFrameworks Condition="$(HaveWindowsDesktopSdk) == 'true'">$(TargetFrameworks);netcoreapp3.1</TargetFrameworks>
     <UseWPF Condition="$(HaveWindowsDesktopSdk) == 'True'">true</UseWPF>
     <UseWinForms Condition="$(HaveWindowsDesktopSdk) == 'True'">true</UseWinForms>
     <!-- prevent warning with Extended.Wpf.Toolkit in .NET Core -->
     <NoWarn>NU1701</NoWarn>
+    <Title>Veldrid WPF implementation for Eto.Forms</Title>
+    <Description>This provides the WPF implementation of Eto.Veldrid for Eto.Forms</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,16 +30,17 @@
     https://github.com/picoe/Eto/issues/1544
     https://github.com/xceedsoftware/wpftoolkit/issues/1557 -->
     <PackageReference Include="Extended.Wpf.Toolkit" Version="[3.6.0]" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup Condition="$(TargetFramework) == 'net461'">
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="ReachFramework" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="WindowsBase" />
-    <Reference Include="WindowsFormsIntegration" />
+    <Reference Include="PresentationCore" Pack="False" />
+    <Reference Include="PresentationFramework" Pack="False" />
+    <Reference Include="ReachFramework" Pack="False" />
+    <Reference Include="System.Windows.Forms" Pack="False" />
+    <Reference Include="System.Xaml" Pack="False" />
+    <Reference Include="WindowsBase" Pack="False" />
+    <Reference Include="WindowsFormsIntegration" Pack="False" />
   </ItemGroup>
 
   <Import Condition="'$(HaveWindowsDesktopSdk)' != 'true'" Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />

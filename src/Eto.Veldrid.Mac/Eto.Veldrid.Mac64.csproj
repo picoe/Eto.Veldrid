@@ -4,11 +4,13 @@
     <TargetFrameworks>net461;netcoreapp3.1</TargetFrameworks>
     <DefineConstants>MONOMAC</DefineConstants>
     <MacBuildBundle>false</MacBuildBundle>
-    <OutputPath Condition="$(MacIsBuildingBundle) == 'True'"></OutputPath>
+    <Title>Veldrid Mac implementation for Eto.Forms</Title>
+    <Description>This provides the Mac64 implementation of Eto.Veldrid for Eto.Forms</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Eto.Platform.Mac64" Version="2.5.1" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

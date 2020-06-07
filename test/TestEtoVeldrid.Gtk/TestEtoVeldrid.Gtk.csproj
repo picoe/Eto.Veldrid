@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="Eto.Platform.Gtk" Version="2.5.1" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

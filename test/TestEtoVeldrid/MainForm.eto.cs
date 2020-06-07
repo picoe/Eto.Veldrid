@@ -35,6 +35,7 @@ namespace TestEtoVeldrid
 				AboutItem = aboutCommand,
 				Items =
 				{
+					new ButtonMenuItem { Text = "&File" },
 					new ButtonMenuItem { Text = "&View", Items = { CmdAnimate, CmdClockwise } }
 				}
 			};
