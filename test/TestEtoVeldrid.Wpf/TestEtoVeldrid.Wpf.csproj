@@ -30,6 +30,7 @@
     https://github.com/picoe/Eto/issues/1544
     https://github.com/xceedsoftware/wpftoolkit/issues/1557 -->
     <PackageReference Include="Extended.Wpf.Toolkit" Version="[3.6.0]" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="all" />
   </ItemGroup>
 
   <Import Condition="'$(HaveWindowsDesktopSdk)' != 'true'" Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
