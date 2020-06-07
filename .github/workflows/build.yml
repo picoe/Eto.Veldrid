@@ -99,10 +99,6 @@ jobs:
     steps:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v1
-        with:
-          source-url: https://api.nuget.org/v3/index.json
-        env:
-          NUGET_AUTH_TOKEN: ${{secrets.NUGET_API_KEY}}
 
       - name: Download NuGet Packages
         uses: actions/download-artifact@v1
@@ -110,4 +106,4 @@ jobs:
           name: nuget
 
       - name: Push packages
-        run: dotnet nuget push ./nuget/**/*.nupkg --skip-duplicate
+        run: dotnet nuget push ./nuget/**/*.nupkg --skip-duplicate -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_API_KEY}}
