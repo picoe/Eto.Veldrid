@@ -14,13 +14,13 @@ namespace Eto.Veldrid.Gtk
 	{
 		public Size RenderSize => Size.Round((SizeF)Widget.Size * Scale);
 
-		float Scale => Widget.ParentWindow?.LogicalPixelSize ?? 1;
+		float Scale => Widget.ParentWindow?.Screen?.LogicalPixelSize ?? 1;
 
 		public GtkVeldridSurfaceHandler()
 		{
 			Control = new GtkVeldridDrawingArea();
 
-			Control.Render += Control_InitializeGraphicsBackend;
+			Control.Realized += Control_InitializeGraphicsBackend;
 		}
 
 		public Swapchain CreateSwapchain()
@@ -56,21 +56,27 @@ namespace Eto.Veldrid.Gtk
 			return swapchain;
 		}
 
-		void Control_InitializeGraphicsBackend(object o, RenderArgs args)
+		void Control_InitializeGraphicsBackend(object sender, EventArgs e)
 		{
+			Control.Context.MakeCurrent();
 			Callback.OnInitializeBackend(Widget, new InitializeEventArgs(RenderSize));
 
-			Control.Render -= Control_InitializeGraphicsBackend;
 			Control.Render += Control_Render;
 			Widget.SizeChanged += Widget_SizeChanged;
 		}
 
-		private void Widget_SizeChanged(object sender, EventArgs e) => Callback.OnResize(Widget, new ResizeEventArgs(RenderSize));
+		private void Widget_SizeChanged(object sender, EventArgs e)
+		{
+			Callback.OnResize(Widget, new ResizeEventArgs(RenderSize));
+		}
 
-		void Control_Render(object o, RenderArgs args) => Callback.OnDraw(Widget, args);
+		void Control_Render(object o, RenderArgs args)
+		{
+			Callback.OnDraw(Widget, EventArgs.Empty);
+		}
 
 		// TODO: Figure this one out! The docstring for this property in Veldrid's OpenGLPlatformInfo is ambiguous.
-		IntPtr VeldridSurface.IOpenGL.OpenGLContextHandle => ((VeldridSurface.IOpenGL)this).GetCurrentContext();
+		IntPtr VeldridSurface.IOpenGL.OpenGLContextHandle => Control.Context.Handle;
 
 		IntPtr VeldridSurface.IOpenGL.GetProcAddress(string name) => X11Interop.glXGetProcAddress(name);
 
