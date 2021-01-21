@@ -11,13 +11,13 @@
             "preLaunchTask": "build",
             "program": "",
             "osx": {
-                "program": "${workspaceFolder}/artifacts/bin/TestEtoVeldrid.Mac64/Debug/netcoreapp3.1/osx-x64/TestEtoVeldrid.Mac64.app/Contents/MacOS/TestEtoVeldrid.Mac64"
+                "program": "${workspaceFolder}/artifacts/bin/TestEtoVeldrid.Mac64/Debug/net5.0/osx-x64/TestEtoVeldrid.Mac64.app/Contents/MacOS/TestEtoVeldrid.Mac64"
             },
             "linux": {
-                "program": "${workspaceFolder}/artifacts/bin/TestEtoVeldrid.Gtk/Debug/netcoreapp3.1/linux-x64/TestEtoVeldrid.Gtk.dll"
+                "program": "${workspaceFolder}/artifacts/bin/TestEtoVeldrid.Gtk/Debug/net5.0/linux-x64/TestEtoVeldrid.Gtk.dll"
             },
             "windows": {
-                "program": "${workspaceFolder}/artifacts/bin/TestEtoVeldrid.Wpf/Debug/netcoreapp3.1/win-x64/TestEtoVeldrid.Wpf.dll"
+                "program": "${workspaceFolder}/artifacts/bin/TestEtoVeldrid.Wpf/Debug/net5.0/win-x64/TestEtoVeldrid.Wpf.dll"
             },
             "console": "internalConsole",
             "stopAtEntry": false
