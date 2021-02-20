@@ -10,7 +10,7 @@ using Veldrid;
 
 namespace Eto.Veldrid.Gtk
 {
-	public class GtkVeldridSurfaceHandler : GtkControl<GtkVeldridDrawingArea, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler, VeldridSurface.IOpenGL
+	public class GtkVeldridSurfaceHandler : GtkControl<GLArea, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler, VeldridSurface.IOpenGL
 	{
 		public Size RenderSize => Size.Round((SizeF)Widget.Size * Scale);
 
@@ -18,7 +18,15 @@ namespace Eto.Veldrid.Gtk
 
 		public GtkVeldridSurfaceHandler()
 		{
-			Control = new GtkVeldridDrawingArea();
+			Control = new GLArea();
+			Control.CanFocus = true;
+
+			// Veldrid technically supports as low as OpenGL 3.0, but the full
+			// complement of features is only available with 3.3 and higher.
+			Control.SetRequiredVersion(3, 3);
+
+			Control.HasDepthBuffer = true;
+			Control.HasStencilBuffer = true;
 
 			Control.Realized += Control_InitializeGraphicsBackend;
 		}
@@ -62,17 +70,25 @@ namespace Eto.Veldrid.Gtk
 			Callback.OnInitializeBackend(Widget, new InitializeEventArgs(RenderSize));
 
 			Control.Render += Control_Render;
-			Widget.SizeChanged += Widget_SizeChanged;
+			Control.Resize += Control_Resize;
 		}
 
-		private void Widget_SizeChanged(object sender, EventArgs e)
+		bool skipDraw;
+
+		private void Control_Resize(object o, ResizeArgs args)
 		{
+			skipDraw = false;
 			Callback.OnResize(Widget, new ResizeEventArgs(RenderSize));
 		}
 
 		void Control_Render(object o, RenderArgs args)
 		{
-			Callback.OnDraw(Widget, EventArgs.Empty);
+			if (!skipDraw)
+			{
+				skipDraw = true;
+				Callback.OnDraw(Widget, EventArgs.Empty);
+			}
+			skipDraw = false;
 		}
 
 		// TODO: Figure this one out! The docstring for this property in Veldrid's OpenGLPlatformInfo is ambiguous.
@@ -92,7 +108,12 @@ namespace Eto.Veldrid.Gtk
 
 		void VeldridSurface.IOpenGL.SwapBuffers()
 		{
-			// This happens automatically in GLArea, so no need to do anything.
+			// GLArea doesn't support drawing directly, so we queue a render but don't actually call OnDraw
+			if (skipDraw)
+				return;
+				
+			skipDraw = true;
+			Control.QueueRender();
 		}
 
 		void VeldridSurface.IOpenGL.SetSyncToVerticalBlank(bool on)
@@ -105,6 +126,18 @@ namespace Eto.Veldrid.Gtk
 
 		void VeldridSurface.IOpenGL.ResizeSwapchain(uint width, uint height)
 		{
+		}
+
+		void Eto.Forms.Control.IHandler.Invalidate(Rectangle rect, bool invalidateChildren)
+		{
+			skipDraw = false;
+			Control.QueueRender();
+		}
+
+		void Eto.Forms.Control.IHandler.Invalidate(bool invalidateChildren)
+		{
+			skipDraw = false;
+			Control.QueueRender();
 		}
 	}
 }
