@@ -11,13 +11,13 @@
             "preLaunchTask": "build",
             "program": "",
             "osx": {
-                "program": "${workspaceFolder}/artifacts/bin/TestEtoVeldrid.Mac64/Debug/netcoreapp3.1/osx-x64/TestEtoVeldrid.Mac64.app/Contents/MacOS/TestEtoVeldrid.Mac64"
+                "program": "${workspaceFolder}/artifacts/bin/TestEtoVeldrid.Mac64/Debug/net5.0/osx-x64/TestEtoVeldrid.Mac64.app/Contents/MacOS/TestEtoVeldrid.Mac64"
             },
             "linux": {
-                "program": "${workspaceFolder}/artifacts/bin/TestEtoVeldrid.Gtk/Debug/netcoreapp3.1/linux-x64/TestEtoVeldrid.Gtk.dll"
+                "program": "${workspaceFolder}/artifacts/bin/TestEtoVeldrid.Gtk/Debug/net5.0/linux-x64/TestEtoVeldrid.Gtk.dll"
             },
             "windows": {
-                "program": "${workspaceFolder}/artifacts/bin/TestEtoVeldrid.Wpf/Debug/netcoreapp3.1/win-x64/TestEtoVeldrid.Wpf.dll"
+                "program": "${workspaceFolder}/artifacts/bin/TestEtoVeldrid.Wpf/Debug/net5.0-windows/win-x64/TestEtoVeldrid.Wpf.dll"
             },
             "console": "internalConsole",
             "stopAtEntry": false
@@ -29,11 +29,11 @@
             "preLaunchTask": "build",
             "program": "",
             "osx": {
-                "program": "${workspaceFolder}/artifacts/bin/TestEtoVeldrid.Mac64/Debug/net472/osx-x64/TestEtoVeldrid.Mac64.app/Contents/MacOS/TestEtoVeldrid.Mac64",
+                "program": "${workspaceFolder}/artifacts/bin/TestEtoVeldrid.Mac64/Debug/net48/osx-x64/TestEtoVeldrid.Mac64.app/Contents/MacOS/TestEtoVeldrid.Mac64",
                 "useRuntime": false
             },
             "linux": {
-                "program": "${workspaceFolder}/artifacts/bin/TestEtoVeldrid.Gtk/Debug/net472/linux-x64/TestEtoVeldrid.Gtk.exe"
+                "program": "${workspaceFolder}/artifacts/bin/TestEtoVeldrid.Gtk/Debug/net48/linux-x64/TestEtoVeldrid.Gtk.exe"
             },
             "console": "internalConsole"
         },
@@ -44,7 +44,7 @@
             "preLaunchTask": "build",
             "program": "",
             "windows": {
-                "program": "${workspaceFolder}/artifacts/bin/TestEtoVeldrid.Wpf/Debug/net472/win-x64/TestEtoVeldrid.Wpf.exe"
+                "program": "${workspaceFolder}/artifacts/bin/TestEtoVeldrid.Wpf/Debug/net48/win-x64/TestEtoVeldrid.Wpf.exe"
             },
             "console": "internalConsole"
         },
@@ -55,7 +55,7 @@
             "preLaunchTask": "build",
             "program": "",
             "windows": {
-                "program": "${workspaceFolder}/artifacts/bin/TestEtoVeldrid.WinForms/Debug/net472/win-x64/TestEtoVeldrid.WinForms.exe"
+                "program": "${workspaceFolder}/artifacts/bin/TestEtoVeldrid.WinForms/Debug/net48/win-x64/TestEtoVeldrid.WinForms.exe"
             },
             "console": "internalConsole"
         },

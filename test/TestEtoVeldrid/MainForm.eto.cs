@@ -31,13 +31,13 @@ namespace TestEtoVeldrid
 
 			Menu = new MenuBar
 			{
-				QuitItem = quitCommand,
-				AboutItem = aboutCommand,
 				Items =
 				{
 					new ButtonMenuItem { Text = "&File" },
 					new ButtonMenuItem { Text = "&View", Items = { CmdAnimate, CmdClockwise } }
-				}
+				},
+				QuitItem = quitCommand,
+				AboutItem = aboutCommand,
 			};
 		}
 	}

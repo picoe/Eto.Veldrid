@@ -9,7 +9,8 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>net48</TargetFrameworks>
+    <TargetFrameworks Condition="$(HaveWindowsDesktopSdk) == 'True'">$(TargetFrameworks);net5.0-windows</TargetFrameworks>
     <UseWindowsForms>true</UseWindowsForms>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
@@ -20,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Eto.Platform.Windows" Version="2.5.1" />
+    <PackageReference Include="Eto.Platform.Windows" Version="2.5.9" />
   </ItemGroup>
 
   <Import Condition="'$(HaveWindowsDesktopSdk)' != 'true'" Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
