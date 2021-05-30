@@ -10,25 +10,18 @@ using Veldrid;
 
 namespace Eto.Veldrid.Gtk
 {
-	public class GtkVeldridSurfaceHandler : GtkControl<GLArea, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler, VeldridSurface.IOpenGL
+	public class GtkVeldridSurfaceHandler : GtkControl<EtoEventBox, VeldridSurface, VeldridSurface.ICallback>, VeldridSurface.IHandler, VeldridSurface.IOpenGL
 	{
+		GLArea glArea;
 		public Size RenderSize => Size.Round((SizeF)Widget.Size * Scale);
 
 		float Scale => Widget.ParentWindow?.Screen?.LogicalPixelSize ?? 1;
 
+		public override global::Gtk.Widget ContainerContentControl => glArea ?? base.ContainerContentControl;
+
 		public GtkVeldridSurfaceHandler()
 		{
-			Control = new GLArea();
-			Control.CanFocus = true;
-
-			// Veldrid technically supports as low as OpenGL 3.0, but the full
-			// complement of features is only available with 3.3 and higher.
-			Control.SetRequiredVersion(3, 3);
-
-			Control.HasDepthBuffer = true;
-			Control.HasStencilBuffer = true;
-
-			Control.Realized += Control_InitializeGraphicsBackend;
+			Control = new EtoEventBox { Handler = this };
 		}
 
 		public Swapchain CreateSwapchain()
@@ -64,24 +57,29 @@ namespace Eto.Veldrid.Gtk
 			return swapchain;
 		}
 
-		void Control_InitializeGraphicsBackend(object sender, EventArgs e)
+		void glArea_InitializeGraphicsBackend(object sender, EventArgs e)
 		{
-			Control.Context.MakeCurrent();
+			glArea.Context.MakeCurrent();
 			Callback.OnInitializeBackend(Widget, new InitializeEventArgs(RenderSize));
 
-			Control.Render += Control_Render;
-			Control.Resize += Control_Resize;
+			glArea.Render += glArea_Render;
+			glArea.Resize += glArea_Resize;
+		}
+
+		void Control_InitializeGraphicsBackend(object sender, EventArgs e)
+		{
+			Callback.OnInitializeBackend(Widget, new InitializeEventArgs(RenderSize));
 		}
 
 		bool skipDraw;
 
-		private void Control_Resize(object o, ResizeArgs args)
+		private void glArea_Resize(object o, ResizeArgs args)
 		{
 			skipDraw = false;
 			Callback.OnResize(Widget, new ResizeEventArgs(RenderSize));
 		}
 
-		void Control_Render(object o, RenderArgs args)
+		void glArea_Render(object o, RenderArgs args)
 		{
 			if (!skipDraw)
 			{
@@ -92,11 +90,11 @@ namespace Eto.Veldrid.Gtk
 		}
 
 		// TODO: Figure this one out! The docstring for this property in Veldrid's OpenGLPlatformInfo is ambiguous.
-		IntPtr VeldridSurface.IOpenGL.OpenGLContextHandle => Control.Context.Handle;
+		IntPtr VeldridSurface.IOpenGL.OpenGLContextHandle => glArea?.Context.Handle ?? IntPtr.Zero;
 
 		IntPtr VeldridSurface.IOpenGL.GetProcAddress(string name) => X11Interop.glXGetProcAddress(name);
 
-		void VeldridSurface.IOpenGL.MakeCurrent(IntPtr context) => Control.MakeCurrent();
+		void VeldridSurface.IOpenGL.MakeCurrent(IntPtr context) => glArea?.MakeCurrent();
 
 		IntPtr VeldridSurface.IOpenGL.GetCurrentContext() => Gdk.GLContext.Current.Handle;
 
@@ -111,9 +109,9 @@ namespace Eto.Veldrid.Gtk
 			// GLArea doesn't support drawing directly, so we queue a render but don't actually call OnDraw
 			if (skipDraw)
 				return;
-				
+
 			skipDraw = true;
-			Control.QueueRender();
+			glArea?.QueueRender();
 		}
 
 		void VeldridSurface.IOpenGL.SetSyncToVerticalBlank(bool on)
@@ -131,13 +129,40 @@ namespace Eto.Veldrid.Gtk
 		void Eto.Forms.Control.IHandler.Invalidate(Rectangle rect, bool invalidateChildren)
 		{
 			skipDraw = false;
-			Control.QueueRender();
+			glArea?.QueueRender();
 		}
 
 		void Eto.Forms.Control.IHandler.Invalidate(bool invalidateChildren)
 		{
 			skipDraw = false;
-			Control.QueueRender();
+			glArea?.QueueRender();
+		}
+
+
+		protected override void Initialize()
+		{
+			base.Initialize();
+			
+			if (Widget.Backend == GraphicsBackend.OpenGL)
+			{
+				glArea = new GLArea();
+				glArea.CanFocus = true;
+
+				// Veldrid technically supports as low as OpenGL 3.0, but the full
+				// complement of features is only available with 3.3 and higher.
+				glArea.SetRequiredVersion(3, 3);
+
+				glArea.HasDepthBuffer = true;
+				glArea.HasStencilBuffer = true;
+				Control.Child = glArea;
+				glArea.Realized += glArea_InitializeGraphicsBackend;
+			}
+			else
+			{
+				Control.CanFocus = true;
+				Control.Realized += Control_InitializeGraphicsBackend;				
+			}
+
 		}
 	}
 }

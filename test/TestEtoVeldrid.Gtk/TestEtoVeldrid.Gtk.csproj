@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFrameworks>net5.0;net472</TargetFrameworks>
+    <TargetFrameworks>net5.0;net48</TargetFrameworks>
     <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
   </PropertyGroup>
 
@@ -20,5 +20,5 @@
     <ProjectReference Include="..\TestEtoVeldrid\TestEtoVeldrid.csproj" />
     <ProjectReference Include="..\..\src\Eto.Veldrid.Gtk\Eto.Veldrid.Gtk.csproj" />
   </ItemGroup>
-  
+
 </Project>
